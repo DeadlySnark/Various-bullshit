@@ -1,0 +1,2772 @@
+;=============================================================================
+;妊娠関連のイベント
+;
+;妊娠処理変更パッチにより、本モジュールの機能のいくつかは無効となった。
+;=============================================================================
+;---------------------------------------------------------
+;紅魔館生活中呼び出される関数
+;---------------------------------------------------------
+
+;---------------------------------------------------------
+;一日の終了後に呼び出される関数
+;---------------------------------------------------------
+@PREGNACY_S_ANNOUNCEMENT
+	#DIM LOOP_CHR
+	#DIM 父親
+	FOR LOOP_CHR,1,CHARA_ACTIVE
+		SIF CFLAG:LOOP_CHR:凍結
+			CONTINUE
+		;v0420 整理。
+		IF TALENT:LOOP_CHR:妊娠 == 0 && CFLAG:LOOP_CHR:にんっしんっ > 0 && LOOP_CHR != MASTER
+			;所属または恋慕
+			父親 = CFLAG:LOOP_CHR:にんっしんっ -1
+			IF 所属(LOOP_CHR) || TALENT:LOOP_CHR:恋慕
+				PRINTFORML %CALLNAME:LOOP_CHR%の様子がおかしい…
+				PRINTFORMW %CALLNAME:LOOP_CHR%は%N_T_R_P(父親)%の子供を身篭った様だ
+				PRINTFORMW %CALLNAME:LOOP_CHR%は[妊娠]した
+				;MASTERが普通の位置にいるときメッセージ
+				IF CFLAG:MASTER:現在位置 < 場所_訪問者宅
+				;口上を優先
+					CALL PREGNACY_S_ANNOUNCEMENT_MSG(LOOP_CHR)
+					TRYCALLFORM INPREGNANT_K{NO:LOOP_CHR}(LOOP_CHR)
+				ENDIF
+				CALL CHANGE_N_STATUS(LOOP_CHR)
+			ELSE
+				;所属でも恋慕でもない(ステルス)→ステルス出産
+				SIF 父親>=10000
+					父親=父親-10000
+				TRYCALL 生まれる人数, LOOP_CHR
+				;NTRPREが母乳出るといろいろ厄介なので
+				IF TALENT:LOOP_CHR:母乳体質 == 0 && !TALENT:LOOP_CHR:NTRPRE
+					TALENT:LOOP_CHR:母乳体質 = 1
+					MAXBASE:LOOP_CHR:母乳 = 10000
+					BASE:LOOP_CHR:母乳 = 10000
+				ENDIF
+				IF !EXP:LOOP_CHR:Ｖ拡張経験 && !EXP:LOOP_CHR:Ａ拡張経験 && !GETBIT(CFLAG:LOOP_CHR:4 ,5)
+					EXP:LOOP_CHR:異常経験 ++
+					SETBIT CFLAG:LOOP_CHR:4 ,5
+				ENDIF
+				EXP:LOOP_CHR:Ｖ拡張経験 += 1
+
+				CALL 締り具合変動, LOOP_CHR, 10, 0
+				親別出産数:(NO:LOOP_CHR):父親 += CFLAG:LOOP_CHR:出産数
+				CFLAG:LOOP_CHR:にんっしんっ = 0
+				EXP:LOOP_CHR:出産経験++
+				CFLAG:LOOP_CHR:子供の人数+=CFLAG:LOOP_CHR:出産数
+			ENDIF
+			CALL CLEAR_FLAG(LOOP_CHR)
+			
+		ENDIF
+		SIF GETBIT(TALENT:LOOP_CHR:性別,1) && MAXBASE:LOOP_CHR:精力 <= 0
+			MAXBASE:LOOP_CHR:精力 = 10000
+		CALL PREGNACY_S_BIRTH_CHECK(LOOP_CHR)
+;		CALL PREGNACY_S_CHILD_CHECK(LOOP_CHR)
+;		CALL PREGNACY_S_EVENT_FLAGCLEAR(LOOP_CHR)
+		
+		;v0410以前　念のため保存
+		[SKIPSTART]
+		IF TALENT:LOOP_CHR:妊娠 == 0 && CFLAG:LOOP_CHR:にんっしんっ > 0 && LOOP_CHR != MASTER
+			;身近でないときの処理、すなわち手抜き
+			;即出産させる
+			IF !所属(LOOP_CHR) && !TALENT:LOOP_CHR:恋慕
+				SIF CFLAG:LOOP_CHR:にんっしんっ > 9999
+					CFLAG:LOOP_CHR:にんっしんっ -= 10000
+				IF !EXP:LOOP_CHR:Ｖ拡張経験 && !EXP:LOOP_CHR:Ａ拡張経験 && !GETBIT(CFLAG:LOOP_CHR:4 ,5)
+					EXP:LOOP_CHR:異常経験 ++
+					SETBIT CFLAG:LOOP_CHR:4,5
+				ENDIF
+				EXP:LOOP_CHR:Ｖ拡張経験 += 1
+				CALL 締り具合変動, LOOP_CHR, 10, 0
+				親別出産数:LOOP_CHR:(CFLAG:LOOP_CHR:にんっしんっ - 1) += 1
+				CFLAG:LOOP_CHR:にんっしんっ=0
+				CFLAG:LOOP_CHR:子供の人数+=1
+				CFLAG:LOOP_CHR:里子人数+=1
+				CONTINUE
+			ENDIF
+			父親 = CFLAG:LOOP_CHR:にんっしんっ -1
+			PRINTFORML %CALLNAME:LOOP_CHR%の様子がおかしい…
+			PRINTFORMW %CALLNAME:LOOP_CHR%は%N_T_R(父親, 1)%の子供を身篭った様だ
+			PRINTFORMW %CALLNAME:LOOP_CHR%は[妊娠]した
+			;父親によって固有のメッセージ表示
+			IF CFLAG:MASTER:現在位置 == 場所_訪問者宅 || CFLAG:MASTER:現在位置 == 場所_売春宿 || CFLAG:LOOP_CHR:現在位置 >場所番号最大値
+				;MASTERが拉致されている時は知らされない
+			ELSE
+				CALL PREGNACY_S_ANNOUNCEMENT_MSG(LOOP_CHR)
+			ENDIF
+			TALENT:LOOP_CHR:妊娠 = 1
+			CALL CHANGE_N_STATUS(LOOP_CHR)
+		ELSEIF TALENT:LOOP_CHR:妊娠 == 0 && CFLAG:LOOP_CHR:にんっしんっ > 0 && LOOP_CHR == MASTER && (CFLAG:MASTER:現在位置 == 場所_訪問者宅 || CFLAG:MASTER:現在位置 == 場所_売春宿) && CFLAG:MASTER:屈服度 < 1000
+			PRINTFORML 体の調子がおかしい…
+			PRINTFORMW しかしここでは検査する事もできない…
+	;		TALENT:LOOP_CHR:妊娠 = 1
+	;		CALL CHANGE_N_STATUS(LOOP_CHR)
+		ELSEIF TALENT:LOOP_CHR:妊娠 == 0 && CFLAG:LOOP_CHR:にんっしんっ > 0 && LOOP_CHR == MASTER
+			PRINTFORML 体の調子がおかしい…
+			PRINTFORM 検査してもらったところ、
+			PRINTFORMW %N_T_R(父親, 1)%の子供を身篭った様だ
+			PRINTFORMW %CALLNAME:LOOP_CHR%は[妊娠]した
+			TALENT:LOOP_CHR:妊娠 = 1
+			CALL CHANGE_N_STATUS(LOOP_CHR)
+		ENDIF
+		CALL CLEAR_FLAG(LOOP_CHR)
+		[SKIPEND]
+	NEXT
+
+RETURN 0
+
+@PREGNACY_S_ANNOUNCEMENT_MSG(奴隷)
+	#DIM 奴隷
+	#DIM 父親
+	#DIMS 他の男
+	
+	父親 = CFLAG:奴隷:にんっしんっ -1
+
+	;恋慕、父親がMASTER
+	IF TALENT:奴隷:恋慕 && 父親 == MASTER
+		PRINTFORML %CALLNAME:奴隷%は頬を染め%CALLNAME:MASTER%の子を宿したことを伝えてきた。
+	;恋慕住人、父親がMASTERではない
+	ELSEIF TALENT:奴隷:恋慕
+		IF NTR_CHK_FAVORABLY(奴隷, FAV_寝取られそう)
+			PRINTFORML %CALLNAME:奴隷%は言い辛そうに%N_T_R_P(父親)%の子を宿したことを伝えてきた。
+			IF TALENT:奴隷:浮気公認
+				PRINTFORML 驚いた%CALLNAME:MASTER%が問い詰めるも、%CALLNAME:MASTER%が望んだ結果だろう、と逆切れされてしまった。
+			ELSE
+				PRINTFORML 驚いた%CALLNAME:MASTER%が問い詰めるより先に%CALLNAME:奴隷%は頭を下げ、子供には罪がないから産みたい、許して欲しいと謝ってきた。
+			ENDIF
+		ELSE
+			PRINTFORML %CALLNAME:奴隷%は青ざめた顔をして%CALLNAME:MASTER%に%N_T_R_P(父親)%の子を宿したことを伝えてきた。
+			PRINTFORML 泣き崩れる%CALLNAME:奴隷%を支えながら、%CALLNAME:MASTER%は子供に罪はないと諭すことしかできなかった。
+		ENDIF
+	;NTR,父親不明
+	ELSEIF TALENT:奴隷:NTR && 父親 >= 10000
+		PRINTFORML %CALLNAME:奴隷%は孕んでしまったことを%CALLNAME:MASTER%に伝えてきた。
+		PRINTFORMW 驚いた%CALLNAME:MASTER%が問い詰めるも、父親が誰かすらわからない、とあっけからんと言い放った。
+	;NTR
+	ELSEIF TALENT:奴隷:NTR
+		PRINTFORML %CALLNAME:奴隷%は頬を染め%N_T_R_P(父親)%の子を宿したことを伝えてきた。
+		SIF 父親==MASTER
+			PRINTFORMW %CALLNAME:MASTER%が呆然としていると、あの人と相談してこれからを決めるから別に気にしなくてもいい、と冷たく言い放った。
+	;その他
+	ELSE
+		PRINTFORML %CALLNAME:奴隷%は青ざめた顔をして%CALLNAME:MASTER%に%N_T_R_P(父親)%の子を宿したことを伝えてきた。
+		SIF 父親 != MASTER
+			PRINTFORML 泣き崩れる%CALLNAME:奴隷%を支えながら、%CALLNAME:MASTER%は子供に罪はないと諭すことしかできなかった。
+	ENDIF
+	IF TALENT:奴隷:アイドル==1
+		PRINTFORML 職業柄、妊娠していることは不利に働くだろう……
+		PRINTFORML %CALLNAME:MASTER%は%CALLNAME:GET_SEC()%が伝手で入手した胎児成長促進剤を%CALLNAME:奴隷%に飲ませた。
+		PRINTFORMW この薬は妊娠期間を圧倒的に短くするらしい。
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%が%CALLNAME:GET_SEC()%から渡された胎児成長促進剤は見返りに臨床データを、との約束で入手したらしい。
+		PRINTFORMW %CALLNAME:奴隷%にも薬を服用して、データ収集に協力してもらおう。
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------
+;妊娠時のステータスの変化
+;-------------------------------------------------
+@CHANGE_N_STATUS(奴隷)
+	#DIM 奴隷
+	TALENT:奴隷:妊娠=1
+	;基本的に対象が変わるだけで同じなので関数にくくりだした
+	;体力上限を減らす
+	;体力が上限超えることもあるので、体力501以上なら500にする
+	MAXBASE:奴隷:体力 -= 500
+	IF BASE:奴隷:体力 >= 501
+		BASE:奴隷:体力 = 500
+	ENDIF
+
+	;出産系のフラグ設定
+	CFLAG:奴隷:出産日 = DAY + 10 - MIN(1, TALENT:奴隷:繁殖母体)*5
+
+	;妊婦の胸の大きさをフラグに代入する処理
+	SIF CFLAG:奴隷:バストサイズ保存 == 0
+		CFLAG:奴隷:バストサイズ保存 = TALENT:奴隷:バストサイズ
+
+	;乳がワンランクパワーアップする
+	;絶→貧　貧→普　普→巨　巨・爆→そのまま
+	IF TALENT:奴隷:バストサイズ <= 0
+		PRINTFORMW %CALLNAME:奴隷%の胸が大きくなった
+		TALENT:奴隷:バストサイズ += 1
+		IF TALENT:奴隷:バストサイズ == -1
+			PRINTFORMW [絶壁]から[貧乳]ぐらいにはなった
+		ELSEIF TALENT:奴隷:バストサイズ == 0
+			PRINTFORMW [貧乳]から普通のサイズになった
+		ELSE
+			PRINTFORMW [巨乳]になった
+		ENDIF
+		PRINTL 
+	ENDIF
+
+	;母乳出るようになる
+	IF TALENT:奴隷:母乳体質 == 0
+		PRINTFORMW %CALLNAME:奴隷%は母乳が出るようになった
+		PRINTL 
+		TALENT:奴隷:母乳体質 = 1
+		MAXBASE:奴隷:母乳 = 10000
+		BASE:奴隷:母乳 = 10000
+	ELSE
+		;すでに母乳体質の場合はそのフラグを持っておく
+		CFLAG:奴隷:母乳体質獲得 = 1
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------
+;臨月到達
+;-------------------------------------------------
+@PREGNACY_S_BIRTH_CHECK(奴隷)
+	#DIM 奴隷
+	;妊娠していないとだめ
+	SIF CFLAG:奴隷:にんっしんっ == 0
+		RETURN 0
+	;出産日ならば出産
+	IF DAY >= CFLAG:奴隷:出産日
+		CALL PREGNACY_S_BIRTH(奴隷)
+		RETURN 1
+;	ELSEIF 奴隷 != MASTER && DAY == CFLAG:奴隷:出産日 - 3 && CFLAG:奴隷:現在位置 == 場所_ソープ
+;		PRINTFORML %CALLNAME:奴隷%は臨月を迎えました
+;		PRINTFORMW %CALLNAME:奴隷%は診療所へ行きたいと訴えたが聞き入れて貰えなかった…
+	ELSEIF 奴隷 != MASTER && DAY == CFLAG:奴隷:出産日 - 3 
+		PRINTFORML %CALLNAME:奴隷%は臨月を迎えました
+		PRINTFORMW %CALLNAME:奴隷%は出産に備え診療所へ移動します
+		;念のため
+		CALL NTR_RESET_VISITOR_ACTION(奴隷)
+		CFLAG:奴隷:自主性=0
+		;部屋拡張に備えてとりあえず950
+		CFLAG:奴隷:現在位置 = 場所_永琳診療所
+		SIF TARGET == 奴隷
+			TARGET = 0
+;	ELSEIF DAY == CFLAG:奴隷:出産日 - 3
+;		PRINTFORML %CALLNAME:奴隷%は臨月を迎えました
+	ENDIF
+
+;-------------------------------------------------
+;出産
+;-------------------------------------------------
+@PREGNACY_S_BIRTH(奴隷)
+	#DIM 奴隷
+	#DIM 父親
+	#DIM LOOP_I
+	;PRINTL 出産経験＋1
+	;EXP:奴隷:52 += 1
+	PRINTW  
+
+	;誰の子か分からない場合は判明させる(NO)
+	父親=CFLAG:奴隷:にんっしんっ-1
+	SIF 父親 >= 10000
+		父親 -= 10000
+	;生まれる人数設定
+	TRYCALL 生まれる人数, 奴隷
+	
+	;問答無用で里子
+
+	PRINTFORML %CALLNAME:奴隷%の子供が産まれそうだ、と連絡が来たため%CALLNAME:MASTER%は診療所に駆けつけた。
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTFORML 急いできた%CALLNAME:MASTER%は看護士に夫だと判断されたらしく%CALLNAME:奴隷%の分娩室へと通された。
+	PRINTFORM 分娩台で汗だくで苦しむ%CALLNAME:奴隷%の手を%CALLNAME:MASTER%が握ると
+	IF TALENT:奴隷:NTR
+		PRINTFORML 払いのけられてしまった。
+	ELSE
+		PRINTFORML 握り返してきた。
+	ENDIF
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTFORML %CALLNAME:奴隷%は何とか無事出産し終わったようだ。
+	SIF CFLAG:奴隷:出産数 > 1
+		CALL 多生児出産口上, CFLAG:奴隷:出産数, 0
+	IF CFLAG:奴隷:にんっしんっ>10000
+	;父親だーれだ
+		PRINTFORML 父親が分からなかったため、%CALLNAME:奴隷%は赤ちゃんに遺伝子検査を受けてさせている。
+		PRINTL 　　　・
+		PRINTL 　　　・
+		PRINTW 　　　・
+		IF 父親 < 人物_村人
+			PRINTFORMW 検査の結果、父親は%N_T_R_P(父親)%と判明した。
+		ELSE
+			PRINTFORM 提出したサンプルでは父親を特定できなかった。
+			SIF CFLAG:奴隷:出産数>1
+				PRINTFORML しかも、一人一人の父親が違う、との結果が出て医者は困惑している。
+			PRINTFORMW どうやら行きずりの相手との子供らしい。
+		ENDIF
+	ENDIF
+	IF TALENT:奴隷:恋慕 && 父親 == MASTER
+		PRINTFORMW %CALLNAME:奴隷%は慈愛の笑みを赤ちゃんに向けている。
+	ELSEIF TALENT:奴隷:恋慕
+		PRINTFORMW %CALLNAME:奴隷%は望まぬ子を前に青ざめている。
+	ELSEIF TALENT:奴隷:NTR
+		PRINTFORMW %CALLNAME:奴隷%はこれであの人にまた抱いてもらえる、と邪な期待に満ちた顔をしている。
+	ELSE
+		PRINTFORMW %CALLNAME:奴隷%は複雑な顔をしている。
+	ENDIF
+	TRYCALLFORM BIRTH_K{NO:奴隷}(奴隷)
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTFORML %CALLNAME:奴隷%が今子供を育てるのは難しいだろう。
+	PRINTFORML 赤ちゃんは%CALLNAME:GET_SEC()%に紹介された信頼の置ける施設に預けることにした。
+	TALENT:奴隷:妊娠 = 0
+	IF TALENT:奴隷:母性 == 0
+		PRINTFORMW %CALLNAME:奴隷%は[母性]に目覚めた！
+		TALENT:奴隷:母性 = 1
+		IF TALENT:奴隷:痛覚 >= 0
+			PRINTFORML %CALLNAME:奴隷%は産みの苦しみを経験したことで精神的に強くなった
+			PRINTFORM %CALLNAME:奴隷%は
+			IF TALENT:奴隷:痛覚 == 1
+				PRINTFORM [痛みに弱い]を克服し、
+			ENDIF
+			PRINTFORMW [痛みに強い]を得た
+			TALENT:奴隷:痛覚 = -1
+		ENDIF
+	ENDIF
+	CFLAG:奴隷:現在位置=CFLAG:奴隷:開始位置
+	;Ｖ拡張経験
+	IF !EXP:奴隷:Ｖ拡張経験 && !EXP:奴隷:Ａ拡張経験 && !GETBIT(CFLAG:奴隷:4 ,5)
+		EXP:奴隷:異常経験 ++
+		SETBIT CFLAG:奴隷:4 ,5
+		PRINTL 異常経験（拡張）
+	ENDIF
+	EXP:奴隷:Ｖ拡張経験 += 1
+	PRINTL Ｖ拡張経験+1
+	PRINTL
+	CALL 締り具合変動, 奴隷, 10, 0
+	親別出産数:(NO:奴隷):父親 += CFLAG:奴隷:出産数
+	CFLAG:奴隷:にんっしんっ = 0
+	MAXBASE:奴隷:体力 += 500
+	EXP:奴隷:出産経験++
+	CFLAG:奴隷:子供の人数+=CFLAG:奴隷:出産数
+;-------------------------------------------------
+;妊娠パッチまわりのフラグをリセット
+;-------------------------------------------------
+@CLEAR_FLAG(奴隷)
+	#DIM 奴隷
+	;#DIM LOOP_CHR
+	;FOR LOOP_CHR,0,CHARA_ACTIVE
+	;	CFLAG:LOOP_CHR:71 = 0
+	;	CFLAG:LOOP_CHR:ピル使用 = 0
+	;NEXT
+	CFLAG:奴隷:71 = 0
+	CFLAG:奴隷:ピル使用 = 0
+
+;======================================================
+;ここから先は子供に関する関数
+;======================================================
+
+;------------------------------------------------------
+;誕生
+;------------------------------------------------------
+;ARG = 母親の番号, 子供 = 子供の番号 ARG:2 = 繰り返し番号
+@PREGNACY_S_CHILD_BIRTH(奴隷, 反復番号)
+	#DIM 奴隷
+	#DIM 子供
+	#DIM 反復番号
+	;息子か娘を半々で生成
+	IF RAND:2
+		ADDCHARA 501
+	ELSE
+		ADDCHARA 502
+	ENDIF
+	子供 = CHARA_ACTIVE - 1
+
+	;各種設定
+	;誕生日
+	CFLAG:子供:誕生日 = DAY
+	;父
+	CFLAG:子供:父親 = CFLAG:奴隷:にんっしんっ - 1
+	;母
+	CFLAG:子供:母親 = 奴隷
+	;成長度
+	CFLAG:子供:成長度 = 1
+	;私室設定
+	CFLAG:子供:開始位置 = CFLAG:(CFLAG:子供:母親):開始位置
+	
+	CALL 体設定_遺伝(子供, CFLAG:子供:父親, CFLAG:子供:母親, 反復番号, (子供 - 1))
+	
+	;先天的な素質
+	IF CFLAG:子供:父親 < 900
+		TALENT:子供:体型 = -2
+		SIF TALENT:(CFLAG:子供:父親):体型 == -3 || TALENT:(CFLAG:子供:母親):体型 == -3
+			TALENT:子供:体型 = -3
+		SIF TALENT:(CFLAG:子供:父親):小悪魔 || TALENT:(CFLAG:子供:母親):小悪魔
+			TALENT:子供:小悪魔 = 1
+		SIF TALENT:(CFLAG:子供:父親):吸血鬼 || TALENT:(CFLAG:子供:母親):吸血鬼
+			TALENT:子供:吸血鬼 = 1
+		SIF TALENT:(CFLAG:子供:父親):動物耳 || TALENT:(CFLAG:子供:母親):動物耳
+			TALENT:子供:動物耳 = 1
+		SIF TALENT:(CFLAG:子供:父親):猫舌 || TALENT:(CFLAG:子供:母親):猫舌
+			TALENT:子供:猫舌 = 1
+	ELSE
+		TALENT:子供:体型 = -2
+		SIF TALENT:(CFLAG:子供:母親):体型 == -3
+			TALENT:子供:体型 = -3
+		SIF TALENT:(CFLAG:子供:母親):小悪魔
+			TALENT:子供:小悪魔 = 1
+		SIF TALENT:(CFLAG:子供:母親):吸血鬼
+			TALENT:子供:吸血鬼 = 1
+		SIF TALENT:(CFLAG:子供:母親):動物耳
+			TALENT:子供:動物耳 = 1
+		SIF TALENT:(CFLAG:子供:母親):猫舌
+			TALENT:子供:猫舌 = 1
+	ENDIF
+
+	CALL 親子関係追加取得, 子供, CFLAG:子供:父親, CFLAG:子供:母親
+	CALL 子供相性設定, 子供
+;	CALL 子供気温耐性取得, 子供
+
+	SIF CFLAG:奴隷:出産数 >= 2
+		CALL 多生児フラグ処理, 子供, 反復番号
+	
+	;一人目のときだけ口上表示
+	IF 反復番号 == 0
+		IF CFLAG:子供:父親 == MASTER
+			IF CFLAG:MASTER:現在位置 == 場所_訪問者宅 || CFLAG:MASTER:現在位置 == 場所_売春宿
+				;MASTERが拉致されている時は口上非表示
+			ELSE
+				PRINTFORMW 診療所の看護婦が突然%CALLNAME:MASTER%の元へと駆け込んできた
+				PRINTFORMW どうやら%CALLNAME:奴隷%が%CALLNAME:MASTER%の子を無事産んだらしい
+				PRINTFORM %CALLNAME:MASTER%が急いで%CALLNAME:奴隷%の元へ駆けつけると、
+				IF TALENT:奴隷:恋慕
+					PRINTW 愛情に満ちた笑顔で迎えてくれた
+				ELSE
+					PRINTW 少し複雑な表情で迎えた
+				ENDIF
+				PRINTFORM %CALLNAME:奴隷%が産んだのは元気な
+				IF CFLAG:奴隷:出産数 >= 2
+					TRYCALL 多生児出産口上, CFLAG:奴隷:出産数, 0
+				ELSE
+					IF GETBIT(TALENT:子供:性別,0)
+						PRINTW 女の子だ
+					ELSEIF GETBIT(TALENT:子供:性別,1)
+						PRINTW 男の子だ
+					ENDIF
+				ENDIF
+			ENDIF
+		ELSEIF CFLAG:子供:母親 == MASTER
+			PRINTFORMW %CALLNAME:MASTER%のお腹が急に痛み出した
+			PRINTW 救急車で運んでもらい、診察してもらったところ、どうやら陣痛のようだ
+		;	PRINTW そのまま出産まで永琳と鈴仙に診てもらった
+			PRINTW 　　　　　　・
+			PRINTW 　　　　　　・
+			PRINTW 　　　　　　・
+			PRINTFORM しばらくして漸く%CALLNAME:MASTER%は元気な
+			IF CFLAG:奴隷:出産数 >= 2
+				TRYCALL 多生児出産口上, CFLAG:奴隷:出産数, 1
+			ELSE
+				IF GETBIT(TALENT:子供:性別,0)
+					PRINT 女の子
+				ELSEIF GETBIT(TALENT:子供:性別,1)
+					PRINT 男の子
+				ENDIF
+			ENDIF
+			PRINTW を産んだ
+			;訪問者とかの処理がいい加減めんｄ（ｒｙ
+			IF CFLAG:子供:父親 < 900
+				PRINTFORM 看護婦に頼んで%CALLNAME:(CFLAG:子供:父親)%を呼んで来てもらうと、%CALLNAME:(CFLAG:子供:父親)%は
+				IF TALENT:(CFLAG:子供:父親):恋慕
+					PRINT 愛情に満ちた笑顔で
+				ELSE
+					PRINT 少し複雑な表情で
+				ENDIF
+				PRINTW 赤ちゃんを抱いた
+			ELSE
+				PRINTFORM %CALLNAME:MASTER%はこの
+				IF CFLAG:子供:父親 >= 人物_訪問者
+					PRINTFORM %NTR_NAME(他人)%
+				ELSE
+					PRINT 誰か
+				ENDIF
+				PRINT の子供を
+				IF CFLAG:子供:父親 == 人物_訪問者 && CFLAG:MASTER:屈服度 >= 1000
+					PRINT 大事に育てていこうと
+				ELSE
+					PRINT お腹を痛めて産んだのだからと自分に言い聞かせ、育てていく事を
+				ENDIF
+				PRINTW 心に決めた
+			ENDIF
+		;MASTERが両親ではないときの口上
+		ELSE
+			TRYCALL 両親がMASTER以外の出産口上, 奴隷, 子供
+		ENDIF
+	ENDIF
+
+	;名前
+	IF CFLAG:子供:父親 == MASTER
+		LOCAL = 奴隷
+	ELSEIF CFLAG:子供:母親 == MASTER
+		LOCAL = CFLAG:子供:父親
+	ENDIF
+	IF CFLAG:子供:父親 == MASTER || CFLAG:子供:母親 == MASTER
+		;双子以上の場合の分岐
+		IF CFLAG:奴隷:出産数 > 1
+			PRINTFORML {反復番号+1}人目の子供(\@ GETBIT(TALENT:子供:性別,0) ?♀#♂\@)の名前を%N_T_R(LOCAL)%に付けてもらいますか？
+		ELSE
+			PRINTFORML %N_T_R(LOCAL)%に名前を付けてもらいますか？
+		ENDIF
+		PRINTL [0] 和風の名前で
+		PRINTL [1] 洋風の名前で
+		PRINTL [2] 任せます
+		PRINTL [3] 自分で付けます
+		$INPUT_LOOP_CHILD_NAME
+		INPUT
+		IF 0 <= RESULT && RESULT <= 2
+			CALL PREGNACY_S_CHILD_NAME(LOCAL,子供,RESULT)
+			SELECTCASE LOCAL
+				CASE 人物_訪問者
+					PRINTFORMW %NTR_NAME(他人)%は%CALLNAME:子供%と名付けました
+				CASE 人物_客, 人物_村人
+					PRINTFORMW 誰かは%CALLNAME:子供%と名付けました
+				CASEELSE
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:子供%と名付けました
+			ENDSELECT
+		ELSEIF RESULT == 3
+			PRINTL 名前を入力してください
+			$INPUTS_LOOP_CHILD_NAMING
+			INPUTS
+			SIF RESULTS == ""
+				GOTO INPUTS_LOOP_CHILD_NAMING
+			PRINTFORM %CALLNAME:MASTER%は%RESULTS%と名付けました
+			NAME:子供 = %RESULTS%
+			CALLNAME:子供 = %RESULTS%
+		ELSE
+			GOTO INPUT_LOOP_CHILD_NAME
+		ENDIF
+	ELSE
+		CALL PREGNACY_S_CHILD_NAME(奴隷, 子供, 2)
+	ENDIF
+	CALL 子宮内体積設定(子供)
+
+;------------------------------------------------------
+;永琳診療所から私室へ戻す
+;------------------------------------------------------
+@MOTHER_RETURN_ROOM(奴隷)
+	#DIM 奴隷
+	;永琳診療所から私室へ戻す
+	TRYCALL 私室戻しDEBUG, 奴隷
+	IF 奴隷 != MASTER
+		IF 奴隷 == 人物_A
+			CFLAG:奴隷:現在位置 = 9
+		ELSEIF 奴隷 == 人物_B
+			CFLAG:奴隷:現在位置 = 10
+		ELSEIF 奴隷 == 人物_C
+			CFLAG:奴隷:現在位置 = 11
+		ELSEIF 奴隷 == 人物_D
+			CFLAG:奴隷:現在位置 = 12
+		ELSEIF 奴隷 == 人物_E
+			CFLAG:奴隷:現在位置 = 13
+	
+		;その他追加されたキャラ用(息子・娘)
+		ELSE
+			CFLAG:奴隷:現在位置 = CFLAG:奴隷:開始位置
+		ENDIF
+	ENDIF
+
+;------------------------------------------------------
+;成長
+;------------------------------------------------------
+@PREGNACY_S_CHILD_CHECK(子供)
+	#DIM 子供
+	#DIM 成長フラグ
+
+	成長フラグ = 0
+	IF DAY > CFLAG:子供:80 + 20 && CFLAG:子供:成長度 == 1
+		TALENT:子供:幼稚 = 0
+		IF CFLAG:子供:父親 < 900
+			SIF TALENT:(CFLAG:子供:父親):幼稚 && TALENT:(CFLAG:子供:母親):幼稚
+				TALENT:子供:幼稚 = 1
+		ELSEIF TALENT:(CFLAG:子供:母親):幼稚
+			TALENT:子供:幼稚 = 1
+		ENDIF
+		CFLAG:子供:成長度 = 2
+		成長フラグ = 1
+		IF CFLAG:子供:父親 < 900
+			MAXBASE:子供:体力 = (MAXBASE:(CFLAG:子供:父親):体力 + MAXBASE:(CFLAG:子供:母親):体力) / 2 / 2
+			MAXBASE:子供:気力 = (MAXBASE:(CFLAG:子供:父親):気力 + MAXBASE:(CFLAG:子供:母親):気力) / 2 / 2
+		ELSE
+			MAXBASE:子供:体力 = (MAXBASE:(CFLAG:子供:母親):体力) / 2
+			MAXBASE:子供:気力 = (MAXBASE:(CFLAG:子供:母親):気力) / 2
+		ENDIF
+		PRINTFORMW %CALLNAME:子供%は%CALLNAME:(CFLAG:子供:母親)%の元を離れ、一人で出歩けるようになった
+
+		;母親の育児中の人数減少
+		CFLAG:(CFLAG:子供:母親):出産数 --
+		
+		;育児中の人数が0になれば素質[育児中]が消滅
+		SIF CFLAG:(CFLAG:子供:母親):出産数 == 0
+			TALENT:(CFLAG:子供:母親):育児中 = 0
+		;[妊娠]未取得且つ育児中の人数が0になれば胸が元に戻る
+		IF CFLAG:(CFLAG:子供:母親):出産数 == 0 && !TALENT:(CFLAG:子供:母親):妊娠
+			PRINTFORML %CALLNAME:(CFLAG:子供:母親)%の胸は母乳を与える役割を終えました
+			IF TALENT:(CFLAG:子供:母親):バストサイズ != CFLAG:(CFLAG:子供:母親):バストサイズ保存
+				PRINTFORMW 子供に母乳を与えたことで%CALLNAME:(CFLAG:子供:母親)%の胸が小さくなりました
+				;妊娠時に大きくなった胸のサイズを一段小さくする
+				TALENT:(CFLAG:子供:母親):バストサイズ = CFLAG:(CFLAG:子供:母親):バストサイズ保存
+			ELSE
+				PRINTW  
+			ENDIF
+			;妊娠時に発生した母乳体質を消失させる
+			IF !CFLAG:(CFLAG:子供:母親):母乳体質獲得
+				TALENT:(CFLAG:子供:母親):母乳体質 = 0
+				MAXBASE:(CFLAG:子供:母親):3 = 0
+			ENDIF
+			CFLAG:(CFLAG:子供:母親):母乳体質獲得 = -1
+		ENDIF
+		
+		IF GETBIT(TALENT:子供:性別,0)
+			CFLAG:子供:服装パターン = 2
+		ELSE
+			CFLAG:子供:服装パターン = 1
+		ENDIF
+		CFLAG:子供:寝間着 = 5
+	ELSEIF DAY > CFLAG:子供:80 + 40 && CFLAG:子供:成長度 == 2
+		TALENT:子供:幼児／幼児退行 = 0
+		IF CFLAG:子供:父親 < 900
+			SIF TALENT:(CFLAG:子供:父親):幼児／幼児退行 || TALENT:(CFLAG:子供:母親):幼児／幼児退行
+				TALENT:子供:幼児／幼児退行 = 1
+		ELSEIF TALENT:(CFLAG:子供:母親):幼児／幼児退行
+			TALENT:子供:幼児／幼児退行 = 1
+		ENDIF
+		CFLAG:子供:成長度 = 3
+		成長フラグ = 1
+		IF CFLAG:子供:父親 < 900
+			MAXBASE:子供:体力 = (MAXBASE:(CFLAG:子供:父親):体力 + MAXBASE:(CFLAG:子供:母親):体力) / 2 * 3 / 4
+			MAXBASE:子供:気力 = (MAXBASE:(CFLAG:子供:父親):気力 + MAXBASE:(CFLAG:子供:母親):気力) / 2 * 3 / 4
+		ELSE
+			MAXBASE:子供:体力 = MAXBASE:(CFLAG:子供:母親):体力 * 3 / 4
+			MAXBASE:子供:気力 = MAXBASE:(CFLAG:子供:母親):気力 * 3 / 4
+		ENDIF
+		PRINTFORMW %CALLNAME:子供%は成長し、少し難しい年頃になってきた
+		;男の子は父親の部屋で寝るように
+		SIF GETBIT(TALENT:子供:性別,1) && CFLAG:子供:父親 < 900
+			CFLAG:子供:311 = CFLAG:(CFLAG:子供:父親):311
+		IF GETBIT(TALENT:子供:性別,0)
+			CFLAG:子供:寝間着 = RAND:11
+		ELSE
+			CFLAG:子供:寝間着 = RAND:8
+		ENDIF
+	ELSEIF DAY > CFLAG:子供:80 + 60 && CFLAG:子供:成長度 == 3
+		CFLAG:子供:成長度 = 4
+		成長フラグ = 1
+		IF CFLAG:子供:父親 < 900
+			MAXBASE:子供:体力 = (MAXBASE:(CFLAG:子供:父親):体力 + MAXBASE:(CFLAG:子供:母親):体力) / 2
+			MAXBASE:子供:気力 = (MAXBASE:(CFLAG:子供:父親):気力 + MAXBASE:(CFLAG:子供:母親):気力) / 2
+		ELSE
+			MAXBASE:子供:体力 = MAXBASE:(CFLAG:子供:母親):体力
+			MAXBASE:子供:気力 = MAXBASE:(CFLAG:子供:母親):気力
+		ENDIF
+		PRINTFORMW %CALLNAME:子供%は成長し、独り立ちできるようになった
+		PRINTFORM %CALLNAME:子供%は
+		SIF CFLAG:子供:父親 < 900
+			PRINTFORM %CALLNAME:(CFLAG:子供:父親)%と
+		PRINTFORMW %CALLNAME:(CFLAG:子供:母親)%に見送られながら事務所を出て、街で一人暮らしを始めた
+		CFLAG:子供:現在位置 = 951
+		CFLAG:子供:356 = 5
+		;1/5の確率で寝間着再変更
+		IF !RAND:5
+			IF GETBIT(TALENT:子供:性別,0)
+				CFLAG:子供:寝間着 = RAND:11
+			ELSE
+				CFLAG:子供:寝間着 = RAND:8
+			ENDIF
+		ENDIF
+	ENDIF
+	IF 成長フラグ == 1
+		CALL PREGNACY_S_CHILD_GET_TALENT(子供)
+		CALL 子宮内体積設定(子供)
+		CALL 体設定_子供髪変更(子供)
+		CALL 体設定_子供Ｐ成長(子供)
+	ENDIF
+RETURN 0
+
+;子供の素質獲得
+;暮らし方で素質を変えたいが、今は父母に似る傾向
+@PREGNACY_S_CHILD_GET_TALENT(子供)
+	#DIM 子供
+	SELECTCASE CFLAG:子供:成長度
+		CASE 2		; 幼児
+			CALL PREGNACY_S_CHILD_GET_TALENT_2(子供)
+		CASE 3		;成長期
+			CALL PREGNACY_S_CHILD_GET_TALENT_3(子供)
+		CASE 4		;成人
+			CALL PREGNACY_S_CHILD_GET_TALENT_4(子供)
+		CASEELSE	;その他
+			;何もしない
+	ENDSELECT
+	;性別で排除すべき素質をクリア
+	IF !HAS_PENIS(子供)
+		TALENT:子供:ペニスサイズ = 0
+		TALENT:子供:絶倫 = 0
+	ENDIF
+	IF !HAS_VAGINA(子供)
+		TALENT:子供:淫壺 = 0
+		TALENT:子供:Ｖ感度 = 0
+		TALENT:子供:ヴァギナサイズ = 0
+		TALENT:子供:母乳体質 = 0
+	ENDIF
+RETURN 0
+
+;子供の素質獲得(幼児)
+@PREGNACY_S_CHILD_GET_TALENT_2(子供)
+	#DIM 子供
+	#DIM 素質追加数
+	#DIM 素質件数
+	#DIM 素質上限
+	#DIM 素質配列,100
+	#DIM 素質番号
+	#DIM LOOP_I
+	#DIM WK_IDX
+
+	素質追加数 = RAND:3 + 3
+	素質件数 = 0
+	素質上限 = 26 + 1
+	SIF GETBIT(TALENT:子供:性別,0)
+		素質上限 = 33 + 1
+	;性格～性への関心(,乙女心)
+	FOR WK_IDX,10,素質上限
+		IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, WK_IDX) == 1
+			素質件数 ++
+			素質配列:素質件数 = WK_IDX
+		ENDIF
+	NEXT
+	;身体特徴
+	FOR WK_IDX,101,137
+		SIF (WK_IDX == 105 || WK_IDX == 132)
+			CONTINUE
+		IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, WK_IDX) == 1
+			素質件数 ++
+			素質配列:素質件数 = WK_IDX
+		ENDIF
+	NEXT
+	IF 素質件数 < 素質追加数
+		FOR WK_IDX,1,素質件数 + 1
+			素質番号 = 素質配列:WK_IDX
+			TALENT:子供:素質番号 = PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質番号)
+		NEXT
+	ELSE
+		LOOP_I = 0
+		WHILE LOOP_I < 素質追加数
+			WK_IDX = RAND:素質件数 + 1
+			素質番号 = 素質配列:WK_IDX
+			TALENT:子供:素質番号 = PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質番号)
+			LOOP_I ++
+		WEND
+	ENDIF
+	SIF !RAND:50
+		TALENT:子供:おもらし癖 = 1
+	;この段階で同意なしに処女を奪われている場合は人間不信に
+	;CFLAG:76が同意フラグか？ 現在どこでも設定されていないので暫定的にコメントアウトする。
+	;SIF GETBIT(TALENT:子供:性別,0) && !(TALENT:子供:処女) && CFLAG:子供:76
+	SIF GETBIT(TALENT:子供:性別,0) && !(TALENT:子供:処女)
+		TALENT:子供:性別嗜好 = 3
+	IF GETBIT(TALENT:子供:性別,0)
+		;母親が貧乳以上の場合バストアップチャンスだ！
+		;Ｂ経験10回毎に確率アップ！
+		IF TALENT:(CFLAG:子供:母親):バストサイズ >= -1
+			SIF RAND:(2 + EXP:子供:Ｂ経験 / 10)
+				TALENT:子供:バストサイズ += 1
+		ENDIF
+	ENDIF
+
+;子供の素質獲得(成長期)
+@PREGNACY_S_CHILD_GET_TALENT_3(子供)
+	#DIM 子供
+	#DIM 素質追加数
+	#DIM 素質件数
+	#DIM 素質上限
+	#DIM 素質配列,100
+	#DIM 素質番号
+	#DIM LOOP_I
+	#DIM WK_IDX
+	#DIM WK_VAL
+	#DIM WK_RSLT
+
+	素質追加数 = RAND:2 + 2
+	素質件数 = 0
+	FOR WK_IDX,40,72
+		SIF WK_IDX == 55 || WK_IDX == 57
+			CONTINUE
+		IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, WK_IDX) == 1
+			素質件数 ++
+			素質配列:素質件数 = WK_IDX
+		ENDIF
+	NEXT
+	IF 素質件数 < 素質追加数
+		FOR WK_IDX,1,素質件数 + 1
+			素質番号 = 素質配列:WK_IDX
+			TALENT:子供:素質番号 = PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質番号)
+		NEXT
+	ELSE
+		LOOP_I = 0
+		WHILE LOOP_I < 素質追加数
+			WK_IDX = RAND:素質件数 + 1
+			素質番号 = 素質配列:WK_IDX
+			TALENT:子供:素質番号 = PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質番号)
+			LOOP_I ++
+		WEND
+	ENDIF
+	;1/10の確率で両刀, 1/10の確率で異性嫌い
+	IF !RAND:10
+		TALENT:子供:性別嗜好 = -1
+	ELSEIF !RAND:9
+		IF GETBIT(TALENT:子供:性別,0)
+			TALENT:子供:性別嗜好 = 1
+		ELSE
+			TALENT:子供:性別嗜好 = 2
+		ENDIF
+	ENDIF
+	;この段階で同意なしに処女を奪われている場合は男嫌いに
+	;CFLAG:76が同意フラグか？ 現在どこでも設定されていないので暫定的にコメントアウトする。
+	;SIF GETBIT(TALENT:子供:性別,0) && !(TALENT:子供:処女) && CFLAG:子供:76 && TALENT:子供:性別嗜好 != 3
+	SIF GETBIT(TALENT:子供:性別,0) && !(TALENT:子供:処女) && TALENT:子供:性別嗜好 != 3
+		TALENT:子供:性別嗜好 = 1
+	IF GETBIT(TALENT:子供:性別,0)
+		;母親が絶壁でもバストアップチャンス！
+		;母親が絶壁だとチャンスは1回だ！
+		SIF RAND:(2 + EXP:子供:Ｂ経験 / 10)
+			TALENT:子供:バストサイズ += 1
+		;母親が巨乳以上ならさらにチャンス！
+		IF TALENT:(CFLAG:子供:母親):バストサイズ >= 1
+			SIF RAND:(2 + EXP:子供:Ｂ経験 / 10)
+				TALENT:子供:バストサイズ += 1
+		ENDIF
+	ENDIF
+	IF CFLAG:子供:父親 < 900
+		WK_VAL = TALENT:(CFLAG:子供:父親):体型 + TALENT:(CFLAG:子供:母親):体型
+	ELSE
+		WK_VAL = TALENT:(CFLAG:子供:母親):体型
+	ENDIF
+	WK_RSLT = PREGNACY_S_CHILD_GET_TALENT_RANDOM(WK_VAL)
+	SIF WK_RSLT > TALENT:子供:体型
+		TALENT:子供:体型 = WK_RSLT
+RETURN 0
+
+;子供の素質獲得(成人)
+@PREGNACY_S_CHILD_GET_TALENT_4(子供)
+	#DIM 子供
+	#DIM 素質追加数
+	#DIM 素質件数
+	#DIM 素質上限
+	#DIM 素質配列,100
+	#DIM 素質番号
+	#DIM LOOP_I
+	#DIM WK_IDX
+	#DIM WK_VAL
+	#DIM WK_RSLT
+
+	素質追加数 = RAND:2 + 2
+	素質件数 = 0
+	IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, 55) == 1
+		素質件数 ++
+		素質配列:素質件数 = 55
+	ENDIF
+	IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, 80) == 1
+		素質件数 ++
+		素質配列:素質件数 = 80
+	ENDIF
+	FOR WK_IDX,82,84
+		IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, WK_IDX) == 1
+			素質件数 ++
+			素質配列:素質件数 = WK_IDX
+		ENDIF
+	NEXT
+	FOR WK_IDX,92,95
+		IF PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, WK_IDX) == 1
+			素質件数 ++
+			素質配列:素質件数 = WK_IDX
+		ENDIF
+	NEXT
+	IF 素質件数 < 素質追加数
+		FOR WK_IDX,1,素質件数 + 1
+			素質番号 = 素質配列:WK_IDX
+			TALENT:子供:素質番号 = PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質番号)
+		NEXT
+	ELSE
+		LOOP_I = 0
+		WHILE LOOP_I < 素質追加数
+			WK_IDX = RAND:素質件数 + 1
+			素質番号 = 素質配列:WK_IDX
+			TALENT:子供:素質番号 = PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質番号)
+			LOOP_I ++
+		WEND
+	ENDIF
+	IF GETBIT(TALENT:子供:性別,0)
+		;母親が並乳以上ならまだチャンスが！
+		IF TALENT:(CFLAG:子供:母親):バストサイズ >= 0
+			SIF RAND:(2 + EXP:子供:Ｂ経験 / 10)
+				TALENT:子供:バストサイズ += 1
+			;母親が爆乳以上ならラストチャンス！
+			IF TALENT:(CFLAG:子供:母親):バストサイズ >= 2
+				SIF RAND:(2 + EXP:子供:Ｂ経験 / 10)
+					TALENT:子供:バストサイズ += 1
+			ENDIF
+		ENDIF
+		;但し、母親のバストサイズ + 1より高くはならない
+		SIF TALENT:(CFLAG:子供:母親):バストサイズ < TALENT:子供:バストサイズ
+			TALENT:子供:バストサイズ = TALENT:(CFLAG:子供:母親):バストサイズ + 1
+		;さらに爆乳より大きくはならない
+		SIF TALENT:子供:バストサイズ > 2
+			TALENT:子供:バストサイズ = 2
+		;バストアップチャンスメモ (母親が)絶壁:1回 貧乳:2回 並乳:3回 巨乳:4回 爆乳:5回
+	ENDIF
+	IF CFLAG:子供:父親 < 900
+		WK_VAL = TALENT:(CFLAG:子供:父親):体型 + TALENT:(CFLAG:子供:母親):体型
+	ELSE
+		WK_VAL = TALENT:(CFLAG:子供:母親):体型
+	ENDIF
+	WK_RSLT = PREGNACY_S_CHILD_GET_TALENT_RANDOM(WK_VAL)
+	SIF WK_RSLT > TALENT:子供:体型
+		TALENT:子供:体型 = WK_RSLT
+RETURN 0
+
+;子供の親が指定された素質を持っているかチェックする
+@PREGNACY_S_CHILD_CHK_PALENT_TALENT(子供, 素質)
+	#FUNCTION
+	#DIM 子供
+	#DIM 素質
+	#DIM RET_VAL
+
+	RET_VAL = 0
+	IF CFLAG:子供:父親 < 900
+		IF TALENT:(CFLAG:子供:父親):素質 != 0 || TALENT:(CFLAG:子供:母親):素質 != 0
+			RET_VAL = 1
+		ENDIF
+	ELSE
+		IF TALENT:(CFLAG:子供:母親):素質 != 0
+			RET_VAL = 1
+		ENDIF
+	ENDIF
+RETURNF RET_VAL
+
+;子供の親の素質値から、子供の素質値を求める
+@PREGNACY_S_CHILD_GET_PALENT_TALENT(子供, 素質)
+	#FUNCTION
+	#DIM 子供
+	#DIM 素質
+	#DIM RET_VAL
+
+	RET_VAL = 0
+	IF CFLAG:子供:父親 < 900
+		IF TALENT:(CFLAG:子供:父親):素質 + TALENT:(CFLAG:子供:母親):素質 < 0
+			RET_VAL = -1
+		ELSEIF TALENT:(CFLAG:子供:父親):素質 + TALENT:(CFLAG:子供:母親):素質 > 0
+			RET_VAL = 1
+		ELSE
+			RET_VAL = RAND:3 - 1
+		ENDIF
+	ELSE
+		IF TALENT:(CFLAG:子供:母親):素質 < 0
+			RET_VAL = -1
+		ELSEIF TALENT:(CFLAG:子供:母親):素質 > 0
+			RET_VAL = 1
+		ELSE
+			RET_VAL = RAND:3 - 1
+		ENDIF
+	ENDIF
+RETURNF RET_VAL
+
+@PREGNACY_S_CHILD_GET_TALENT_RANDOM(LOCAL)
+	#FUNCTION
+	IF LOCAL == -6
+		LOCAL = -3
+	ELSEIF LOCAL == -5
+		LOCAL = RAND:2 - 3
+	ELSEIF LOCAL == -4
+		LOCAL = RAND:3 - 3
+	ELSEIF LOCAL == -3
+		LOCAL = RAND:4 - 3
+	ELSEIF LOCAL == -2
+		LOCAL = -1
+	ELSEIF LOCAL == -1
+		LOCAL = RAND:2 - 1
+	ELSEIF LOCAL == 0
+		LOCAL = RAND:5 - 2
+		IF LOCAL == -2
+			LOCAL = -1
+		ELSEIF LOCAL == 2
+			LOCAL = 1
+		ELSE
+			LOCAL = 0
+		ENDIF
+	ELSEIF LOCAL == 1
+		LOCAL = RAND:2
+	ELSEIF LOCAL == 2
+		LOCAL = 1
+	ELSEIF LOCAL == 3
+	LOCAL = RAND:4
+	ELSEIF LOCAL == 4
+		LOCAL = RAND:3 + 1
+	ELSEIF LOCAL == 5
+		LOCAL = RAND:2 + 2
+	ELSEIF LOCAL == 6
+		LOCAL = 3
+	ENDIF
+RETURNF LOCAL
+
+
+;--------------------------------------------------
+;ここから条件別ネーミング関数
+;--------------------------------------------------
+
+;子供の名前をつけてもらう
+;ARG = 相手の番号 ARG:1 = 子供の番号 ARG:2 = 分岐
+@PREGNACY_S_CHILD_NAME(ARG,ARG:1,ARG:2)
+;訪問者、客の場合の例外処理
+SIF ARG > 900
+	ARG = 0
+SIF !(RAND:5)
+	LOCAL = 1
+SIF ARG:2 == 2
+	ARG:2 = RAND:2
+IF GETBIT(TALENT:(ARG:1):2,0)
+	IF ARG:2 == 0
+		CALL RANDOM_N_GIRL(ARG,ARG:1,LOCAL)
+	ELSEIF ARG:2 == 1
+		CALL RANDOM_N_POPNAME(ARG,ARG:1,LOCAL)
+	ENDIF
+ELSE
+	IF ARG:2 == 0
+		CALL RANDOM_N_BOY(ARG,ARG:1,LOCAL)
+	ELSE
+		CALL RANDOM_N_BOYPOPNAME(ARG,ARG:1,LOCAL)
+	ENDIF
+ENDIF
+
+;………………………………………………
+;ランダム少女名
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL(ARG,ARG:1,LOCAL)
+
+;大量の変更はバグの温床なのでココで渡す
+LOCAL:1 = LOCAL
+
+REPEAT 20
+	LOCAL:(COUNT+10) = 0
+	LOCALS:COUNT = 0
+REND
+;後半部はそれぞれ
+;LOCAL:10こ/11み/12か/13え/14な/15の/16ほ/17め/18よ/19き/20姫　に対応して除外
+;ひらがなの場合姫は出ない。また、プライド高いがないと3/4の確率で出ない(レアネーム)
+LOCAL = RAND:100
+SIF LOCAL:1 || (TALENT:ARG:プライド <= 0 && LOCAL < 75)
+	LOCAL:20 = 1
+;妖精の場合子は出ない
+;SIF TALENT:妖精
+;	LOCAL:10 = 1
+LOCAL = RAND:34
+SELECTCASE LOCAL
+	CASE 0
+		TSTR:0 = \@(LOCAL:1) ? はる # 春\@
+		LOCAL:16 = 1
+	CASE 1
+		TSTR:0 = \@(LOCAL:1) ? なつ # 夏\@
+		LOCAL:12 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+	CASE 2
+		TSTR:0 = \@(LOCAL:1) ? あき # 秋\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 3
+		TSTR:0 = \@(LOCAL:1) ? ふゆ # 冬\@
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+	CASE 4
+		TSTR:0 = \@(LOCAL:1) ? まな # 愛\@
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 5
+		TSTR:0 = \@(LOCAL:1) ? よし # 佳\@
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 6
+		TSTR:0 = \@(LOCAL:1) ? さや # 沙夜\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 7
+		TSTR:0 = \@(LOCAL:1) ? より # 依\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:20 = 1
+	CASE 8
+		TSTR:0 = \@(LOCAL:1) ? みず # 瑞\@
+		LOCAL:10 = 1
+		LOCAL:11 = 1
+	CASE 9
+		TSTR:0 = \@(LOCAL:1) ? あさ # 麻\@
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:20 = 1
+	CASE 10
+		TSTR:0 = \@(LOCAL:1) ? たま # 珠\@
+		LOCAL:14 = 1
+	CASE 11
+		TSTR:0 = \@(LOCAL:1) ? ゆみ # 弓\@
+		LOCAL:11 = 1
+		LOCAL:19 = 1
+	CASE 12
+		TSTR:0 = \@(LOCAL:1) ? えり # 絵里\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 13
+		TSTR:0 = \@(LOCAL:1) ? ひな # 雛\@
+		LOCAL:11 = 1
+		LOCAL:12 = 1
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 14
+		TSTR:0 = \@(LOCAL:1) ? り # 理\@
+		LOCAL:11 = 1
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 15
+		IF LOCAL:1
+			TSTR:0 = ふう
+			LOCAL:11 = 1
+			LOCAL:19 = 1
+		ELSE
+			TSTR:0 = 風
+		ENDIF
+		LOCAL:13 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+	CASE 16
+		TSTR:0 = \@(LOCAL:1) ? あや # 綾\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 17
+		TSTR:0 = \@(LOCAL:1) ? ふみ # 文\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 18
+		IF LOCAL:1
+			TSTR:0 = うた
+			LOCAL:13 = 1
+		ELSE
+			TSTR:0 = 詩
+		ENDIF
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 19
+		TSTR:0 = \@(LOCAL:1) ? さち # 幸\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 20
+		TSTR:0 = \@(LOCAL:1) ? すみ # 澄\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+	CASE 21
+		TSTR:0 = \@(LOCAL:1) ? ゆき # 雪\@
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 22
+		TSTR:0 = \@(LOCAL:1) ? きり # 桐\@
+		LOCAL:11 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 23
+		TSTR:0 = \@(LOCAL:1) ? ゆり # 百合\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 24
+		TSTR:0 = \@(LOCAL:1) ? ゆう # 優\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+	CASE 25
+		TSTR:0 = \@(LOCAL:1) ? しず # 静\@
+		LOCAL:11 = 1
+	CASE 26
+		TSTR:0 = \@(LOCAL:1) ? すず # 涼\@
+	CASE 27
+		TSTR:0 = \@(LOCAL:1) ? ま # 真\@
+		LOCAL:12 = 1
+		LOCAL:13 = 1
+		LOCAL:17 = 1
+		LOCAL:20 = 1
+	CASE 28
+		TSTR:0 = \@(LOCAL:1) ? きょう # 京\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:15 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 29
+		TSTR:0 = \@(LOCAL:1) ? はる # 晴\@
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+	CASE 30
+		TSTR:0 = \@(LOCAL:1) ? とよ # 豊\@
+		LOCAL:12 = 1
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 31
+		TSTR:0 = \@(LOCAL:1) ? まい # 舞\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 32
+		TSTR:0 = \@(LOCAL:1) ? さよ # 小夜\@
+		LOCAL:11 = 1
+		LOCAL:12 = 1
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 33
+		TSTR:0 = \@(LOCAL:1) ? のり # 紀\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:15 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+ENDSELECT
+
+LOCAL:2 = 0
+;後半部生成
+REPEAT 11
+	IF LOCAL:(10+COUNT) == 0
+		LOCAL:2 += 1
+		LOCAL:(20+LOCAL:2) = COUNT
+	ENDIF
+REND
+
+LOCALS = %TSTR:0%
+
+TRYCALLFORM RANDOM_N_GIRL_{LOCAL:(21+RAND:(LOCAL:2))} , LOCAL:1
+
+NAME:(ARG:1) = %LOCALS%%TSTR:0%
+CALLNAME:(ARG:1) = %LOCALS%%TSTR:0%
+
+;………………………………………………
+;ランダム名末尾0
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_0 , ARG:0
+IF ARG:0
+	TSTR:0 = こ
+ELSE
+	TSTR:0 = 子
+ENDIF
+
+;………………………………………………
+;ランダム名末尾1
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_1 , ARG:0
+LOCAL = RAND:4
+IF ARG:0
+	TSTR:0 = み
+ELSEIF LOCAL == 0
+	TSTR:0 = 美
+ELSEIF LOCAL == 1
+	TSTR:0 = 実
+ELSEIF LOCAL == 2
+	TSTR:0 = 魅
+ELSE
+	TSTR:0 = 見
+ENDIF
+
+;………………………………………………
+;ランダム名末尾2
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_2 , ARG:0
+LOCAL = RAND:5
+IF ARG:0
+	TSTR:0 = か
+ELSEIF LOCAL == 0
+	TSTR:0 = 香
+ELSEIF LOCAL == 1
+	TSTR:0 = 華
+ELSEIF LOCAL == 2
+	TSTR:0 = 歌
+ELSEIF LOCAL == 3
+	TSTR:0 = 果
+ELSE
+	TSTR:0 = 佳
+ENDIF
+
+;………………………………………………
+;ランダム名末尾3
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_3 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = え
+ELSEIF LOCAL == 0
+	TSTR:0 = 江
+ELSEIF LOCAL == 1
+	TSTR:0 = 恵
+ELSE
+	TSTR:0 = 絵
+ENDIF
+
+;………………………………………………
+;ランダム名末尾4
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_4 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = な
+ELSEIF LOCAL == 0
+	TSTR:0 = 菜
+ELSEIF LOCAL == 1
+	TSTR:0 = 奈
+ELSE
+	TSTR:0 = 名
+ENDIF
+
+;………………………………………………
+;ランダム名末尾5
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_5 , ARG:0
+IF ARG:0
+	TSTR:0 = の
+ELSE
+	TSTR:0 = 乃
+ENDIF
+
+;………………………………………………
+;ランダム名末尾6
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_6 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = ほ
+ELSEIF LOCAL == 0
+	TSTR:0 = 穂
+ELSEIF LOCAL == 1
+	TSTR:0 = 帆
+ELSE
+	TSTR:0 = 保
+ENDIF
+
+;………………………………………………
+;ランダム名末尾7
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_7 , ARG:0
+LOCAL = RAND:5
+IF ARG:0
+	TSTR:0 = め
+ELSEIF LOCAL == 0
+	TSTR:0 = 女
+ELSE
+	TSTR:0 = 芽
+ENDIF
+
+;………………………………………………
+;ランダム名末尾8
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_8 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = よ
+ELSEIF LOCAL == 0
+	TSTR:0 = 代
+ELSEIF LOCAL == 1
+	TSTR:0 = 世
+ELSE
+	TSTR:0 = 夜
+ENDIF
+
+;………………………………………………
+;ランダム名末尾9
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_9 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = き
+ELSEIF LOCAL == 0
+	TSTR:0 = 樹
+ELSE
+	TSTR:0 = 希
+ENDIF
+
+;………………………………………………
+;ランダム名末尾10
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_GIRL_10 , ARG:0
+IF ARG:0
+	TSTR:0 = ひめ
+ELSE
+	TSTR:0 = 姫
+ENDIF
+
+;………………………………………………
+;一般外国名
+;………………………………………………
+@RANDOM_N_POPNAME(ARG,ARG:1,LOCAL)
+LOCAL = RAND:216
+SELECTCASE LOCAL
+	;英語
+	CASE 0
+		TSTR:0 = エイダ
+	CASE 1
+		TSTR:0 = アデル
+	CASE 2
+		TSTR:0 = アイリーン
+	CASE 3
+		TSTR:0 = アルマ
+	CASE 4
+		TSTR:0 = アメリア
+	CASE 5
+		TSTR:0 = エイミィ
+	CASE 6
+		TSTR:0 = アンジェラ
+	CASE 7
+		TSTR:0 = アニタ
+	CASE 8
+		TSTR:0 = アンナ
+	CASE 9
+		TSTR:0 = エイプリル
+	CASE 10
+		TSTR:0 = オードリー
+	CASE 11
+		TSTR:0 = オーレリア
+	CASE 12
+		TSTR:0 = バーバラ
+	CASE 13
+		TSTR:0 = ベアトリス
+	CASE 14
+		TSTR:0 = カミラ
+	CASE 15
+		TSTR:0 = キャロル
+	CASE 16
+		TSTR:0 = キャサリン
+	CASE 17
+		TSTR:0 = セシリア
+	CASE 18
+		TSTR:0 = セリア
+	CASE 19
+		TSTR:0 = シャルロット
+	CASE 20
+		TSTR:0 = シェリー
+	CASE 21
+		TSTR:0 = シンディ
+	CASE 22
+		TSTR:0 = クレア
+	CASE 23
+		TSTR:0 = クララ
+	CASE 24
+		TSTR:0 = クローディア
+	CASE 25
+		TSTR:0 = コリーン
+	CASE 26
+		TSTR:0 = コンスタンス
+	CASE 27
+		TSTR:0 = デイジー
+	CASE 28
+		TSTR:0 = シンシア
+	CASE 29
+		TSTR:0 = ダリル
+	CASE 30
+		TSTR:0 = ドリー
+	CASE 31
+		TSTR:0 = ドリス
+	CASE 32
+		TSTR:0 = アイリーン
+	CASE 33
+		TSTR:0 = エレノア
+	CASE 34
+		TSTR:0 = エレン
+	CASE 35
+		TSTR:0 = エルマ
+	CASE 36
+		TSTR:0 = エルシー
+	CASE 37
+		TSTR:0 = エミリー
+	CASE 38
+		TSTR:0 = エマ
+	CASE 39
+		TSTR:0 = エステル
+	CASE 40
+		TSTR:0 = エヴァ
+	CASE 41
+		TSTR:0 = イヴ
+	CASE 42
+		TSTR:0 = フィオナ
+	CASE 43
+		TSTR:0 = フローラ
+	CASE 44
+		TSTR:0 = グレイス
+	CASE 45
+		TSTR:0 = ヘレン
+	CASE 46
+		TSTR:0 = ヘンリエッタ
+	CASE 47
+		TSTR:0 = イザベル
+	CASE 48
+		TSTR:0 = ジェーン
+	CASE 49
+		TSTR:0 = ジェシカ
+	CASE 50
+		TSTR:0 = ジュリア
+	CASE 51
+		TSTR:0 = カレン
+	CASE 52
+		TSTR:0 = ケイト
+	CASE 53
+		TSTR:0 = キャスリン
+	CASE 54
+		TSTR:0 = カトリーナ
+	CASE 55
+		TSTR:0 = ケイ
+	CASE 56
+		TSTR:0 = レイラ
+	CASE 57
+		TSTR:0 = ラナ
+	CASE 58
+		TSTR:0 = ローラ
+	CASE 59
+		TSTR:0 = ローレン
+	CASE 60
+		TSTR:0 = ラヴィニア
+	CASE 61
+		TSTR:0 = リーラ
+	CASE 62
+		TSTR:0 = レオノラ
+	CASE 63
+		TSTR:0 = リリアン
+	CASE 64
+		TSTR:0 = リーザ
+	CASE 65
+		TSTR:0 = ローラ
+	CASE 66
+		TSTR:0 = ロレッタ
+	CASE 67
+		TSTR:0 = ルーシー
+	CASE 68
+		TSTR:0 = リディア
+	CASE 69
+		TSTR:0 = マデリーヌ
+	CASE 70
+		TSTR:0 = マーシャ
+	CASE 71
+		TSTR:0 = マライア
+	CASE 72
+		TSTR:0 = マリアン
+	CASE 73
+		TSTR:0 = メアリ
+	CASE 74
+		TSTR:0 = メイ
+	CASE 75
+		TSTR:0 = メリッサ
+	CASE 76
+		TSTR:0 = ミシェラ
+	CASE 77
+		TSTR:0 = ミルドレッド
+	CASE 78
+		TSTR:0 = ミリアム
+	CASE 79
+		TSTR:0 = モーリー
+	CASE 80
+		TSTR:0 = マイラ
+	CASE 81
+		TSTR:0 = ナタリア
+	CASE 82
+		TSTR:0 = ニーナ
+	CASE 83
+		TSTR:0 = オリヴィア
+	CASE 84
+		TSTR:0 = オリアナ
+	CASE 85
+		TSTR:0 = パメラ
+	CASE 86
+		TSTR:0 = ポーラ
+	CASE 87
+		TSTR:0 = プリシラ
+	CASE 88
+		TSTR:0 = レイチェル
+	CASE 89
+		TSTR:0 = レベッカ
+	CASE 90
+		TSTR:0 = レジーナ
+	CASE 91
+		TSTR:0 = リタ
+	CASE 92
+		TSTR:0 = ローザ
+	CASE 93
+		TSTR:0 = サマンサ
+	CASE 94
+		TSTR:0 = セリーナ
+	CASE 95
+		TSTR:0 = セルマ
+	CASE 96
+		TSTR:0 = シャロン
+	CASE 97
+		TSTR:0 = シェラ
+	CASE 98
+		TSTR:0 = シャーリー
+	CASE 99
+		TSTR:0 = ソフィア
+	CASE 100
+		TSTR:0 = ソフィ
+	CASE 101
+		TSTR:0 = ステラ
+	CASE 102
+		TSTR:0 = スザンヌ
+	CASE 103
+		TSTR:0 = テレサ
+	CASE 104
+		TSTR:0 = ヴァレリア
+	CASE 105
+		TSTR:0 = ヴェロニカ
+	CASE 106
+		TSTR:0 = ヴァージニア
+	CASE 107
+		TSTR:0 = ウェンディ
+	CASE 108
+		TSTR:0 = ジル
+	;独語
+	CASE 109
+		TSTR:0 = コンスタンツ
+	CASE 110
+		TSTR:0 = エルナ
+	CASE 111
+		TSTR:0 = アルマ
+	CASE 112
+		TSTR:0 = エーファ
+	CASE 113
+		TSTR:0 = エリーゼ
+	CASE 114
+		TSTR:0 = コルネリア
+	CASE 115
+		TSTR:0 = フィネ
+	CASE 116
+		TSTR:0 = エーリカ
+	CASE 117
+		TSTR:0 = ドロテア
+	CASE 118
+		TSTR:0 = オーレリア
+	CASE 119
+		TSTR:0 = フランセスカ
+	CASE 120
+		TSTR:0 = フレデリカ
+	CASE 121
+		TSTR:0 = カミラ
+	CASE 122
+		TSTR:0 = ハンナ
+	CASE 123
+		TSTR:0 = ヘルガ
+	CASE 124
+		TSTR:0 = アリエッタ
+	CASE 125
+		TSTR:0 = イドゥベラ
+	CASE 126
+		TSTR:0 = カーリン
+	CASE 127
+		TSTR:0 = カトリーヌ
+	CASE 128
+		TSTR:0 = ラウラ
+	CASE 129
+		TSTR:0 = リーゼロッテ
+	CASE 130
+		TSTR:0 = ルイーゼ
+	CASE 131
+		TSTR:0 = マルガレータ
+	CASE 132
+		TSTR:0 = マリー
+	CASE 133
+		TSTR:0 = モニカ
+	CASE 134
+		TSTR:0 = リタ
+	CASE 135
+		TSTR:0 = シモーヌ
+	CASE 136
+		TSTR:0 = スザンヌ
+	CASE 137
+		TSTR:0 = テレーゼ
+	CASE 138
+		TSTR:0 = ティアナ
+	CASE 139
+		TSTR:0 = ヴェロニカ
+	;スペイン系
+	CASE 140
+    	TSTR:0 = アミナ
+	CASE 141
+    	TSTR:0 = ベアトリス
+	CASE 142
+    	TSTR:0 = カルラ
+	CASE 143
+    	TSTR:0 = エステル
+	CASE 144
+    	TSTR:0 = イレーネ
+	CASE 145
+    	TSTR:0 = ロレーナ
+	CASE 146
+    	TSTR:0 = ナタリア
+	CASE 147
+    	TSTR:0 = パッツィ
+	CASE 148
+    	TSTR:0 = ソフィア
+	CASE 149
+    	TSTR:0 = ヴァネッサ
+	CASE 150
+    	TSTR:0 = ルシア
+	CASE 151
+    	TSTR:0 = ファナ
+	CASE 152
+    	TSTR:0 = リタ
+	CASE 153
+    	TSTR:0 = ミランダ
+	CASE 154
+    	TSTR:0 = ルアーナ
+	CASE 155
+    	TSTR:0 = イネス
+	CASE 156
+    	TSTR:0 = フィオナ
+	CASE 157
+    	TSTR:0 = カタリナ
+	CASE 158
+	    TSTR:0 = ベリンダ
+	CASE 159
+    	TSTR:0 = ティア
+	CASE 160
+    	TSTR:0 = モニカ
+	;ロシア系
+	CASE 161
+    	TSTR:0 = アドリアーナ
+	CASE 162
+    	TSTR:0 = エリヴィラ
+	CASE 163
+    	TSTR:0 = ユリアナ
+	CASE 164
+    	TSTR:0 = リュドミラ
+	CASE 165
+    	TSTR:0 = マディナ
+	CASE 166
+    	TSTR:0 = タチアナ
+	CASE 167
+    	TSTR:0 = ツェツィーリヤ
+	CASE 168
+    	TSTR:0 = レナータ
+	CASE 169
+    	TSTR:0 = ヴァレンチナ
+	CASE 170
+    	TSTR:0 = アクサナ
+	;イタリア系
+	CASE 171
+    	TSTR:0 = カタリーナ
+	CASE 172
+    	TSTR:0 = エレナ
+	CASE 173
+    	TSTR:0 = イザベラ
+	CASE 174
+    	TSTR:0 = ソニア
+	CASE 175
+    	TSTR:0 = スザンナ
+	CASE 176
+    	TSTR:0 = シルヴィア
+	CASE 177
+    	TSTR:0 = フランチェスカ
+	CASE 178
+    	TSTR:0 = ビアンカ
+	;その他諸々
+	CASE 179
+    	TSTR:0 = アイシャ
+	CASE 180
+    	TSTR:0 = エアリス
+	CASE 181
+    	TSTR:0 = オランピア
+	CASE 182
+    	TSTR:0 = カテジナ
+	CASE 183
+    	TSTR:0 = キシリア
+	CASE 184
+    	TSTR:0 = クーデリア
+	CASE 185
+    	TSTR:0 = クルル
+	CASE 186
+    	TSTR:0 = シーラ
+	CASE 187
+    	TSTR:0 = セシリー
+	CASE 188
+    	TSTR:0 = セシル
+	CASE 189
+    	TSTR:0 = ゼナ
+	CASE 190
+    	TSTR:0 = セリス
+	CASE 191
+    	TSTR:0 = ツスクル
+	CASE 192
+    	TSTR:0 = ティファ
+	CASE 193
+    	TSTR:0 = テオドラ
+	CASE 194
+    	TSTR:0 = トトリ
+	CASE 195
+    	TSTR:0 = ナコルル
+	CASE 196
+    	TSTR:0 = ニース
+	CASE 197
+    	TSTR:0 = ハイジ
+	CASE 198
+    	TSTR:0 = ハマーン
+	CASE 199
+    	TSTR:0 = フェイト
+	CASE 200
+    	TSTR:0 = マーベル
+    CASE 201
+    	TSTR:0 = マリナ
+	CASE 202
+    	TSTR:0 = マリリン
+	CASE 203
+    	TSTR:0 = ユフィ
+    CASE 204
+    	TSTR:0 = ユリア
+	CASE 205
+    	TSTR:0 = ラクス
+	CASE 206
+    	TSTR:0 = リムル
+	CASE 207
+    	TSTR:0 = リムルル
+    CASE 208
+    	TSTR:0 = リリーナ
+	CASE 209
+    	TSTR:0 = リリス
+	CASE 210
+    	TSTR:0 = レイリア
+	CASE 211
+    	TSTR:0 = レイン
+	CASE 212
+    	TSTR:0 = レッシー
+	CASE 213
+    	TSTR:0 = レナ
+	CASE 214
+    	TSTR:0 = レン
+   	CASE 215
+    	TSTR:0 = ロロナ
+
+;	CASE 216
+;	　　TSTR:0 = 
+;	CASE 217
+;	　　TSTR:0 = 
+ENDSELECT
+NAME:(ARG:1) = %TSTR:0%
+CALLNAME:(ARG:1) = %TSTR:0%
+
+
+;………………………………………………
+;ランダム少年名
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY(ARG,ARG:1,LOCAL)
+
+;大量の変更はバグの温床なのでココで渡しておく
+LOCAL:1 = LOCAL
+
+REPEAT 20
+	LOCAL:(COUNT+10) = 0
+	LOCALS:COUNT = 0
+REND
+;後半部はそれぞれ
+;LOCAL:10お/11ろう/12じ/13ぞう/14へい/15えもん/16すけ/17いち/18よ/19き/20王　に対応して除外
+;ひらがなの場合王は出ない。また、プライド高いがないと3/4の確率で出ない(レアネーム)
+LOCAL = RAND:100
+SIF LOCAL:1 || (TALENT:ARG:プライド <= 0 && LOCAL < 75)
+	LOCAL:20 = 1
+;妖精の場合子は出ない
+;SIF TALENT:妖精
+;	LOCAL:10 = 1
+LOCAL = RAND:33
+SELECTCASE LOCAL
+	CASE 0
+		TSTR:0 = \@(LOCAL:1) ? はる # 春\@
+		LOCAL:16 = 1
+	CASE 1
+		TSTR:0 = \@(LOCAL:1) ? なつ # 夏\@
+		LOCAL:12 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+	CASE 2
+		TSTR:0 = \@(LOCAL:1) ? あき # 秋\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 3
+		TSTR:0 = \@(LOCAL:1) ? ふゆ # 冬\@
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+	CASE 4
+		TSTR:0 = \@(LOCAL:1) ? よし # 良\@
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 5
+		TSTR:0 = \@(LOCAL:1) ? ゆう # 勇\@
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 6
+		TSTR:0 = \@(LOCAL:1) ? のぶ # 信\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 7
+		TSTR:0 = \@(LOCAL:1) ? より # 依\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:20 = 1
+	CASE 8
+		TSTR:0 = \@(LOCAL:1) ? みず # 瑞\@
+		LOCAL:10 = 1
+		LOCAL:11 = 1
+	CASE 9
+		TSTR:0 = \@(LOCAL:1) ? あさ # 麻\@
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:20 = 1
+	CASE 10
+		TSTR:0 = \@(LOCAL:1) ? たま # 珠\@
+		LOCAL:14 = 1
+	CASE 11
+		TSTR:0 = \@(LOCAL:1) ? ゆみ # 弓\@
+		LOCAL:11 = 1
+		LOCAL:19 = 1
+	CASE 12
+		TSTR:0 = \@(LOCAL:1) ? やる # 遣\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 13
+		TSTR:0 = \@(LOCAL:1) ? よし # 義\@
+		LOCAL:11 = 1
+		LOCAL:12 = 1
+		LOCAL:13 = 1
+		LOCAL:14 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 14
+		TSTR:0 = \@(LOCAL:1) ? り # 理\@
+		LOCAL:11 = 1
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 15
+		IF LOCAL:1
+			TSTR:0 = ふう
+			LOCAL:11 = 1
+			LOCAL:19 = 1
+		ELSE
+			TSTR:0 = 風
+		ENDIF
+		LOCAL:13 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+	CASE 16
+			TSTR:0 = \@(LOCAL:1) ? つぐ # 継\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 17
+		TSTR:0 = \@(LOCAL:1) ? ふみ # 文\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 18
+		IF LOCAL:1
+			TSTR:0 = うた
+			LOCAL:13 = 1
+		ELSE
+			TSTR:0 = 詩
+		ENDIF
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 19
+		TSTR:0 = \@(LOCAL:1) ? さち # 幸\@
+		LOCAL:11 = 1
+		LOCAL:14 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 20
+		TSTR:0 = \@(LOCAL:1) ? すみ # 澄\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+	CASE 21
+		TSTR:0 = \@(LOCAL:1) ? まつ # 松\@
+		LOCAL:12 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 22
+		TSTR:0 = \@(LOCAL:1) ? きり # 桐\@
+		LOCAL:11 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:19 = 1
+	CASE 23
+		TSTR:0 = \@(LOCAL:1) ? ばら # 薔薇\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 24
+		TSTR:0 = \@(LOCAL:1) ? ゆう # 雄\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+	CASE 25
+		TSTR:0 = \@(LOCAL:1) ? しず # 静\@
+		LOCAL:11 = 1
+	CASE 26
+		TSTR:0 = \@(LOCAL:1) ? すず # 涼\@
+	CASE 27
+		TSTR:0 = \@(LOCAL:1) ? しん # 真\@
+		LOCAL:12 = 1
+		LOCAL:13 = 1
+		LOCAL:17 = 1
+		LOCAL:20 = 1
+	CASE 28
+		TSTR:0 = \@(LOCAL:1) ? きょう # 京\@
+		LOCAL:11 = 1
+		LOCAL:13 = 1
+		LOCAL:15 = 1
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+	CASE 29
+		TSTR:0 = \@(LOCAL:1) ? はる # 晴\@
+		LOCAL:16 = 1
+		LOCAL:17 = 1
+	CASE 30
+		TSTR:0 = \@(LOCAL:1) ? とよ # 豊\@
+		LOCAL:11 = 1
+		LOCAL:17 = 1
+		LOCAL:18 = 1
+		LOCAL:19 = 1
+		LOCAL:20 = 1
+	CASE 31
+		TSTR:0 = \@(LOCAL:1) ? とし # 俊\@
+		LOCAL:11 = 1
+		LOCAL:18 = 1
+		LOCAL:20 = 1
+	CASE 32
+		TSTR:0 = \@(LOCAL:1) ? ひで # 秀\@
+		LOCAL:11 = 1
+		LOCAL:20 = 1
+ENDSELECT
+
+LOCAL:2 = 0
+;後半部生成
+REPEAT 11
+	IF LOCAL:(10+COUNT) == 0
+		LOCAL:2 += 1
+		LOCAL:(20+LOCAL:2) = COUNT
+	ENDIF
+REND
+
+LOCALS = %TSTR:0%
+
+TRYCALLFORM RANDOM_N_BOY_{LOCAL:(21+RAND:(LOCAL:2))} , LOCAL:1
+
+NAME:(ARG:1) = %LOCALS%%TSTR:0%
+CALLNAME:(ARG:1) = %LOCALS%%TSTR:0%
+
+;………………………………………………
+;ランダム名末尾0
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_0 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = お
+ELSEIF LOCAL == 0
+	TSTR:0 = 男
+ELSEIF LOCAL == 1 && TSTR:0 != "雄"
+	TSTR:0 = 雄
+ELSE
+	TSTR:0 = 夫
+ENDIF
+
+;………………………………………………
+;ランダム名末尾1
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_1 , ARG:0
+LOCAL = RAND:2
+IF ARG:0
+	TSTR:0 = ろう
+ELSEIF LOCAL == 0
+	TSTR:0 = 郎
+ELSE
+	TSTR:0 = 朗
+ENDIF
+
+;………………………………………………
+;ランダム名末尾2
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_2 , ARG:0
+LOCAL = RAND:4
+IF ARG:0
+	TSTR:0 = じ
+ELSEIF LOCAL == 0
+	TSTR:0 = 次
+ELSEIF LOCAL == 1
+	TSTR:0 = 冶
+ELSEIF LOCAL == 2
+	TSTR:0 = 二
+ELSE
+	TSTR:0 = 児
+ENDIF
+
+;………………………………………………
+;ランダム名末尾3
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_3 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = ぞう
+ELSEIF LOCAL == 0
+	TSTR:0 = 三
+ELSEIF LOCAL == 1
+	TSTR:0 = 蔵
+ELSE
+	TSTR:0 = 造
+ENDIF
+
+;………………………………………………
+;ランダム名末尾4
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_4 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = へい
+ELSEIF LOCAL == 0
+	TSTR:0 = 兵
+ELSEIF LOCAL == 1
+	TSTR:0 = 平
+ELSE
+	TSTR:0 = 丙
+ENDIF
+
+;………………………………………………
+;ランダム名末尾5
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_5 , ARG:0
+IF ARG:0
+	TSTR:0 = えもん
+ELSE
+	TSTR:0 = 衛門
+ENDIF
+
+;………………………………………………
+;ランダム名末尾6
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_6 , ARG:0
+LOCAL = RAND:3
+IF ARG:0
+	TSTR:0 = すけ
+ELSEIF LOCAL == 0
+	TSTR:0 = 助
+ELSEIF LOCAL == 1
+	TSTR:0 = 介
+ELSE
+	TSTR:0 = 輔
+ENDIF
+
+;………………………………………………
+;ランダム名末尾7
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_7 , ARG:0
+LOCAL = RAND:5
+IF ARG:0
+	TSTR:0 = いち
+ELSEIF LOCAL == 0
+	TSTR:0 = 一
+ELSE
+	TSTR:0 = 市
+ENDIF
+
+;………………………………………………
+;ランダム名末尾8
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_8 , ARG:0
+LOCAL = RAND:2
+IF ARG:0
+	TSTR:0 = よ
+ELSEIF LOCAL == 0
+	TSTR:0 = 余
+ELSE
+	TSTR:0 = 四
+ENDIF
+
+;………………………………………………
+;ランダム名末尾9
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_9 , ARG:0
+LOCAL = RAND:2
+IF ARG:0
+	TSTR:0 = き
+ELSEIF LOCAL == 0
+	TSTR:0 = 貴
+ELSE
+	TSTR:0 = 鬼
+ENDIF
+
+;………………………………………………
+;ランダム名末尾10
+;ARG:0……命名分岐
+;………………………………………………
+@RANDOM_N_BOY_10 , ARG:0
+LOCAL = RAND:2
+IF ARG:0
+	TSTR:0 = おう
+ELSEIF LOCAL == 0
+	TSTR:0 = 王
+ELSE
+	TSTR:0 = 皇
+ENDIF
+
+;………………………………………………
+;一般外国名(オトコ版)
+;………………………………………………
+@RANDOM_N_BOYPOPNAME(ARG,ARG:1,LOCAL)
+LOCAL = RAND:215
+SELECTCASE LOCAL
+	;英語
+	CASE 0
+		TSTR:0 = アーロン
+	CASE 1
+		TSTR:0 = アベル
+	CASE 2
+		TSTR:0 = エイブラハム
+	CASE 3
+		TSTR:0 = アダルバート
+	CASE 4
+		TSTR:0 = アダム
+	CASE 5
+		TSTR:0 = アドニス
+	CASE 6
+		TSTR:0 = アラン
+	CASE 7
+		TSTR:0 = アレックス
+	CASE 8
+		TSTR:0 = アレン
+	CASE 9
+		TSTR:0 = アンドレア
+	CASE 10
+		TSTR:0 = アーノルド
+	CASE 11
+		TSTR:0 = ボールドウィン
+	CASE 12
+		TSTR:0 = バーナード
+	CASE 13
+		TSTR:0 = ボビー
+	CASE 14
+		TSTR:0 = ブラッドリー
+	CASE 15
+		TSTR:0 = ブラウン
+	CASE 16
+		TSTR:0 = チャールズ
+	CASE 17
+		TSTR:0 = クリスティ
+	CASE 18
+		TSTR:0 = チャック
+	CASE 19
+		TSTR:0 = クラーク
+	CASE 20
+		TSTR:0 = コナン
+	CASE 21
+		TSTR:0 = ダミアン
+	CASE 22
+		TSTR:0 = ドナルド
+	CASE 23
+		TSTR:0 = ダグラス
+	CASE 24
+		TSTR:0 = エディ
+	CASE 25
+		TSTR:0 = エドワード
+	CASE 26
+		TSTR:0 = ファーガス
+	CASE 27
+		TSTR:0 = フランシス
+	CASE 28
+		TSTR:0 = フレデリック
+	CASE 29
+		TSTR:0 = ジェラルド
+	CASE 30
+		TSTR:0 = グレン
+	CASE 31
+		TSTR:0 = グレゴリー
+	CASE 32
+		TSTR:0 = ハロルド
+	CASE 33
+		TSTR:0 = イアン
+	CASE 34
+		TSTR:0 = ジェリー
+	CASE 35
+		TSTR:0 = ジーザス
+	CASE 36
+		TSTR:0 = ジョン
+	CASE 37
+		TSTR:0 = ジョゼフ
+	CASE 38
+		TSTR:0 = ケン
+	CASE 39
+		TSTR:0 = ランバート
+	CASE 40
+		TSTR:0 = ローレンス
+	CASE 41
+		TSTR:0 = リー
+	CASE 42
+		TSTR:0 = ランス
+	CASE 43
+		TSTR:0 = ロト
+	CASE 44
+		TSTR:0 = ルーカス
+	CASE 45
+		TSTR:0 = マーカス
+	CASE 46
+		TSTR:0 = マックス
+	CASE 47
+		TSTR:0 = マーリン
+	CASE 48
+		TSTR:0 = ニール
+	CASE 49
+		TSTR:0 = ニコラス
+	CASE 50
+		TSTR:0 = オズワルド
+	CASE 51
+		TSTR:0 = ポール
+	CASE 52
+		TSTR:0 = ピーター
+	CASE 53
+		TSTR:0 = ラルフ
+	CASE 54
+		TSTR:0 = レイモンド
+	CASE 55
+		TSTR:0 = ライアン
+	CASE 56
+		TSTR:0 = リチャード
+	CASE 57
+		TSTR:0 = ライス
+	CASE 58
+		TSTR:0 = ローランド
+	CASE 59
+		TSTR:0 = ルーファス
+	CASE 60
+		TSTR:0 = ラッセル
+	CASE 61
+		TSTR:0 = サム
+	CASE 62
+		TSTR:0 = シド
+	CASE 63
+		TSTR:0 = サイラス
+	CASE 64
+		TSTR:0 = サイモン
+	CASE 65
+		TSTR:0 = ステファン
+	CASE 66
+		TSTR:0 = スティーヴ
+	CASE 67
+		TSTR:0 = テリー
+	CASE 68
+		TSTR:0 = トーマス
+	CASE 69
+		TSTR:0 = ティモシー
+	CASE 70
+		TSTR:0 = トム
+	CASE 71
+		TSTR:0 = トミー
+	CASE 72
+		TSTR:0 = トニー
+	CASE 73
+		TSTR:0 = サリヴァン
+	CASE 74
+		TSTR:0 = ヴァレンタイン
+	CASE 75
+		TSTR:0 = ユリシーズ
+	CASE 76
+		TSTR:0 = トロイ
+	CASE 77
+		TSTR:0 = ヴィンセント
+	CASE 78
+		TSTR:0 = ヴィクター
+	CASE 79
+		TSTR:0 = ウォルト
+	CASE 80
+		TSTR:0 = ウォーレン
+	CASE 81
+		TSTR:0 = ウィリアム
+	CASE 82
+		TSTR:0 = ウィリー
+	CASE 83
+		TSTR:0 = ワイアット
+	CASE 84
+		TSTR:0 = ザック
+	CASE 85
+		TSTR:0 = ワット
+	CASE 86
+		TSTR:0 = ブルータス
+	CASE 87
+		TSTR:0 = ボブ
+	CASE 88
+		TSTR:0 = ビリー
+	CASE 89
+		TSTR:0 = チェスター
+	CASE 90
+		TSTR:0 = クリフ
+	CASE 91
+		TSTR:0 = コネリー
+	CASE 92
+		TSTR:0 = コンスタンス
+	CASE 93
+		TSTR:0 = デニス
+	CASE 94
+		TSTR:0 = ディーン
+	CASE 95
+		TSTR:0 = ドン
+	CASE 96
+		TSTR:0 = デューク
+	CASE 97
+		TSTR:0 = エリック
+	CASE 98
+		TSTR:0 = エマニエル
+	CASE 99
+		TSTR:0 = ファビアン
+	CASE 100
+		TSTR:0 = フランクリン
+	CASE 101
+		TSTR:0 = ゲイリー
+	CASE 102
+		TSTR:0 = ハミルトン
+	CASE 103
+		TSTR:0 = ハリソン
+	CASE 104
+		TSTR:0 = アイザック
+	CASE 105
+		TSTR:0 = ジャック
+	CASE 106
+		TSTR:0 = ルーク
+	CASE 107
+		TSTR:0 = マーク
+	CASE 108
+		TSTR:0 = サイファ
+	;独語
+	CASE 109
+		TSTR:0 = アドルフ
+	CASE 110
+		TSTR:0 = アレックス
+	CASE 111
+		TSTR:0 = アロイス
+	CASE 112
+		TSTR:0 = アマデウス
+	CASE 113
+		TSTR:0 = アンドレ
+	CASE 114
+		TSTR:0 = アクセル
+	CASE 115
+		TSTR:0 = ヴォルフガング
+	CASE 116
+		TSTR:0 = ブルーノ
+	CASE 117
+		TSTR:0 = カシミール
+	CASE 118
+		TSTR:0 = クレメンス
+	CASE 119
+		TSTR:0 = ダニエル
+	CASE 120
+		TSTR:0 = ディートハルト
+	CASE 121
+		TSTR:0 = ドミニク
+	CASE 122
+		TSTR:0 = エックハルト
+	CASE 123
+		TSTR:0 = オイゲン
+	CASE 124
+		TSTR:0 = フランク
+	CASE 125
+		TSTR:0 = セバスチャン
+	CASE 126
+		TSTR:0 = フリードリヒ
+	CASE 127
+		TSTR:0 = ゲオルグ
+	CASE 128
+		TSTR:0 = ゴットハルト
+	CASE 129
+		TSTR:0 = ギュンター
+	CASE 130
+		TSTR:0 = ハルトマン
+	CASE 131
+		TSTR:0 = ハインツ
+	CASE 132
+		TSTR:0 = ヒルデブラント
+	CASE 133
+		TSTR:0 = ジークフリート
+	CASE 134
+		TSTR:0 = イヴァン
+	CASE 135
+		TSTR:0 = ヨハン
+	CASE 136
+		TSTR:0 = ユリウス
+	CASE 137
+		TSTR:0 = コンラート
+	CASE 138
+		TSTR:0 = リーンハルト
+	CASE 139
+		TSTR:0 = ルートヴィヒ
+	CASE 140
+		TSTR:0 = マテウス
+	CASE 141
+		TSTR:0 = マクシミリアン
+	CASE 142
+		TSTR:0 = ミハエル
+	CASE 143
+		TSTR:0 = ミルコ
+	CASE 144
+		TSTR:0 = モーゼス
+	CASE 145
+		TSTR:0 = ニコラス
+	CASE 146
+		TSTR:0 = オットー
+	CASE 147
+		TSTR:0 = ペーター
+	CASE 148
+		TSTR:0 = フィリップ
+	CASE 149
+		TSTR:0 = ラインハルト
+	;スペイン系
+	CASE 150
+		TSTR:0 = アントニオ
+	CASE 151
+		TSTR:0 = カルロス
+	CASE 152
+		TSTR:0 = ドミンゴ
+	CASE 153
+		TSTR:0 = エンリケ
+	CASE 154
+		TSTR:0 = エステバン
+	CASE 155
+		TSTR:0 = フェリシアーノ
+	CASE 156
+		TSTR:0 = フェルナンド
+	CASE 157
+		TSTR:0 = ファウスト
+	CASE 158
+		TSTR:0 = ガブリエル
+	CASE 159
+		TSTR:0 = ゴンザレス
+	CASE 160
+		TSTR:0 = イグナシオ
+	CASE 161
+		TSTR:0 = フリオ
+	CASE 162
+		TSTR:0 = レオ
+	CASE 163
+		TSTR:0 = ミゲル
+	CASE 164
+		TSTR:0 = ステファノ
+	CASE 165
+		TSTR:0 = ビクトル
+	;ロシア系
+	CASE 166
+		TSTR:0 = ニコライ
+	CASE 167
+		TSTR:0 = ピョートル
+	CASE 168
+		TSTR:0 = ヤコフ
+	CASE 169
+		TSTR:0 = セルゲイ
+	;イタリア系
+	CASE 170
+		TSTR:0 = ダンテ
+	CASE 171
+		TSTR:0 = ジェロニモ
+	CASE 172
+		TSTR:0 = マルコ
+	CASE 173
+		TSTR:0 = マリオ
+	CASE 174
+		TSTR:0 = ピエトロ
+	CASE 175
+		TSTR:0 = ロベルト
+	CASE 176
+		TSTR:0 = テオドロ
+	CASE 177
+		TSTR:0 = ルイージ
+	;その他諸々
+	CASE 178
+		TSTR:0 = アスラン
+	CASE 179
+		TSTR:0 = アムロ
+	CASE 180
+		TSTR:0 = カイエン
+	CASE 181
+		TSTR:0 = カイン
+	CASE 182
+		TSTR:0 = カオス
+	CASE 183
+		TSTR:0 = ガウ
+	CASE 184
+		TSTR:0 = ガトー
+	CASE 185
+		TSTR:0 = カミーユ
+	CASE 186
+		TSTR:0 = カーライル
+	CASE 187
+		TSTR:0 = ギルバート
+	CASE 188
+		TSTR:0 = クジュラ
+	CASE 189
+		TSTR:0 = クラウド
+	CASE 190
+		TSTR:0 = グレゴール
+	CASE 191
+		TSTR:0 = クローズ
+	CASE 192
+		TSTR:0 = クワトロ
+	CASE 193
+		TSTR:0 = サウザー
+	CASE 194
+		TSTR:0 = ジェリド
+	CASE 195
+		TSTR:0 = シャア
+	CASE 196
+		TSTR:0 = ジャギ
+	CASE 197
+		TSTR:0 = ジュドー
+	CASE 198
+		TSTR:0 = ジョジョ
+	CASE 199
+		TSTR:0 = スパーク
+	CASE 200
+		TSTR:0 = ディオ
+	CASE 201
+		TSTR:0 = デギン
+	CASE 202
+		TSTR:0 = トカマク
+	CASE 203
+		TSTR:0 = ドレイク
+	CASE 204
+		TSTR:0 = ニコル
+	CASE 205
+		TSTR:0 = バレット
+	CASE 206
+		TSTR:0 = フランケン
+	CASE 207
+		TSTR:0 = マーダル
+	CASE 208
+		TSTR:0 = マイケル
+	CASE 209
+		TSTR:0 = ムウ
+	CASE 210
+		TSTR:0 = ラオウ
+	CASE 211
+		TSTR:0 = ラコック
+	CASE 212
+		TSTR:0 = リト
+	CASE 213
+		TSTR:0 = レイ
+	CASE 214
+		TSTR:0 = ロラン
+ENDSELECT
+
+NAME:(ARG:1) = %TSTR:0%
+CALLNAME:(ARG:1) = %TSTR:0%
+
+
+;-------------------------------------------------------------------------------
+;母乳を搾る処理
+;@param ARG:0 キャラ番号
+@PREGNACY_S_Milking(ARG:0)
+	SIF !TALENT:(ARG:0):母乳体質
+		RETURN 0
+	;母乳増加
+	BASE:(ARG:0):母乳 += TIME_PROGRESS(TFLAG:300)*5
+	;母乳が８割ぐらい溜まってて 自室で 一人だったら搾る
+	IF BASE:(ARG:0):母乳*10 > MAXBASE:(ARG:0):母乳*8
+		IF GET_PRIVATE_ROOM(ARG:0,0) == CFLAG:(ARG:0):現在位置
+			IF COUNT_MEM_IN_POS(CFLAG:(ARG:0):現在位置) == 1
+				;１割搾る
+				BASE:(ARG:0):母乳 -= (BASE:(ARG:0):母乳/10)
+				DEBUGPRINTFORML %CALLNAME:(ARG:0)+"は母乳を搾りました。"%
+			ENDIF
+		ENDIF
+	ENDIF
+	
+RETURN 0

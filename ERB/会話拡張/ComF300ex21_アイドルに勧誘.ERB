@@ -1,0 +1,120 @@
+;未所属も通常会話を出来るようにCOM390からの呼び出しに変更
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - アイドルに勧誘 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM300_21_ENABLE
+	RESULTS:0 = %"[21]-スカウトする"%
+	IF TCVAR:(TARGET:0):会話不能
+		RETURN 0
+	ELSEIF 所属(TARGET)
+		RETURN 0
+	ELSEIF TFLAG:電話相手 == 0
+		RETURN 0
+	ELSE
+		RETURN 1
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - アイドルに勧誘
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM300_21
+#DIM 判定
+TIME += 20
+TCVAR:会話累積値 += 200 / (3 + ABL:MASTER:話術技能)
+EXP:MASTER:会話経験 ++
+
+;判定:高ければ高いほど勧誘が困難に 好感度と比較
+判定=2*MAX(1, 20-TALENT:目立ちたがり*5+TALENT:無関心*10+TALENT:態度*5+TALENT:羞恥心*5-TALENT:即落ち*10-TALENT:度胸*3-TALENT:応答*3-TALENT:プライド*3+TALENT:感情乏しい*10)
+;元アイドルはさらに難しく
+SIF TALENT:アイドル == 2
+	判定 += 100
+;PRINTFORML 判断変数=個人値{判定}-事務所知名度{FLAG:事務所知名度}
+判定=MAX(1, 判定-FLAG:事務所知名度)
+IF PRENTR(TARGET, 人物_AV男優, NTRPRE_職) ||PRENTR(TARGET, 人物_風俗オーナー, NTRPRE_職)
+;あＶ嬢のときは特殊処理
+	IF CFLAG:好感度 < 判定
+		PRINTFORML アイドルをしないか、と問いかけたが何故か何も返事もせずにうな垂れて%CALLNAME%は去ってしまった…
+		CFLAG:現在位置=場所_ダミー
+	ELSE
+		PRINTFORML 実は今ある会社と専属契約しているからその話は受けられない、と言って%CALLNAME%は逃げ去ってしまった…
+		PRINTFORML %CALLNAME:MASTER%はその会社に様々な黒いうわさがあることを暫くしてから思い出した
+		CFLAG:現在位置=場所_ダミー
+	ENDIF
+	RETURN 0
+ELSEIF CFLAG:好感度 > 判定
+	;が、CAPに引っかかってる際
+	IF 場所番号最大値 > FLAG:事務所人数CAP+場所番号最大値初期数+4
+;		LOCALに事務員キャラを持ってくる,おそらく2だけど
+		FOR LOCAL:1 ,1, CHARA_ACTIVE
+			IF TALENT:(LOCAL:1):事務員
+				LOCAL=LOCAL:1
+				BREAK
+			ENDIF
+		NEXT
+		
+		PRINTFORML 新しくアイドルを勧誘するつもりであることを%CALLNAME:LOCAL%に電話で伝えたが…
+		PRINTFORML %CALLNAME:LOCAL%「私も事務所を将来的にどんどん拡大していくことには賛成ですが…」
+		PRINTFORML %CALLNAME:LOCAL%「正直、現状の{5+FLAG:事務所人数CAP}人でも発生する事務処理が膨大で大変なんですよね」
+		;ブラック企業なのであくまで新しい人は雇いません、システムで対応します(真顔)
+		PRINTFORML %CALLNAME:LOCAL%「${(FLAG:事務所人数CAP/5+1)*5000}ほど対策費をいただければ新しいシステムを導入したりしてやりくりできるのですが…」
+		PRINTFORMW %CALLNAME:LOCAL%「もし金銭的に都合つきそうでしたら私に相談してください」
+		PRINTL
+		RETURN 0
+	ENDIF
+	;成功
+	PRINTFORML %CALLNAME%の説得に成功した。
+	PRINTFORML 早速寮への引越しを始めるらしい…
+	IF TALENT:トレーナー == 1
+		PRINTFORML %CALLNAME%にはトレーナーの才があるようだ
+		PRINTFORML アイドルとしてではなくトレーナーとして働いてもらうこともできるが……
+		PRINTL [0] - アイドルとして雇う
+		PRINTL [1] - トレーナーとして雇う
+		INPUT
+		SIF RESULT == 0
+			TALENT:トレーナー = 0
+		SIF RESULT == 1
+			TALENT:トレーナー = 2
+		CFLAG:所属 = 1
+	ENDIF
+	CALL BELONG_IDOL(TARGET)
+	;念のためTARGETCLEAR
+;	TARGET=-1
+ELSEIF CFLAG:好感度*2 > 判定
+
+	PRINTFORML %CALLNAME%は勧誘を断ったがまんざらでもなさそうだ…
+
+ELSEIF CFLAG:好感度*3 > 判定
+;失敗
+	PRINTFORML %CALLNAME%を勧誘したが断られてしまった…
+ELSE
+;大失敗
+	PRINTFORML %CALLNAME%を勧誘したが%CALLNAME:MASTER%がからかっていると勘違いしたらしく怒ってどこかに立ち去ってしまった…
+	CFLAG:現在位置=場所_ダミー
+
+ENDIF
+RETURN 0
+
+@BELONG_IDOL(ARG)
+;アイドルとして所属させる
+#DIM LOOP_CHR
+#DIM CHK_IDOL = -1
+;ここで仮存在解除しておく
+TFLAG:電話相手仮存在=0
+
+
+FOR LOOP_CHR, 1 , CHARA_ACTIVE
+	IF !所属(LOOP_CHR)
+		CHK_IDOL=LOOP_CHR
+		BREAK
+	ENDIF
+NEXT
+SIF !TALENT:ARG:トレーナー
+	TALENT:ARG:アイドル = 1
+場所番号最大値 += 1
+CFLAG:ARG:開始位置=場所番号最大値
+SIF CHK_IDOL != -1
+	CALL SWAP_IDOL(ARG, CHK_IDOL)
+

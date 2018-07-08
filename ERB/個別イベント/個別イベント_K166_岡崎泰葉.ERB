@@ -1,0 +1,174 @@
+
+@個別イベント_K166(ARG)
+#DIM LOOP_NUM
+#DIM LOOP_CHR
+#DIM 判定
+;コンセプト：ふこうなおんなのこいいねって埴輪さんもいってた
+;とりあえず作成してみるテスト
+;:キャライベント ... -999999でイベント終了
+SIF CFLAG:ARG:キャライベント == -999999
+	RETURN 0
+
+IF CFLAG:ARG:キャライベント==0
+	;START
+	;事務所に所属していない、名前知らない、NTRPREでない、事務所に空きあり
+	IF !所属(ARG) && CFLAG:ARG:名前フラグ == 0 && !TALENT:ARG:NTRPRE && CFLAG:MASTER:現在位置 < 場所番号最大値+1  && 場所番号最大値 <= FLAG:事務所人数CAP+場所番号最大値初期数+4
+		;1/7
+		SIF RAND:7
+			RETURN 0
+		;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		;妊娠フラグおｎ
+		SIF !GETBIT(FLAG:雑多設定,5)
+			RETURN 0
+		
+		PRINTL
+		PRINTFORML %CALLNAME:GET_SEC()%から%CALLNAME:MASTER%に事務所に関することで相談があるらしい
+		PRINTFORML 「実は数日前に某大手事務所から『あるアイドルをそちらに移籍させてくれないか』とオファーがありまして」
+		PRINTFORMW 「子役のころから活動されているので実力、実績に問題があるわけではないのですが……」
+		PRINTFORML 恐らく能力がない訳ではないが、優先順位が低く手が回らないということだろう
+		PRINTFORMW 移籍金が高額ということだろうか？
+		PRINTFORML 「いえ、私も最初は高額の移籍金を吹っかけてくるつもりだと思っていたのですが」
+		PRINTFORMW 「なぜか移籍金$1000も向こう側がつける、と異様に好条件でして……」
+		PRINTFORMW 確かにおかしい話である、恐らく何か裏があるのだろう
+		PRINTFORML だが、それを抜きにしてもこの話を受諾すれば実力のあるアイドルとお金が手に入るいい機会である
+		PRINTW どうしようか？
+		PRINTL [0] 断る
+		PRINTL [1] 受諾する
+		INPUT
+		IF RESULT == 0
+			PRINTFORML おいしい話には必ず裏がある
+			PRINTFORMW %CALLNAME:MASTER%はその話を断ることにした
+			CFLAG:ARG:キャライベント = -999999
+			;メモ こちらのルートのこの娘はパイセンではない、ということで後々町であったときの整合性を担保
+		ELSE
+			CALL 真名看破(ARG)
+			PRINTFORMW 提案を受け入れることにした
+			PRINTL 　　　・
+			PRINTL 　　　・
+			PRINTW 　　　・
+			PRINTFORMW タクシーから降りてきた娘はどこか影のある娘だった
+			PRINTFORML 「%NAME:ARG%です……よろしくお願いします……」
+			PRINTFORMW %CALLNAME:GET_SEC()%が心配して声をかけたが、大丈夫ですから、とその返事はそっけなかった
+			MONEY+=1000
+			;素質変更
+
+			CALL 性経験の改変(ARG, 0, 30)
+			CSTR:ARG:Ｖ初体験の相手 = その昔審査員に枕営業で捧げた
+			CSTR:ARG:Ａ初体験の相手 = その昔審査員に枕営業で捧げた
+			CSTR:ARG:Ｍ初体験の相手 = その昔審査員に枕営業で捧げた
+			EXP:ARG:枕営業経験=EXP:ARG:Ｖ性交経験/2
+			CFLAG:ARG:にんっしんっ=人物_客+1+10000
+			CFLAG:ARG:キャライベント = 1
+			EXP:ARG:ダンス経験=正規分布(450)
+			EXP:ARG:ボーカル経験=正規分布(450)
+			EXP:ARG:ビジュアル経験=正規分布(450)
+			CFLAG:ARG:(屈服IX+人物_審査員-人物_訪問者)=正規分布(750)
+			TALENT:ARG:淫乱=1
+			CFLAG:ARG:アイドルランク=2
+			CFLAG:ARG:ファン人数=正規分布(1000)
+			CALL BELONG_IDOL(ARG)
+		ENDIF
+	ENDIF
+ELSEIF CFLAG:ARG:キャライベント == 1
+;上の次のターンに即効首にしてなければふつうは必ず発生
+	IF 所属(ARG) && CFLAG:ARG:にんっしんっ
+		PRINTFORML %CALLNAME:MASTER%が家に帰ると、玄関で%CALLNAME:ARG%が待ち構えていた
+		PRINTFORMW 「%CALLNAME:MASTER%さん、今日は驚かせてしまってすみません」
+		PRINTFORML そういって%CALLNAME:ARG%は%CALLNAME:GET_SEC()%の薬の効果で既に膨らみ始めたお腹を撫でる
+		PRINTFORML 「黙っていても仕方ないので、全部話しますね」
+		PRINTL 　　　・
+		PRINTL 　　　・
+		PRINTW 　　　・
+		PRINTFORMW %CALLNAME:ARG%は子役でデビュー、ブレイクしたが、それ以降は伸び悩んだらしい
+		PRINTL 
+		PRINTFORML 「最初、収録帰りにホテルに連れて行かれたときは抵抗しました」
+		PRINTFORML 「でも『お前はアイドルとして会社に貢献していない、せめて性奴隷として働け』と脅されて……」
+		PRINTFORMW 「後で分かったことなんですが、私が初めてを捧げた人は次に受けるオーディションの審査員の方でした」
+		PRINTFORML 「初めての枕営業の後、もう二度とやりたくない、やるぐらいなら芸能界を止めようと思いました」
+		PRINTFORMW 「……でも人は堕ち始めるとどこまでも堕ちるんですよね」
+		PRINTL 
+		PRINTFORMW そしていつの間にか仕事の合間に入れられる枕営業や男性アイドルの性処理は当然のこととなっていたらしい
+		PRINTL 
+		PRINTFORML 「最後のほうは、ちゃんとした仕事よりもそっちがメインになっていました」
+		PRINTFORML 「妊娠の兆候が出てからは、それが一変しました」
+		PRINTFORML 「誰も私を抱こうとせず、予定表は空白だらけになりました」
+		PRINTFORML 「当然ですよね、父親のわからない子を孕んだアイドルなんて誰も近寄りたがらないです」
+		PRINTFORMW 「それからはお察しの通りです、あの方々は端金をつけてスキャンダルの種を処分したんです」
+		PRINTL 
+		PRINTL 　　　・
+		PRINTL 　　　・
+		PRINTW 　　　・
+		PRINTFORML 語りきった%CALLNAME:ARG%はどこかせいせいとした表情だった
+		PRINTFORMW 「それで、どうしますか？こんな私を事務所に残すとトラブルの種になりますよ？」
+		PRINTL どうしようか
+		PRINTL [0] クビにする
+		PRINTL [1] ここではそんなことはさせないと誓う
+		IF FLAG:事務所知名度 < -20
+			PRINTL [2] 以前と同じ身分で働いてもらう
+		ELSE
+			SETCOLOR 0x666666
+			PRINTPLAIN [2] 以前と同じ身分で働いてもらう
+			PRINTL
+			RESETCOLOR
+		ENDIF
+		INPUT
+		IF RESULT == 0
+			PRINTFORML 「……はい、分かりました」
+			PRINTFORMW 「本当に短い間でしたがお世話になりました」
+			PRINTFORML %CALLNAME:ARG%から提案してきたこととは言え、あっさりとクビを受け入れたようだ
+			PRINTFORMW %CALLNAME:MASTER%の家から去ろうとする%CALLNAME:ARG%にこれからどうするつもりだ、と%CALLNAME:MASTER%は尋ねた
+			PRINTFORML 「こんな体じゃ実家や学校には帰れませんからね」
+			PRINTFORMW 「取り合えず産んで、それからは……私とこの子、二人分稼げる仕事に就くと思います」
+			PRINTFORML おそらくそのような仕事は性産業ぐらいしかないだろう
+			PRINTFORMW 彼女の暗い瞳はそのことを理解しているように%CALLNAME:MASTER%は思えた
+			;改変
+			CFLAG:ARG:キャライベント = -999999
+			;処理の都合上今産ませる
+			TALENT:ARG:妊娠=0
+			MAXBASE:ARG:体力 += 500
+			TALENT:ARG:母乳体質=0
+			EXP:ARG:出産経験++
+			親別出産数:(NO:ARG):(CFLAG:ARG:にんっしんっ - 10000 -1) += 1
+			CFLAG:ARG:子供の人数+=1
+			CFLAG:ARG:里子人数+=1
+			CFLAG:ARG:にんっしんっ = 0
+			CALL NTRPRE堕ち(ARG, 人物_風俗オーナー)
+			CALL FIRED_IDOL(ARG)
+		ELSEIF RESULT ==2
+			PRINTFORML 「……はい、分かりました」
+			PRINTFORMW 折角なので彼女には汚れ仕事を続けてもらおう
+			SIF HAS_PENIS(PLAYER)
+				PRINTFORMW 早速使い心地を試すためにズボンのチャックを下ろしながら%CALLNAME:MASTER%は今後の使い道を練り始めた
+			;改変
+			CFLAG:ARG:キャライベント = -999999
+			CFLAG:ARG:既成事実=2
+
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は%CALLNAME:ARG%にここではそのような酷いことはしない、と誓った
+			PRINTFORMW 「本当に……本当に信じていいんですか？」
+			PRINTFORML 今までの淡々とした態度はやはり演技だったのだろう
+			PRINTFORMW %CALLNAME:ARG%は%CALLNAME:MASTER%の誓いを聞いて泣き出してしまった
+			PRINTL 
+			PRINTFORML ※
+			PRINTFORMW %CALLNAME:ARG%が%NTR_NAME(人物_審査員)%や%NTR_NAME(人物_訪問者)%に抱かれることのない様注意しましょう
+			;改変
+			CFLAG:ARG:キャライベント = 2
+			CFLAG:ARG:好感度+=正規分布(1000)
+			TALENT:ARG:淫乱=0
+		ENDIF
+	ENDIF
+ELSEIF CFLAG:ARG:キャライベント==2
+	IF 所属(ARG) && CFLAG:ARG:現在位置 == 場所_訪問者宅 || CFLAG:ARG:現在位置 == 場所_審査員宅
+		PRINTFORML 「ああ……やっぱり、私は……」
+		PRINTFORMW %CALLNAME:ARG%は%NTR_NAME(CFLAG:ARG:軟禁者)%に抱かれたことで自分が大人たちの性のはけ口にされ続ける運命にあることを悟ってしまったようだ
+		CFLAG:ARG:(屈服IX+CFLAG:ARG:軟禁者-人物_訪問者)+=CFLAG:ARG:好感度*100+10000
+		TALENT:ARG:淫乱=1
+		CFLAG:ARG:キャライベント = -999999
+	ENDIF
+ENDIF
+RETURN 1
+;;;;;;ここら辺まではテンプレ
+;;;;;;CFLAG:奴隷:キャライベントをイベント用にあらかじめ用意
+;;;;;;BIT操作などを駆使してイベントを作成してみてください。

@@ -1,0 +1,482 @@
+;-------------------------------------------------------------------------------
+;â’¸Œn‚Ìˆ—‚È‚Ç
+;-------------------------------------------------
+;â’¸ˆ—
+;-------------------------------------------------
+@ORGASM_ADD(“z—ê,’²‹³ŽÒ=0)
+	#DIM “z—ê
+	#DIM ’²‹³ŽÒ
+	#DIM â’¸—v‹ŒW”
+	VARSET LOCAL
+	LOCAL = ((CUP:“z—ê:‰õ‚b + PALAM:“z—ê:‰õ‚b) >= PALAMLV:4) + (CUP:“z—ê:‰õ‚u + PALAM:“z—ê:‰õ‚u >= PALAMLV:4) + (CUP:“z—ê:‰õ‚` + PALAM:“z—ê:‰õ‚` >= PALAMLV:4) + (CUP:“z—ê:‰õ‚a + PALAM:“z—ê:‰õ‚a >= PALAMLV:4)
+	SELECTCASE LOCAL
+		CASE 4
+			LOCAL:1 = 7000
+		CASE  3
+			LOCAL:1 = 5000
+		CASE 2
+			LOCAL:1 = 3000
+		CASE 1
+			LOCAL:1 = 2000
+	ENDSELECT
+	;Ž‹”F«‚Ì–â‘è‚ÅŽc‚µ‚Ä‚¨‚­
+	C = 0
+	V = 0
+	A = 0
+	B = 0
+	
+	;–K–âŽÒˆÈŠO‚Ì’²‹³‚ÅA‰õŠyˆó‚æ‚è‚à•‚‹C‰õŠyˆó‚ÌƒŒƒxƒ‹‚ª‚‚¢ê‡Aâ’¸‚µ‚Ã‚ç‚­‚È‚é
+	IF ’²‹³ŽÒ != 998 && MARK:“z—ê:‰õŠyˆó < MARK:“z—ê:•‚‹C‰õŠyˆó
+		â’¸—v‹ŒW” = MAX( 100 * MARK:“z—ê:•‚‹C‰õŠyˆó / MAX(1,MARK:“z—ê:‰õŠyˆó) , 100 )
+	ELSE
+		â’¸—v‹ŒW” = 100
+	ENDIF
+	
+	;-------------------------------------------------------------------
+	;â’¸‚b
+	LOCAL:2 = (CUP:“z—ê:‰õ‚b > 0) * LOCAL:1
+	IF CUP:“z—ê:‰õ‚b + PALAM:“z—ê:‰õ‚b + LOCAL:2 >= PALAMLV:4 * 2 * â’¸—v‹ŒW” / 100
+		C = 2
+		CDOWN:“z—ê:‰õ‚b = PALAMLV:4 * 2 - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚b + PALAM:“z—ê:‰õ‚b + LOCAL:2 >= PALAMLV:4 * â’¸—v‹ŒW” / 100
+		C = 1
+		CDOWN:“z—ê:‰õ‚b = PALAMLV:4 - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚b + PALAM:“z—ê:‰õ‚b + LOCAL:2 >= PALAMLV:4
+		;ƒC‚¯‚é‚Í‚¸‚È‚Ì‚ÉƒC‚¯‚È‚©‚Á‚½ê‡
+		NOWEX:“z—ê:â’¸‰‰‹Z++
+	ENDIF
+	;DOWN:0‚Å‰º‚°‚Ä‚àâ’¸ˆÈã‚È‚ç
+	;‚»‚Ì’l-1‚É‚È‚é‚æ‚¤‚É’²®i10000‚Åâ’¸‚È‚ç9999j
+	SIF CUP:“z—ê:‰õ‚b + PALAM:“z—ê:‰õ‚b - CDOWN:“z—ê:‰õ‚b >= PALAMLV:4
+		CDOWN:“z—ê:‰õ‚b = CUP:“z—ê:‰õ‚b + PALAM:“z—ê:‰õ‚b - PALAMLV:4 + 1
+	;-------------------------------------------------------------------
+	;â’¸‚u
+	LOCAL:2 = (CUP:“z—ê:‰õ‚u > 0) * LOCAL:1
+	IF CUP:“z—ê:‰õ‚u + PALAM:“z—ê:‰õ‚u + LOCAL:2 >= PALAMLV:4 * 2 * â’¸—v‹ŒW” / 100
+		V = 2
+		CDOWN:“z—ê:‰õ‚u = PALAMLV:4 * 2 - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚u + PALAM:“z—ê:‰õ‚u + LOCAL:2 >= PALAMLV:4 * â’¸—v‹ŒW” / 100
+		V = 1
+		CDOWN:“z—ê:‰õ‚u = PALAMLV:4 - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚u + PALAM:“z—ê:‰õ‚u + LOCAL:2 >= PALAMLV:4
+		;ƒC‚¯‚é‚Í‚¸‚È‚Ì‚ÉƒC‚¯‚È‚©‚Á‚½ê‡
+		NOWEX:“z—ê:â’¸‰‰‹Z++
+	ENDIF
+	;CDOWN:“z—ê:1‚Å‰º‚°‚Ä‚àâ’¸ˆÈã‚È‚ç
+	;‚»‚Ì’l-1‚É‚È‚é‚æ‚¤‚É’²®i10000‚Åâ’¸‚È‚ç9999j
+	SIF CUP:“z—ê:‰õ‚u + PALAM:“z—ê:‰õ‚u - CDOWN:“z—ê:‰õ‚u >= PALAMLV:4
+		CDOWN:“z—ê:‰õ‚u = CUP:“z—ê:‰õ‚u + PALAM:“z—ê:‰õ‚u - PALAMLV:4 + 1
+	;-------------------------------------------------------------------
+	;â’¸‚`
+	LOCAL:2 = (CUP:“z—ê:‰õ‚` > 0) * LOCAL:1
+	IF CUP:“z—ê:‰õ‚` + PALAM:“z—ê:‰õ‚` + LOCAL:2 >= PALAMLV:4 * 2 * â’¸—v‹ŒW” / 100
+		A = 2
+		CDOWN:“z—ê:‰õ‚` = PALAMLV:4 * 2 - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚` + PALAM:“z—ê:‰õ‚` + LOCAL:2 >= PALAMLV:4 * â’¸—v‹ŒW” / 100
+		A = 1
+		CDOWN:“z—ê:‰õ‚` = PALAMLV:4 - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚` + PALAM:“z—ê:‰õ‚` + LOCAL:2 >= PALAMLV:4
+		;ƒC‚¯‚é‚Í‚¸‚È‚Ì‚ÉƒC‚¯‚È‚©‚Á‚½ê‡
+		NOWEX:“z—ê:â’¸‰‰‹Z++
+	ENDIF
+	;CDOWN:“z—ê:‰õ‚`‚Å‰º‚°‚Ä‚àâ’¸ˆÈã‚È‚ç
+	;‚»‚Ì’l-1‚É‚È‚é‚æ‚¤‚É’²®i10000‚Åâ’¸‚È‚ç9999j
+	SIF CUP:“z—ê:‰õ‚` + PALAM:“z—ê:‰õ‚` - CDOWN:“z—ê:‰õ‚` >= PALAMLV:4
+		CDOWN:“z—ê:‰õ‚` = CUP:“z—ê:‰õ‚` + PALAM:“z—ê:‰õ‚` - PALAMLV:4 + 1
+	;-------------------------------------------------------------------
+	;â’¸‚a
+	LOCAL:2 = (CUP:“z—ê:‰õ‚a > 0) * LOCAL:1
+	IF CUP:“z—ê:‰õ‚a + PALAM:“z—ê:‰õ‚a + LOCAL:2 >= PALAMLV:4 * 2 * â’¸—v‹ŒW” / 100
+		B = 2
+		CDOWN:“z—ê:‰õ‚a = (PALAMLV:4 * 2 - 1000) - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚a + PALAM:“z—ê:‰õ‚a + LOCAL:2 >= PALAMLV:4 * â’¸—v‹ŒW” / 100
+		B = 1
+		CDOWN:“z—ê:‰õ‚a = (PALAMLV:4 - 1000) - LOCAL:2
+	ELSEIF CUP:“z—ê:‰õ‚a + PALAM:“z—ê:‰õ‚a + LOCAL:2 >= PALAMLV:4
+		;ƒC‚¯‚é‚Í‚¸‚È‚Ì‚ÉƒC‚¯‚È‚©‚Á‚½ê‡
+		NOWEX:“z—ê:â’¸‰‰‹Z++
+	ENDIF
+	;CDOWN:“z—ê:‰õ‚a‚Å‰º‚°‚Ä‚àâ’¸ˆÈã‚È‚ç
+	;‚»‚Ì’l-1‚É‚È‚é‚æ‚¤‚É’²®i10000‚Åâ’¸‚È‚ç9999j
+	SIF CUP:“z—ê:‰õ‚a + PALAM:“z—ê:‰õ‚a - CDOWN:“z—ê:‰õ‚a >= PALAMLV:4
+		CDOWN:“z—ê:‰õ‚a = CUP:“z—ê:‰õ‚a + PALAM:“z—ê:‰õ‚a - PALAMLV:4 + 1
+	;-------------------------------------------------
+	;â’¸Žž‚Ì’Ç‰Áˆ—
+	;-------------------------------------------------
+	;‰õŠyˆó‚Ìˆ—
+	;â’¸‚Ì•”ˆÊ‚Æ‹­“x‚Ì‡Œv‚ªˆê’èˆÈã‚Åˆó‚ðŽæ“¾‚·‚é
+	R = C + V * 2 + A * 2 + B
+	;R‚ª4ˆÈã‚Å‰õŠyˆó‚R‚É‘Š“–
+	IF R >= 3 && MARK:“z—ê:‰õŠyˆó < 3
+		TCVAR:“z—ê:‰õŠy‹­“x = 3
+		;R‚ª3ˆÈã‚Å‰õŠyˆó‚Q‚É‘Š“–
+	ELSEIF R >= 2 && MARK:“z—ê:‰õŠyˆó < 2
+		TCVAR:“z—ê:‰õŠy‹­“x = 2
+		;R‚ª2ˆÈã‚Å‰õŠyˆó‚P‚É‘Š“–
+	ELSEIF R >= 1 && MARK:“z—ê:‰õŠyˆó < 1
+		TCVAR:“z—ê:‰õŠy‹­“x = 1
+	ELSE
+		TCVAR:“z—ê:‰õŠy‹­“x = 0
+	ENDIF
+	IF C && V && A && B
+		C *= 8
+		V *= 8
+		A *= 8
+		B *= 8
+		NOWEX:“z—ê:Žldâ’¸ = 1
+	ELSEIF C && V && A
+		C *= 4
+		V *= 4
+		A *= 4
+		NOWEX:“z—ê:ŽOdâ’¸ = 1
+	ELSEIF B && V && A
+		B *= 4
+		V *= 4
+		A *= 4
+		NOWEX:“z—ê:ŽOdâ’¸ = 2
+	ELSEIF C && B && A
+		C *= 4
+		B *= 4
+		A *= 4
+		NOWEX:“z—ê:ŽOdâ’¸ = 3
+	ELSEIF C && V && B
+		C *= 4
+		V *= 4
+		B *= 4
+		NOWEX:“z—ê:ŽOdâ’¸ = 4
+	ELSEIF C && V
+		C *= 2
+		V *= 2
+		NOWEX:“z—ê:“ñdâ’¸ = 1
+	ELSEIF C && A
+		C *= 2
+		A *= 2
+		NOWEX:“z—ê:“ñdâ’¸ = 2
+	ELSEIF V && A
+		V *= 2
+		A *= 2
+		NOWEX:“z—ê:“ñdâ’¸ = 3
+	ELSEIF C && B
+		C *= 2
+		B *= 2
+		NOWEX:“z—ê:“ñdâ’¸ = 4
+	ELSEIF V && B
+		V *= 2
+		B *= 2
+		NOWEX:“z—ê:“ñdâ’¸ = 5
+	ELSEIF A && B
+		A *= 2
+		B *= 2
+		NOWEX:“z—ê:“ñdâ’¸ = 6
+	ENDIF
+	IF C
+		SOURCE:“z—ê:˜Io += 500 * C
+		SOURCE:“z—ê:‹ü] += 200 * C
+		SOURCE:“z—ê:”½Š´ += 150 * C
+		DOWNBASE:“z—ê:‘Ì—Í += 20
+		DOWNBASE:“z—ê:‹C—Í += 10
+	ENDIF
+	IF V
+		SOURCE:“z—ê:—~î += 800 * V
+		SOURCE:“z—ê:‹±‡ += 500 * V
+		SOURCE:“z—ê:˜Io += 700 * V
+		SOURCE:“z—ê:‹ü] += 400 * V
+		SOURCE:“z—ê:”½Š´ += 300 * V
+		DOWNBASE:“z—ê:‘Ì—Í += 40
+		DOWNBASE:“z—ê:‹C—Í += 20
+	ENDIF
+	IF A
+		SOURCE:“z—ê:—~î += 500 * A
+		SOURCE:“z—ê:‹±‡ += 700 * A
+		SOURCE:“z—ê:˜Io += 900 * A
+		SOURCE:“z—ê:‹ü] += 500 * A
+		SOURCE:“z—ê:”½Š´ += 400 * A
+		DOWNBASE:“z—ê:‘Ì—Í += 60
+		DOWNBASE:“z—ê:‹C—Í += 30
+	ENDIF
+	IF B
+		SOURCE:“z—ê:˜Io += 500 * B
+		SOURCE:“z—ê:‹ü] += 200 * B
+		SOURCE:“z—ê:”½Š´ += 150 * B
+		DOWNBASE:“z—ê:‘Ì—Í += 20
+		DOWNBASE:“z—ê:‹C—Í += 10
+	ENDIF
+	;NOWEX‚Éƒf[ƒ^‚ð“ü‚ê‚éiâ’¸ŽžŒûã‚ÉŽg‚¤j
+	NOWEX:“z—ê:‚bâ’¸ = C
+	NOWEX:“z—ê:‚uâ’¸ = V
+	NOWEX:“z—ê:‚`â’¸ = A
+	NOWEX:“z—ê:‚aâ’¸ = B
+	;â’¸‰ñ”‚ð‘‚â‚·
+	EX:“z—ê:0 += C
+	EX:“z—ê:1 += V
+	EX:“z—ê:2 += A
+	EX:“z—ê:3 += B
+	;â’¸ŒoŒ±‚ð‘‚â‚·
+	EXP:“z—ê:â’¸ŒoŒ± += C + V + A + B
+	EXP:“z—ê:‚bâ’¸ŒoŒ± += C
+	EXP:“z—ê:‚uâ’¸ŒoŒ± += V
+	EXP:“z—ê:‚`â’¸ŒoŒ± += A
+	EXP:“z—ê:‚aâ’¸ŒoŒ± += B
+	IF ’²‹³ŽÒ >= l•¨_–K–âŽÒ
+		EXP:“z—ê:•‚‹Câ’¸ŒoŒ± += C + V + A + B
+	ENDIF
+	;ƒrƒfƒI
+	IF TEQUIP:“z—ê:ƒrƒfƒIŽB‰e
+		IF NOWEX:“z—ê:Žldâ’¸
+			LOCALS = O2/O3/O4/
+			TSTR:1 += LOCALS
+		ENDIF
+		IF NOWEX:“z—ê:ŽOdâ’¸
+			LOCALS = O2/O3/
+			TSTR:1 += LOCALS
+		ENDIF
+		IF NOWEX:“z—ê:“ñdâ’¸
+			LOCALS = O2/
+			TSTR:1 += LOCALS
+		ENDIF
+		IF NOWEX:“z—ê:‚bâ’¸ == 2
+			LOCALS = C/C/
+			TSTR:1 += LOCALS
+		ELSEIF NOWEX:“z—ê:‚bâ’¸ == 1
+			LOCALS = C/
+			TSTR:1 += LOCALS
+		ENDIF
+		IF NOWEX:“z—ê:‚uâ’¸ == 2
+			LOCALS = V/V/
+			TSTR:1 += LOCALS
+		ELSEIF NOWEX:“z—ê:‚uâ’¸ == 1
+			LOCALS = V/
+			TSTR:1 += LOCALS
+		ENDIF
+		IF NOWEX:“z—ê:‚`â’¸ == 2
+			LOCALS = A/A/
+			TSTR:1 += LOCALS
+		ELSEIF NOWEX:“z—ê:‚`â’¸ == 1
+			LOCALS = A/
+			TSTR:1 += LOCALS
+		ENDIF
+		IF NOWEX:“z—ê:‚aâ’¸ == 2
+			LOCALS = B/B/
+			TSTR:1 += LOCALS
+		ELSEIF NOWEX:“z—ê:‚aâ’¸ == 1
+			LOCALS = B/
+			TSTR:1 += LOCALS
+		ENDIF
+	ENDIF
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;FIXME:ŠÖ”‚Ìà–¾‚ð‘‚¢‚Ä‚­‚¾‚³‚¢
+;@return 1:xxx,0:xxx
+@MESSAGE_PALAMCNG_B2
+	IF NOWEX:6
+		IF !GETBIT(CFLAG:3,2)
+			EXP:ˆÙíŒoŒ± ++
+			SETBIT CFLAG:ˆÙíŒoŒ±,2
+		ENDIF
+		PRINTL Žl d â ’¸
+		PRINTL (‚»‚ê‚¼‚ê8”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+	ELSEIF NOWEX:5
+		SELECTCASE NOWEX:5
+			CASE 1
+				PRINTL ‚b•‚u•‚`â’¸
+				PRINTL (‚»‚ê‚¼‚ê4”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 2
+				PRINTL ‚a•‚u•‚`â’¸
+				PRINTL (‚»‚ê‚¼‚ê4”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 3
+				PRINTL ‚b•‚a•‚`â’¸
+				PRINTL (‚»‚ê‚¼‚ê4”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 4
+				PRINTL ‚b•‚u•‚aâ’¸
+				PRINTL (‚»‚ê‚¼‚ê4”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+		ENDSELECT
+	ELSEIF NOWEX:4
+		SELECTCASE NOWEX:4
+			CASE 1
+				PRINTL ‚b•‚uâ’¸
+				PRINTL (‚»‚ê‚¼‚ê2”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 2
+				PRINTL ‚b•‚`â’¸
+				PRINTL (‚»‚ê‚¼‚ê2”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 3
+				PRINTL ‚u•‚`â’¸
+				PRINTL (‚»‚ê‚¼‚ê2”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 4
+				PRINTL ‚b•‚aâ’¸
+				PRINTL (‚»‚ê‚¼‚ê2”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 5
+				PRINTL ‚u•‚aâ’¸
+				PRINTL (‚»‚ê‚¼‚ê2”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+			CASE 6
+				PRINTL ‚`•‚aâ’¸
+				PRINTL (‚»‚ê‚¼‚ê2”{‚ÌŽì‚ª“¾‚ç‚ê‚Ü‚·)
+		ENDSELECT
+	ELSEIF NOWEX:3
+		IF NOWEX:3 == 2
+			PRINTL ‹­â’¸‚a
+		ELSE
+			PRINTL â’¸‚a
+		ENDIF
+	ELSEIF NOWEX:2
+		IF NOWEX:2 == 2
+			PRINTL ‹­â’¸‚`
+		ELSE
+			PRINTL â’¸‚`
+		ENDIF
+	ELSEIF NOWEX:1
+		IF NOWEX:1 == 2
+			PRINTL ‹­â’¸‚u
+		ELSE
+			PRINTL â’¸‚u
+		ENDIF
+	ELSEIF NOWEX:0
+		IF NOWEX:0 == 2
+			PRINTL ‹­â’¸‚b
+		ELSE
+			PRINTL â’¸‚b
+		ENDIF
+	ENDIF
+	;â’¸‚É‚æ‚é—~–]‚k‚uƒAƒbƒv
+	LOCAL = 0
+	SIF NOWEX:0 >= 2 || NOWEX:‚aâ’¸ >= 2 || NOWEX:‚uâ’¸ || NOWEX:‚`â’¸
+		LOCAL = 1
+	SIF NOWEX:1 >= 2 || NOWEX:‚`â’¸ >= 2
+		LOCAL = 2
+	SIF (NOWEX:0 >= 2 || NOWEX:‚aâ’¸ >= 2) && NOWEX:4
+		LOCAL = 2
+	SIF NOWEX:5
+		LOCAL = 3
+	SIF NOWEX:6
+		LOCAL = 4
+	;Ž©§S‚ª‚ ‚é‚Æ‚P‰º‚ª‚é
+	SIF TALENT:Ž©§S
+		LOCAL -= 1
+	IF ABL:—~–] < LOCAL
+		ABL:—~–] ++
+		PRINTFORML ‚»‚µ‚Ä—~–]‚ªLV{LOCAL}‚É‚È‚Á‚½
+		;—~–]‚Ìã¸‚É‚æ‚é[—}ˆ³]‚ÌÁ–Å‚ðƒ`ƒFƒbƒN
+		CALL YOKUBO_UP_CHECK
+	ENDIF
+	PRINTL 
+
+;-------------------------------------------------
+;’²‹³‘ÎÛ‚Ì•¬“ûƒ`ƒFƒbƒN
+;-------------------------------------------------
+@TARGET_MILK_CHECK(“z—ê)
+	#DIM “z—ê
+	SIF !TALENT:“z—ê:•ê“û‘ÌŽ¿
+		RETURN 0
+	
+
+	LOCAL = CUP:“z—ê:‰õ‚b/5 + CUP:“z—ê:‰õ‚u/5 + CUP:“z—ê:‰õ‚`/5 + CUP:“z—ê:‰õ‚a*3
+	;Ž©§S
+	SIF TALENT:“z—ê:Ž©§S
+		LOCAL /= 2
+	;‰õŠ´‚É‘f’¼
+	SIF TALENT:“z—ê:‰õŠ´‰ž“š > 0
+		TIMES LOCAL , 1.20
+	;‰õŠ´‚Ì”Û’èiˆú—A©•w‚Å–³Œøj
+	SIF TALENT:“z—ê:‰õŠ´‰ž“š < 0 && !TALENT:“z—ê:ˆú—
+		TIMES LOCAL , 0.80
+	;B•qŠ´
+	SIF TALENT:“z—ê:‚aŠ´“x > 0
+		TIMES LOCAL , 1.20
+	;›Z–ò
+	SIF TEQUIP:“z—ê:›Z–ò
+		LOCAL *= 2
+	;—˜”AÜ
+	SIF TEQUIP:“z—ê:—˜”AÜ
+		LOCAL /= 2
+	;’²‹³ŽÒ‚ª—cŽ™‘Þs
+	SIF TALENT:PLAYER:—cŽ™^—cŽ™‘Þs
+		TIMES LOCAL , 1.20
+	;’²‹³ŽÒ‚ª—c’t
+	SIF TALENT:PLAYER:—c’t
+		TIMES LOCAL , 1.20
+	;•n“û
+	SIF TALENT:“z—ê:ƒoƒXƒgƒTƒCƒY < 0
+		TIMES LOCAL , 0.50
+	BASE:“z—ê:•ê“û += LOCAL/2
+	IF  BASE:“z—ê:•ê“û > MAXBASE:“z—ê:•ê“û * 2
+		;‚Q”{—­‚Ü‚Á‚Ä‚é
+		LOCAL = 1
+	ELSEIF BASE:“z—ê:•ê“û > MAXBASE:“z—ê:•ê“û
+		;–žƒ^ƒ“’´‚¦‚Ä‚é
+		LOCAL = 0
+	ELSE
+		RETURN 0
+	ENDIF
+
+IF NOWEX:“z—ê:‚bâ’¸ || (CUP:“z—ê:‰õ‚a >= 3000) || NOWEX:“z—ê:‚aâ’¸ || NOWEX:“z—ê:‚uâ’¸ || NOWEX:“z—ê:‚`â’¸ || NOWEX:“z—ê:“ñdâ’¸ || NOWEX:“z—ê:ŽOdâ’¸ || NOWEX:“z—ê:Žldâ’¸
+	LOCAL ++
+	DOWNBASE:“z—ê:‘Ì—Í += 20 * LOCAL
+	DOWNBASE:“z—ê:‹C—Í += 100 * (LOCAL - 1)
+	IF EXP:“z—ê:•¬“ûŒoŒ± < EXPLV:1
+		SOURCE:“z—ê:˜Io += 5000 * LOCAL
+		SOURCE:“z—ê:‹ü] += 2500 * LOCAL
+		IF (TALENT:“z—ê:—ö•ç || TALENT:“z—ê:eˆ¤) && CFLAG:‚¤‚Ó‚Ó == (1 || 2)
+		SOURCE:“z—ê:•sŒ‰ += 500 * LOCAL
+		ELSE
+		SOURCE:“z—ê:•sŒ‰ += 1000 * LOCAL
+		ENDIF
+	ELSEIF EXP:“z—ê:•¬“ûŒoŒ± < EXPLV:2
+		SOURCE:“z—ê:˜Io += 2500 * LOCAL
+		SOURCE:“z—ê:‹ü] += 1500 * LOCAL
+		IF (TALENT:“z—ê:—ö•ç || TALENT:“z—ê:eˆ¤) && CFLAG:‚¤‚Ó‚Ó == (1 || 2)
+		SOURCE:“z—ê:•sŒ‰ += 375 * LOCAL
+		ELSE
+		SOURCE:“z—ê:•sŒ‰ += 750 * LOCAL
+		ENDIF
+	ELSEIF EXP:“z—ê:•¬“ûŒoŒ± < EXPLV:3
+		SOURCE:“z—ê:˜Io += 1500 * LOCAL
+		SOURCE:“z—ê:‹ü] += 750 * LOCAL
+		IF (TALENT:“z—ê:—ö•ç || TALENT:“z—ê:eˆ¤) && CFLAG:‚¤‚Ó‚Ó == (1 || 2)
+		SOURCE:“z—ê:•sŒ‰ += 250 * LOCAL
+		ELSE
+		SOURCE:“z—ê:•sŒ‰ += 500 * LOCAL
+		ENDIF
+	ELSEIF EXP:“z—ê:•¬“ûŒoŒ± < EXPLV:4
+		SOURCE:“z—ê:˜Io += 750 * LOCAL
+		SOURCE:“z—ê:‹ü] += 400 * LOCAL
+		IF (TALENT:“z—ê:—ö•ç || TALENT:“z—ê:eˆ¤) && CFLAG:‚¤‚Ó‚Ó == (1 || 2)
+		SOURCE:“z—ê:•sŒ‰ += 175 * LOCAL
+		ELSE
+		SOURCE:“z—ê:•sŒ‰ += 350 * LOCAL
+		ENDIF
+	ELSEIF EXP:“z—ê:•¬“ûŒoŒ± < EXPLV:5
+		SOURCE:“z—ê:˜Io += 500 * LOCAL
+		SOURCE:“z—ê:‹ü] += 250 * LOCAL
+		IF (TALENT:“z—ê:—ö•ç || TALENT:“z—ê:eˆ¤) && CFLAG:‚¤‚Ó‚Ó == (1 || 2)
+		SOURCE:“z—ê:•sŒ‰ += 100 * LOCAL
+		ELSE
+		SOURCE:“z—ê:•sŒ‰ += 200 * LOCAL
+		ENDIF
+	ELSE
+		SOURCE:“z—ê:˜Io += 250 * LOCAL
+		SOURCE:“z—ê:‹ü] += 150 * LOCAL
+	ENDIF
+	PRINTFORML %CALLNAME:“z—ê%‚Í“ûŽñ‚©‚ç\@ LOCAL == 2 ? ‘å—Ê‚Ì # \@•ê“û‚ð•¬o‚µ‚½
+	IF EXP:“z—ê:•¬“ûŒoŒ± == 0
+		EXP:“z—ê:ˆÙíŒoŒ± ++
+	ENDIF
+	EXP:“z—ê:•¬“ûŒoŒ± += LOCAL
+	;‚a‚É•ê“û‰˜‚ê
+	STAIN:“z—ê:‚a |= ‰˜‚ê_•ê“û
+	BASE:“z—ê:•ê“û -= MAXBASE:“z—ê:•ê“û * LOCAL
+	SIF BASE:“z—ê:•ê“û >= MAXBASE:“z—ê:•ê“û
+		BASE:“z—ê:•ê“û = MAXBASE:“z—ê:•ê“û - 1
+	NOWEX:“z—ê:•¬“û += LOCAL
+	EX:“z—ê:10 += LOCAL
+	;ƒrƒfƒI
+	IF TEQUIP:“z—ê:ƒrƒfƒIŽB‰e
+		IF NOWEX:“z—ê:•¬“û == 1
+			LOCALS = MILK/
+		ELSEIF NOWEX:“z—ê:•¬“û == 2
+			LOCALS = MILK/MILK/
+		ENDIF
+		TSTR:1 += LOCALS
+	ENDIF
+	ELSE
+	RETURN 0
+	ENDIF

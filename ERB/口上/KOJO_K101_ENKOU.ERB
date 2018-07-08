@@ -1,0 +1,58 @@
+;RIN SHIBUYA
+@KOJO_K101(ARG)
+RETURN 1
+@ENKOU_START_K101(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「お金払ってくれたんだから、普段の立場は忘れてね」
+ELSE
+	PRINTFORML 「ふーん、アンタが私の今日のパパ？……まあ、悪くないかな…。」
+ENDIF
+
+@ENKOU_FINISH_K101(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「…今日はお金ありがと」
+ELSE
+	PRINTFORML 「一緒じゃ気まずいだろうから先に行くよ」
+ENDIF
+
+@KOJO_MESSAGE_COM_K101_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「…何？」
+
+@KOJO_MESSAGE_COM_K101_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		PRINTFORML 「…そうだね、もうこんなことはやめるよ」
+	CASE 2
+		PRINTFORML 「余計なお世話だよ」
+	CASE 3
+		PRINTFORML 「ほっといてよ」
+ENDSELECT
+
+
+@KOJO_CELLPHONE_NTR_K101(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	
+ELSEIF TALENT:奴隷:恋慕
+
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+
+ELSE
+
+ENDIF

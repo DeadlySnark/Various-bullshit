@@ -1,0 +1,98 @@
+;==============================================================================
+;--------------------------------------------------
+;@KOJO_MESSAGE_COUNTER関係
+;カウンター実行時に出力されます
+;--------------------------------------------------
+@KOJO_MESSAGE_WC_COUNTER(ARG)
+VARSET LOCAL
+LOCAL = TARGET
+TARGET = ARG
+
+	;;コンビネーション用処理、実に乱暴
+	CFLAG:WC_同席者 = 0
+
+	;;加害者は、同席扱いしない
+	FOR LOCAL:1,1,CHARA_ACTIVE
+		IF CFLAG:(LOCAL:1):現在位置 == CFLAG:PLAYER:現在位置 && !CFLAG:(LOCAL:1):睡眠
+			SIF LOCAL:1 == 1 && TARGET != 1
+				SETBIT CFLAG:WC_同席者,1
+			SIF LOCAL:1 == 2 && TARGET != 2
+				SETBIT CFLAG:WC_同席者,2
+			SIF LOCAL:1 == 3 && TARGET != 3
+				SETBIT CFLAG:WC_同席者,3
+			SIF LOCAL:1 == 4 && TARGET != 4
+				SETBIT CFLAG:WC_同席者,4
+			SIF LOCAL:1 == 5 && TARGET != 5
+				SETBIT CFLAG:WC_同席者,5
+			SIF LOCAL:1 == 6 && TARGET != 6
+				SETBIT CFLAG:WC_同席者,6
+			SIF LOCAL:1 == 7 && TARGET != 7
+				SETBIT CFLAG:WC_同席者,7
+			SIF LOCAL:1 == 8 && TARGET != 8
+				SETBIT CFLAG:WC_同席者,8
+			SIF LOCAL:1 == 9 && TARGET != 9
+				SETBIT CFLAG:WC_同席者,9
+		ENDIF
+	NEXT
+
+	;;地の文の方向性を設定
+	TRYCALLFORM WC_DescriptiveStyle_K{NO:TARGET}
+
+	SIF GETBIT(CFLAG:WC_同席者,1)	;;美鈴が同席
+		TRYCALL WC_DescriptiveStyle_K1
+	SIF GETBIT(CFLAG:WC_同席者,2)	;;小悪魔が同席
+		TRYCALL WC_DescriptiveStyle_K2
+	SIF GETBIT(CFLAG:WC_同席者,3)	;;パチュリーが同席
+		TRYCALL WC_DescriptiveStyle_K3
+	SIF GETBIT(CFLAG:WC_同席者,4)	;;咲夜が同席
+		TRYCALL WC_DescriptiveStyle_K4
+	SIF GETBIT(CFLAG:WC_同席者,5)	;;レミリアが同席
+		TRYCALL WC_DescriptiveStyle_K5
+	SIF GETBIT(CFLAG:WC_同席者,6)	;;フランドールが同席
+		TRYCALL WC_DescriptiveStyle_K6
+	SIF GETBIT(CFLAG:WC_同席者,7)	;;子悪魔が同席
+		TRYCALL WC_DescriptiveStyle_K7
+	SIF GETBIT(CFLAG:WC_同席者,8)	;;チルノが同席
+		TRYCALL WC_DescriptiveStyle_K8
+	SIF GETBIT(CFLAG:WC_同席者,9)	;;大妖精が同席
+		TRYCALL WC_DescriptiveStyle_K9
+
+IF FLAG:口上テキスト設定 <= 0
+	IF FLAG:情景テキスト設定 > 0
+		CALL EVENT_WC_COUNTER_MESSAGE
+		TARGET = LOCAL
+	ENDIF
+	RETURN 0
+ENDIF
+
+;ボールギャグ
+IF TEQUIP:ARG:ボールギャグ && FLAG:情景テキスト設定 > 0
+	CALL EVENT_WC_COUNTER_MESSAGE
+	TARGET = LOCAL
+ELSE
+	RESULT = 0
+	RESULTS =
+	;;口上の存在判定 and RESULTSに文字列代入
+	;TRYCALLFORM KOJO_K{NO:ARG}
+	;IF !RESULT && FLAG:情景テキスト設定 > 0
+	;	CALL EVENT_COUNTER_MESSAGE
+	;	TARGET = LOCAL
+	;	RETURN 0
+	;ENDIF
+;;	TRYCALLLIST
+;;		FUNC KOJO%RESULTS%_MESSAGE_COUNTER_K{NO:TARGET}_{TCVAR:20}
+;;		FUNC KOJO%RESULTS%_MESSAGE_COUNTER_KU_{TCVAR:20}
+;;		FUNC EVENT_COUNTER_MESSAGE
+;;	ENDFUNC
+
+	SELECTCASE TCVAR:ARG:20
+		CASE 29	;;乳搾り手コキ
+			CALL EVENT_WC_COUNTER_MESSAGE(1)
+		CASEELSE
+			CALL EVENT_WC_COUNTER_MESSAGE
+	ENDSELECT
+
+	TARGET = LOCAL
+ENDIF
+
+

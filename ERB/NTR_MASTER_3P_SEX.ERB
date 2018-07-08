@@ -1,0 +1,1469 @@
+@NTR_MASTER_3P_SEX(ARG:1)
+; 二人状態と違って逃げられると困るのでワンループで全部済ませる
+; LOCAL:1	主人公の欲求不満度(十の位が住人に対して、一の位が訪問者に対して)
+; LOCAL:2	住人の欲求不満度(十の位が主人公に対して、一の位がもう一人に対して)
+; LOCAL:3	訪問者の欲求不満度(同じく)
+FLAG:1840 = 0
+LOCAL:1 = 0
+LOCAL:2 = 0
+LOCAL:3 = 0
+WHILE 1
+IF FLAG:1840 == 0
+	LOCAL = 10
+	PRINTFORML 部屋に入ると、それぞれ服を脱いでベッドに座っていく
+	IF CFLAG:(ARG:1):MASTERの弱味
+		IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+			PRINTFORMW %CALLNAME:(ARG:1)%が%CALLNAME:MASTER%に見せ付けるように%NTR_NAME(他人)%と口付けを交わした
+			PRINTFORMW %NTR_NAME(他人)%もそれに応えるように頭を軽く引き寄せながらお互いの唇を味わっている
+			PRINTFORMW %CALLNAME:MASTER%は羨ましく思いながらも二人のそれが終わるのを待っていた
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,(ARG:1),人物_訪問者)
+			IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+				LOCAL:1 += 2
+			ELSE
+				LOCAL:1 += 20
+			ENDIF
+			FLAG:1840 = 100
+		ELSE
+			PRINTFORMW %CALLNAME:(ARG:1)%が%NTR_NAME(他人)%に見せ付けるように%CALLNAME:MASTER%と口付けをしてきた
+			PRINTFORMW %CALLNAME:MASTER%は驚き、思わず顔を離そうとしても%CALLNAME:(ARG:1)%に頭を引き寄せられていてそれもできない
+			PRINTFORMW %NTR_NAME(他人)%は出遅れたことを少し後悔しつつも、その扇情的な光景にペニスを硬くしていた
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,(ARG:1))
+			IF (CFLAG:(ARG:1):屈服度 > CFLAG:MASTER:屈服度 || FLAG:1800 == (ARG:1)) && FLAG:1800 != 0
+				LOCAL:3 += 2
+			ELSE
+				LOCAL:3 += 20
+			ENDIF
+			FLAG:1840 = 102
+		ENDIF
+	ELSE
+		PRINTFORML [0] %NTR_NAME(他人)%と絡む　[1] %CALLNAME:(ARG:1)%と絡む　[2] 二人の様子を見る
+		$INPUT_LOOP_NM3_0_0
+		INPUT
+		IF RESULT == 0
+			PRINTFORMW %CALLNAME:MASTER%は%NTR_NAME(他人)%を引き寄せ、口付けを交わした
+			PRINTFORMW %NTR_NAME(他人)%もそれに応えるように頭を軽く引き寄せながらお互いの唇を味わっている
+			PRINTFORMW %CALLNAME:(ARG:1)%は羨ましく思いながらも二人のそれが終わるのを待っていた
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,人物_訪問者)
+			IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+				LOCAL:1 += 2
+			ELSE
+				LOCAL:1 += 20
+			ENDIF
+			FLAG:1840 = 101
+		ELSEIF RESULT == 1
+			PRINTFORMW %CALLNAME:MASTER%は%NTR_NAME(他人)%に見せ付けるように%CALLNAME:(ARG:1)%と口付けを交わした
+			PRINTFORM %CALLNAME:(ARG:1)%は
+			IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+				PRINT 少し驚きながらも
+			ELSE
+				PRINT それに応えるように舌を絡ませて
+			ENDIF
+			PRINTW お互いの唇を味わっている
+			PRINTFORMW %NTR_NAME(他人)%は出遅れたことを少し後悔しつつも、その扇情的な光景にペニスを硬くしていた
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,(ARG:1),MASTER)
+			IF (CFLAG:(ARG:1):屈服度 > CFLAG:MASTER:屈服度 || FLAG:1800 == (ARG:1)) && FLAG:1800 != 0
+				LOCAL:1 += 2
+			ELSE
+				LOCAL:1 += 20
+			ENDIF
+			FLAG:1840 = 102
+		ELSEIF RESULT == 2
+			PRINTFORM 二人の様子を見ていると
+			IF (CFLAG:(ARG:1):屈服度 > CFLAG:MASTER:屈服度 || FLAG:1800 == (ARG:1)) && FLAG:1800 != 0
+				PRINTFORMW %NTR_NAME(他人)%が%CALLNAME:(ARG:1)%の手を取り、顔を引き寄せながら唇を奪った
+				IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+					PRINTFORMW %CALLNAME:(ARG:1)%もそれに応えるように唇を啄みながらお互いの唇を味わっている
+				ELSE
+					PRINTFORMW %CALLNAME:(ARG:1)%は驚きながらも%NTR_NAME(他人)%に身を任せている
+				ENDIF
+				PRINTFORMW %CALLNAME:MASTER%は出遅れたことを少し後悔しながら二人のそれが終わるのを待っていた
+				CALL NTR_MASTER_3P_SEX_KISS(LOCAL,(ARG:1),人物_訪問者)
+				IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+					LOCAL:1 += 2
+				ELSE
+					LOCAL:1 += 20
+				ENDIF
+				FLAG:1840 = 100
+			ELSE
+				PRINTFORMW %NTR_NAME(他人)%が%CALLNAME:MASTER%の手を取り、顔を引き寄せながら唇を奪った
+				IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+					PRINTFORMW %CALLNAME:MASTER%は積極的に舌を絡め、お互いの唇を味わっている
+				ELSE
+					PRINTFORMW %CALLNAME:MASTER%は少し驚きながらも口の中に入ってくる%NTR_NAME(他人)%の舌を味わっている
+				ENDIF
+				PRINTFORMW %CALLNAME:(ARG:1)%は羨ましく思いながらも二人のそれが終わるのを待っていた
+				CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,人物_訪問者)
+				IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+					LOCAL:1 += 2
+				ELSE
+					LOCAL:1 += 20
+				ENDIF
+				FLAG:1840 = 101
+			ENDIF
+		ELSE
+			GOTO INPUT_LOOP_NM3_0_0
+		ENDIF
+	ENDIF
+	TIME += LOCAL
+ELSEIF FLAG:1840/100 == 1
+	PRINTL
+	LOCAL = RAND:10 + 10
+	IF FLAG:1840 == 100
+		IF (CFLAG:(ARG:1):屈服度 > CFLAG:MASTER:屈服度 || FLAG:1800 == (ARG:1)) && FLAG:1800 != 0
+			PRINTFORM %NTR_NAME(他人)%は%CALLNAME:(ARG:1)%の唇を味わった後、%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+			IF TALENT:(ARG:1):バストサイズ > 0
+				PRINT 揉みながら
+			ELSE
+				PRINT 撫でながら
+			ENDIF
+			PRINTW ベッドに押し倒した
+			IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+				PRINTFORM %CALLNAME:(ARG:1)%は
+				IF TALENT:(ARG:1):Ｂ感度
+					PRINTW 胸に触れられる快楽に身を震わせている
+				ELSE
+					PRINTFORMW %NTR_NAME(他人)%のされるままに身を任せている
+				ENDIF
+				PRINTFORMW %CALLNAME:MASTER%が悶々としながら二人に近づくと、%NTR_NAME(他人)%は空いていた手で%CALLNAME:MASTER%のクリトリスを指で愛撫し始めた
+				CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,人物_訪問者)
+				CALL NTR_MASTER_3P_SEX_CLI(LOCAL,MASTER,人物_訪問者)
+			ELSE
+				PRINTFORM %CALLNAME:(ARG:1)%は横になりながらも%CALLNAME:MASTER%を招き、%NTR_NAME(他人)%に胸を
+				IF TALENT:(ARG:1):バストサイズ > 0
+					PRINT 揉ま
+				ELSE
+					PRINT 撫でら
+				ENDIF
+				PRINTFORMW れながらも%CALLNAME:MASTER%と口付けを交わした
+				CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,ARG:1)
+				CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,人物_訪問者)
+			ENDIF
+			FLAG:1840 = 201
+		ELSE
+			PRINTFORM %NTR_NAME(他人)%は%CALLNAME:(ARG:1)%の唇を味わった後、%CALLNAME:MASTER%を招き、味を比べるかのように%CALLNAME:MASTER%の唇を奪いながら%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+			IF TALENT:MASTER:バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 、ベッドに押し倒した
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,人物_訪問者)
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+			IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+				PRINTFORMW その様子を%CALLNAME:(ARG:1)%が眺めていると、%NTR_NAME(他人)%は空いていた手で%CALLNAME:(ARG:1)%のクリトリスを指で愛撫し始めた
+				CALL NTR_MASTER_3P_SEX_CLI(LOCAL,ARG:1,人物_訪問者)
+			ELSE
+				PRINTFORMW その様子を%CALLNAME:(ARG:1)%が眺め、%NTR_NAME(他人)%と一緒に%CALLNAME:MASTER%を攻めるべく%CALLNAME:MASTER%のクリトリスを指で愛撫し始めた
+				CALL NTR_MASTER_3P_SEX_CLI(LOCAL,MASTER,ARG:1)
+			ENDIF
+		ENDIF
+		FLAG:1840 = 200
+	ELSEIF FLAG:1840 == 101
+		IF (CFLAG:(ARG:1):屈服度 > CFLAG:MASTER:屈服度 || FLAG:1800 == (ARG:1)) && FLAG:1800 != 0
+			PRINTFORM %NTR_NAME(他人)%は%CALLNAME:MASTER%の唇を味わった後、%CALLNAME:(ARG:1)%を招き、味を比べるかのように%CALLNAME:(ARG:1)%の唇を奪いながら%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+			IF TALENT:(ARG:1):バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 、ベッドに押し倒した
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,人物_訪問者)
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+			IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+				PRINTFORMW その様子を%CALLNAME:MASTER%が眺めていると、%NTR_NAME(他人)%は空いていた手で%CALLNAME:MASTER%のクリトリスを指で愛撫し始めた
+				CALL NTR_MASTER_3P_SEX_CLI(LOCAL,MASTER,人物_訪問者)
+			ELSE
+				PRINTFORMW その様子を%CALLNAME:MASTER%が眺め、%NTR_NAME(他人)%と一緒に%CALLNAME:(ARG:1)%を攻めるべく%CALLNAME:(ARG:1)%のクリトリスを指で愛撫し始めた
+				CALL NTR_MASTER_3P_SEX_CLI(LOCAL,ARG:1,MASTER)
+			ENDIF
+			FLAG:1840 = 201
+		ELSE
+			PRINTFORM %NTR_NAME(他人)%は%CALLNAME:MASTER%の唇を味わった後、%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+			IF TALENT:(MASTER):バストサイズ > 0
+				PRINT 揉みながら
+			ELSE
+				PRINT 撫でながら
+			ENDIF
+			PRINTW ベッドに押し倒した
+			IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+				PRINTFORM %CALLNAME:MASTER%は
+				IF TALENT:MASTER:Ｂ感度
+					PRINTW 胸に触れられる快楽に身を震わせている
+				ELSE
+					PRINTFORMW %NTR_NAME(他人)%のされるままに身を任せている
+				ENDIF
+				PRINTFORMW %CALLNAME:(ARG:1)%が悶々としながら二人に近づくと、%NTR_NAME(他人)%は空いていた手で%CALLNAME:(ARG:1)%のクリトリスを指で愛撫し始めた
+				CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+				CALL NTR_MASTER_3P_SEX_CLI(LOCAL,ARG:1,人物_訪問者)
+			ELSE
+				PRINTFORM %CALLNAME:MASTER%は横になりながらも%CALLNAME:(ARG:1)%を招き、%NTR_NAME(他人)%に胸を
+				IF TALENT:MASTER:バストサイズ > 0
+					PRINT 揉ま
+				ELSE
+					PRINT 撫でら
+				ENDIF
+				PRINTFORMW れながらも%CALLNAME:(ARG:1)%と口付けを交わした
+				CALL NTR_MASTER_3P_SEX_KISS(LOCAL,ARG:1,MASTER)
+				CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+			ENDIF
+			FLAG:1840 = 200
+		ENDIF
+	ELSE
+		IF CFLAG:(ARG:1):屈服度 > CFLAG:MASTER:屈服度
+			PRINTFORM %CALLNAME:MASTER%と%CALLNAME:(ARG:1)%の扇情的な姿を見ながら、%NTR_NAME(他人)%は%CALLNAME:(ARG:1)%の背後から%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+			IF TALENT:(ARG:1):バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTFORMW 始めた
+			PRINTFORMW 負けじと%CALLNAME:MASTER%が%CALLNAME:(ARG:1)%のクリトリスを愛撫し始めると、堪らず%CALLNAME:(ARG:1)%が嬌声を奏でた
+			PRINTFORMW %NTR_NAME(他人)%は辛抱たまらなくなったのか、二人まとめてベッドに押し倒した
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,人物_訪問者)
+			CALL NTR_MASTER_3P_SEX_CLI(LOCAL,ARG:1,MASTER)
+			FLAG:1840 = 203
+		ELSE
+			PRINTFORM %CALLNAME:MASTER%と%CALLNAME:(ARG:1)%の扇情的な姿を見ながら、%NTR_NAME(他人)%は%CALLNAME:MASTER%の背後から%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+			IF TALENT:MASTER:バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 始めた
+			PRINTFORMW 負けじと%CALLNAME:(ARG:1)%が%CALLNAME:MASTER%のクリトリスを愛撫し始めると、堪らず%CALLNAME:MASTER%が嬌声を奏でた
+			PRINTFORMW %NTR_NAME(他人)%は辛抱たまらなくなったのか、二人まとめてベッドに押し倒した
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+			CALL NTR_MASTER_3P_SEX_CLI(LOCAL,MASTER,ARG:1)
+			FLAG:1840 = 202
+		ENDIF
+	ENDIF
+	TIME += LOCAL
+ELSEIF FLAG:1840/100 == 2
+	PRINTL
+	LOCAL = RAND:10 + 20
+	IF FLAG:1840 == 200
+		PRINTFORM %NTR_NAME(他人)%は%CALLNAME:MASTER%の足を抱え、%CALLNAME:MASTER%の%MSG_SLIT(MASTER)%にペニスをあてがい
+		IF TALENT:MASTER:処女
+			PRINTW 亀頭を浅く挿入してから、処女膜を引き裂きながら一つになっていった
+		ELSE
+			PRINTW 一つになった
+		ENDIF
+		IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+			PRINTFORM %CALLNAME:(ARG:1)%は羨ましそうにしながらも%CALLNAME:MASTER%の
+			LOCAL:2 += 2
+		ELSE
+			PRINTFORM %CALLNAME:(ARG:1)%は%NTR_NAME(他人)%と一緒に%CALLNAME:MASTER%を攻めるべく%CALLNAME:MASTER%の
+		ENDIF
+		IF RAND:2
+			PRINTFORMW 唇を奪い、味わっていた
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,ARG:1)
+		ELSE
+			PRINTFORM %OPPAI_DESCRIPTION(MASTER)%を
+			IF TALENT:MASTER:バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 始めた
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,ARG:1)
+		ENDIF
+		PRINTFORMW %CALLNAME:MASTER%と%NTR_NAME(他人)%は{LOCAL}分間交わり、%NTR_NAME(他人)%の精液を子宮で受け止めた
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+		IF LOCAL:1%10 >= 2
+			LOCAL:1 -= 2
+		ELSEIF LOCAL:1%10 == 1
+			LOCAL:1 -= 1
+		ENDIF
+		IF LOCAL:3/10 >= 2
+			LOCAL:3 -= 20
+		ELSEIF LOCAL:3/10 == 1
+			LOCAL:3 -= 10
+		ENDIF
+		FLAG:1840 = 300
+	ELSEIF FLAG:1840 == 201
+		PRINTFORM %NTR_NAME(他人)%は%CALLNAME:(ARG:1)%の足を抱え、%CALLNAME:(ARG:1)%の%MSG_SLIT(ARG:1)%にペニスをあてがい
+		IF TALENT:(ARG:1):処女
+			PRINTW 亀頭を浅く挿入してから、処女膜を引き裂きながら一つになっていった
+		ELSE
+			PRINTW 一つになった
+		ENDIF
+		IF CFLAG:MASTER:屈服度 > CFLAG:(ARG:1):好感度
+			PRINTFORM %CALLNAME:MASTER%は羨ましく思いながらも%CALLNAME:(ARG:1)%の
+			LOCAL:1 += 2
+		ELSE
+			PRINTFORM %CALLNAME:MASTER%は%NTR_NAME(他人)%と一緒に%CALLNAME:(ARG:1)%を攻めるべく%CALLNAME:(ARG:1)%の
+		ENDIF
+		IF RAND:2
+			PRINTFORMW 唇を奪い、味わっていた
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,ARG:1,MASTER)
+		ELSE
+			PRINTFORM %OPPAI_DESCRIPTION(ARG:1)%を
+			IF TALENT:(ARG:1):バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 始めた
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,MASTER)
+		ENDIF
+		PRINTFORMW %CALLNAME:(ARG:1)%と%NTR_NAME(他人)%は{LOCAL}分間交わり、%NTR_NAME(他人)%の精液を子宮で受け止めた
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+		IF LOCAL:2/10 >= 2
+			LOCAL:2 -= 20
+		ELSEIF LOCAL:2/10 == 1
+			LOCAL:2 -= 10
+		ENDIF
+		IF LOCAL:3%10 >= 2
+			LOCAL:3 -= 2
+		ELSEIF LOCAL:3%10 == 1
+			LOCAL:3 -= 1
+		ENDIF
+		FLAG:1840 = 301
+	ELSEIF FLAG:1840 == 202 || FLAG:1840 == 203
+		PRINTFORM %NTR_NAME(他人)%は抱き合ってるような形で横になっている二人を見ながら、
+		IF LOCAL:3/10 > LOCAL:3%10 && RAND:2
+			IF FLAG:1840 == 202
+				PRINTFORM %NTR_NAME(他人)%と%CALLNAME:(ARG:1)%の間に挟まれている
+			ELSE
+				PRINTFORM %NTR_NAME(他人)%と%CALLNAME:(ARG:1)%の二人に押し倒されている
+			ENDIF
+			PRINTFORM %CALLNAME:MASTER%の%MSG_SLIT(MASTER)%にペニスをあてがい
+			IF TALENT:MASTER:処女
+				PRINTW 亀頭を浅く挿入してから、処女膜を引き裂きながら一つになっていった
+			ELSE
+				PRINTW 一つになった
+			ENDIF
+			PRINTFORM %NTR_NAME(他人)%に突かれている%CALLNAME:MASTER%を見て%CALLNAME:(ARG:1)%は%CALLNAME:MASTER%にキスをしながら%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+			IF TALENT:MASTER:バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 始めた
+			PRINTFORMW 二人がかりで{LOCAL}分間攻められ、%CALLNAME:MASTER%は快楽に体を震わせながら%NTR_NAME(他人)%の精液を子宮で受け止めた
+			CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,(ARG:1))
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,(ARG:1))
+			IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+				LOCAL:2 += 2
+			ELSEIF CFLAG:(ARG:1):屈服度 < CFLAG:(ARG:1):好感度
+				LOCAL:2 += 20
+			ENDIF
+			IF LOCAL:1%10 >= 2
+				LOCAL:1 -= 2
+			ELSEIF LOCAL:1%10 == 1
+				LOCAL:1 -= 1
+			ENDIF
+			IF LOCAL:3/10 >= 2
+				LOCAL:3 -= 20
+			ELSEIF LOCAL:3/10 == 1
+				LOCAL:3 -= 10
+			ENDIF
+			FLAG:1840 = 302
+		ELSEIF LOCAL:3/10 < LOCAL:3%10 && RAND:2
+			IF FLAG:1840 == 203
+				PRINTFORM %NTR_NAME(他人)%と%CALLNAME:MASTER%の間に挟まれている
+			ELSE
+				PRINTFORM %NTR_NAME(他人)%と%CALLNAME:MASTER%の二人に押し倒されている
+			ENDIF
+			PRINTFORM %CALLNAME:(ARG:1)%の%MSG_SLIT(ARG:1)%にペニスをあてがい
+			IF TALENT:(ARG:1):処女
+				PRINTW 亀頭を浅く挿入してから、処女膜を引き裂きながら一つになっていった
+			ELSE
+				PRINTW 一つになった
+			ENDIF
+			PRINTFORM %NTR_NAME(他人)%に突かれている%CALLNAME:(ARG:1)%を見て%CALLNAME:MASTER%は%CALLNAME:(ARG:1)%にキスをしながら%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+			IF TALENT:(ARG:1):バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 始めた
+			PRINTFORMW 二人がかりで{LOCAL}分間攻められ、%CALLNAME:(ARG:1)%は快楽に体を震わせながら%NTR_NAME(他人)%の精液を子宮で受け止めた
+			CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+			CALL NTR_MASTER_3P_SEX_KISS(LOCAL,ARG:1,MASTER)
+			CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,MASTER)
+			IF CFLAG:MASTER:屈服度 > CFLAG:MASTER:好感度
+				LOCAL:1 += 2
+			ELSEIF CFLAG:MASTER:屈服度 < CFLAG:MASTER:好感度
+				LOCAL:1 += 20
+			ENDIF
+			IF LOCAL:2/10 >= 2
+				LOCAL:2 -= 20
+			ELSEIF LOCAL:2/10 == 1
+				LOCAL:2 -= 10
+			ENDIF
+			IF LOCAL:3%10 >= 2
+				LOCAL:3 -= 2
+			ELSEIF LOCAL:3%10 == 1
+				LOCAL:3 -= 1
+			ENDIF
+			FLAG:1840 = 303
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%の%MSG_SLIT(MASTER)%と%CALLNAME:(ARG:1)%の%MSG_SLIT(ARG:1)%の間をペニスで貫いた
+			PRINTFORMW 二人の陰唇やクリトリスを%NTR_NAME(他人)%のペニスが擦り、三人同時に快楽を味わっていく
+			IF LOCAL:3/10 > LOCAL:3%10 && RAND:2
+				PRINTFORMW {LOCAL}分間性器を擦り合わせ、%CALLNAME:MASTER%と%CALLNAME:(ARG:1)%が絶頂に達すると同時に%NTR_NAME(他人)%は二人の間からペニスを引き抜き、一気に%CALLNAME:MASTER%を貫いて最奥に精液を注ぎ込んだ
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+				IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+					LOCAL:2 += 1
+				ELSEIF CFLAG:(ARG:1):屈服度 < CFLAG:(ARG:1):好感度
+					LOCAL:2 += 10
+				ENDIF
+				IF LOCAL:1%10 >= 1
+					LOCAL:1 -= 1
+				ENDIF
+				IF LOCAL:3/10 >= 1
+					LOCAL:3 -= 10
+				ENDIF
+				FLAG:1840 = 302
+			ELSEIF LOCAL:3/10 < LOCAL:3%10 && RAND:2
+				PRINTFORMW {LOCAL}分間性器を擦り合わせ、%CALLNAME:MASTER%と%CALLNAME:(ARG:1)%が絶頂に達すると同時に%NTR_NAME(他人)%は二人の間からペニスを引き抜き、一気に%CALLNAME:(ARG:1)%を貫いて最奥に精液を注ぎ込んだ
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+				IF CFLAG:MASTER:屈服度 > CFLAG:MASTER:好感度
+					LOCAL:1 += 1
+				ELSEIF CFLAG:MASTER:屈服度 < CFLAG:MASTER:好感度
+					LOCAL:1 += 10
+				ENDIF
+				IF LOCAL:2/10 >= 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3%10 >= 1
+					LOCAL:3 -= 1
+				ENDIF
+				FLAG:1840 = 303
+			ELSE
+				PRINTFORMW {LOCAL}分間性器を擦り合わせ、%CALLNAME:MASTER%と%CALLNAME:(ARG:1)%が絶頂に達すると同時に%NTR_NAME(他人)%のペニスは二人に挟まれながら精液を吐き出した
+				FLAG:1840 = 304
+			ENDIF
+			CALL NTR_MASTER_3P_SEX_SLIT(LOCAL,MASTER,人物_訪問者)
+			CALL NTR_MASTER_3P_SEX_SLIT(LOCAL,ARG:1,人物_訪問者)
+		ENDIF
+	ENDIF
+	TIME += LOCAL
+ELSEIF FLAG:1840/100 == 3
+	LOCAL = RAND:10 + 20
+	IF FLAG:1840 == 300
+		PRINTFORM %NTR_NAME(他人)%がペニスを引き抜くと、
+		IF CFLAG:(ARG:1):好感度 > CFLAG:(ARG:1):屈服度
+			IF HAS_PENIS(ARG:1)
+				PRINTFORMW %CALLNAME:(ARG:1)%と交代し、%NTR_NAME(他人)%の精液で濡れた%CALLNAME:MASTER%の%MSG_SLIT(MASTER)%をペニスで貫いた
+				PRINTFORMW %NTR_NAME(他人)%が先に射精した精液でぬるつく%CALLNAME:MASTER%の膣内の感触を味わいながら腰を動かしていく
+				PRINTFORM %NTR_NAME(他人)%は休憩を兼ねて%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+				IF TALENT:MASTER:バストサイズ > 0
+					PRINT 揉んで
+				ELSE
+					PRINT 撫でて
+				ENDIF
+				PRINTW いる
+				PRINTFORMW {LOCAL}分後、%CALLNAME:(ARG:1)%のペニスの鈴口と%CALLNAME:MASTER%の子宮口がキスをしながら精液を注ぎ込んだ
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,ARG:1,-1)
+				CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+				IF LOCAL:1/10 >= 2
+					LOCAL:1 -= 20
+				ELSEIF LOCAL:1/10 == 1
+					LOCAL:1 -= 10
+				ENDIF
+				IF LOCAL:2/10 >= 2
+					LOCAL:2 -= 20
+				ELSEIF LOCAL:2/10 == 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3/10 <= 8
+					LOCAL:3 += 10
+				ENDIF
+			ELSE
+				PRINTFORMW %CALLNAME:(ARG:1)%と交代し、%NTR_NAME(他人)%の精液で濡れた%CALLNAME:MASTER%の%MSG_SLIT(MASTER)%に自分の%MSG_SLIT(ARG:1)%を擦りつけ始めた
+				PRINTFORM %NTR_NAME(他人)%は休憩を兼ねて%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(ARG:1)%を
+				IF TALENT:(ARG:1):バストサイズ > 0
+					PRINT 揉んで
+				ELSE
+					PRINT 撫でて
+				ENDIF
+				PRINTW いる
+				PRINTFORMW {LOCAL}分後、二人は愛液を溢れさせながら絶頂に達した
+				CALL NTR_MASTER_3P_SEX_LESBIAN(LOCAL,MASTER,ARG:1)
+				CALl NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,人物_訪問者)
+				IF LOCAL:1/10 >= 2
+					LOCAL:1 -= 20
+				ELSEIF LOCAL:1/10 == 1
+					LOCAL:1 -= 10
+				ENDIF
+				IF LOCAL:2/10 >= 2
+					LOCAL:2 -= 20
+				ELSEIF LOCAL:2/10 == 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3/10 <= 8
+					LOCAL:3 += 10
+				ENDIF
+			ENDIF
+			FLAG:1840 = 400
+		ELSE
+			PRINTFORMW %CALLNAME:(ARG:1)%がおねだりするように足を広げ、%NTR_NAME(他人)%に愛液で濡れた%MSG_SLIT(ARG:1)%を見せた
+			PRINTFORMW %NTR_NAME(他人)%は自身の精液と%CALLNAME:MASTER%の愛液で濡れたペニスを挿入し、最奥まで貫いた
+			PRINTFORMW {LOCAL}分後、%NTR_NAME(他人)%は%CALLNAME:MASTER%にしたように%CALLNAME:(ARG:1)%に精液を注ぎ込んだ
+			CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+			IF CFLAG:MASTER:屈服度 > CFLAG:MASTER:好感度
+				IF LOCAL:1%10 <= 7
+					LOCAL:1 += 2
+				ELSEIF LOCAL:1%10 == 8
+					LOCAL:1 += 1
+				ENDIF
+			ELSEIF CFLAG:MASTER:屈服度 < CFLAG:MASTER:好感度
+				IF LOCAL:1/10 <= 7
+					LOCAL:1 += 20
+				ELSEIF LOCAL:1/10 == 8
+					LOCAL:1 += 10
+				ENDIF
+			ENDIF
+			IF LOCAL:2%10 >= 2
+				LOCAL:2 -= 2
+			ELSEIF LOCAL:2%10 == 1
+				LOCAL:2 -= 1
+			ENDIF
+			IF LOCAL:3%10 >= 2
+				LOCAL:3 -= 2
+			ELSEIF LOCAL:3%10 == 1
+				LOCAL:3 -= 1
+			ENDIF
+		ENDIF
+		FLAG:1840 = 401
+	ELSEIF FLAG:1840 == 301
+		PRINTFORML [0] %CALLNAME:(ARG:1)%を攻める　[1] %NTR_NAME(他人)%におねだりする
+		$INPUT_LOOP_NM3_3_1
+		INPUT
+		PRINTFORM %NTR_NAME(他人)%がペニスを引き抜くと、
+		IF RESULT == 0
+			IF HAS_PENIS(MASTER)
+				PRINTFORMW %CALLNAME:MASTER%と交代し、%NTR_NAME(他人)%の精液で濡れた%CALLNAME:(ARG:1)%の%MSG_SLIT(ARG:1)%をペニスで貫いた
+				PRINTFORMW %NTR_NAME(他人)%が先に射精した精液でぬるつく%CALLNAME:(ARG:1)%の膣内の感触を味わいながら腰を動かしていく
+				PRINTFORM %NTR_NAME(他人)%は休憩を兼ねて%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+				IF TALENT:(ARG:1):バストサイズ > 0
+					PRINT 揉んで
+				ELSE
+					PRINT 撫でて
+				ENDIF
+				PRINTW いる
+				PRINTFORMW {LOCAL}分後、%CALLNAME:MASTER%のペニスの鈴口と%CALLNAME:(ARG:1)%の子宮口がキスをしながら精液を注ぎ込んだ
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,MASTER,-1)
+				CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,人物_訪問者)
+				IF LOCAL:1/10 >= 2
+					LOCAL:1 -= 20
+				ELSEIF LOCAL:1/10 == 1
+					LOCAL:1 -= 10
+				ENDIF
+				IF LOCAL:2/10 >= 2
+					LOCAL:2 -= 20
+				ELSEIF LOCAL:2/10 == 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3%10 <= 8
+					LOCAL:3 += 1
+				ENDIF
+			ELSE
+				PRINTFORMW %CALLNAME:MASTER%と交代し、%NTR_NAME(他人)%の精液で濡れた%CALLNAME:(ARG:1)%の%MSG_SLIT(ARG:1)%に自分の%MSG_SLIT(MASTER)%を擦りつけ始めた
+				PRINTFORM %NTR_NAME(他人)%は休憩を兼ねて%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+				IF TALENT:(ARG:1):バストサイズ > 0
+					PRINT 揉んで
+				ELSE
+					PRINT 撫でて
+				ENDIF
+				PRINTW いる
+				PRINTFORMW {LOCAL}分後、二人は愛液を溢れさせながら絶頂に達した
+				CALL NTR_MASTER_3P_SEX_LESBIAN(LOCAL,ARG:1,MASTER)
+				CALl NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,人物_訪問者)
+				IF LOCAL:1/10 >= 2
+					LOCAL:1 -= 20
+				ELSEIF LOCAL:1/10 == 1
+					LOCAL:1 -= 10
+				ENDIF
+				IF LOCAL:2/10 >= 2
+					LOCAL:2 -= 20
+				ELSEIF LOCAL:2/10 == 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3%10 <= 8
+					LOCAL:3 += 1
+				ENDIF
+			ENDIF
+			FLAG:1840 = 402
+		ELSEIF RESULT == 1
+			PRINTFORMW %CALLNAME:MASTER%は足を広げ、%NTR_NAME(他人)%に愛液で濡れた%MSG_SLIT(MASTER)%を見せ、おねだりした
+			PRINTFORMW %NTR_NAME(他人)%は自身の精液と%CALLNAME:(ARG:1)%の愛液で濡れたペニスを挿入し、最奥まで貫いた
+			PRINTFORMW {LOCAL}分後、%NTR_NAME(他人)%は%CALLNAME:(ARG:1)%にしたように%CALLNAME:MASTER%に精液を注ぎ込んだ
+			CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+			IF LOCAL:1%10 >= 2
+				LOCAL:1 -= 2
+			ELSEIF LOCAL:1%10 == 1
+				LOCAL:1 -= 1
+			ENDIF
+			IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+				IF LOCAL:1%10 <= 7
+					LOCAL:1 += 2
+				ELSEIF LOCAL:1%10 == 8
+					LOCAL:1 += 1
+				ENDIF
+			ELSEIF CFLAG:(ARG:1):屈服度 < CFLAG:(ARG:1):好感度
+				IF LOCAL:1/10 <= 7
+					LOCAL:1 += 20
+				ELSEIF LOCAL:1/10 == 8
+					LOCAL:1 += 10
+				ENDIF
+			ENDIF
+			IF LOCAL:3/10 >= 2
+				LOCAL:3 -= 20
+			ELSEIF LOCAL:3/10 == 1
+				LOCAL:3 -= 10
+			ENDIF
+			FLAG:1840 = 403
+		ELSE
+			GOTO INPUT_LOOP_NM3_3_1
+		ENDIF
+	ELSEIF FLAG:1840 == 302
+		PRINTFORMW %NTR_NAME(他人)%はペニスを抜かず、絶頂の余韻に震えている%CALLNAME:MASTER%の膣内でさらに動き始めた
+		PRINTFORM %CALLNAME:(ARG:1)%は%CALLNAME:MASTER%の嬌声を聞きながら%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+		IF TALENT:MASTER:バストサイズ > 0
+			PRINT 揉み
+		ELSE
+			PRINT 撫で
+		ENDIF
+		PRINTW 、二人がかりで攻めた
+		PRINTFORMW {LOCAL}分後、%CALLNAME:MASTER%が再び絶頂に達するのと同時に%NTR_NAME(他人)%はペニスを引き抜き、%CALLNAME:(ARG:1)%を一気に貫き精液を注ぎ込んだ
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+		CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,ARG:1)
+		FLAG:1840 = 405
+	ELSEIF FLAG:1840 == 303
+		PRINTFORMW %NTR_NAME(他人)%はペニスを抜かず、絶頂の余韻に震えている%CALLNAME:(ARG:1)%の膣内でさらに動き始めた
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:(ARG:1)%の嬌声を聞きながら%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+		IF TALENT:(ARG:1):バストサイズ > 0
+			PRINT 揉み
+		ELSE
+			PRINT 撫で
+		ENDIF
+		PRINTW 、二人がかりで攻めた
+		PRINTFORMW {LOCAL}分後、%CALLNAME:(ARG:1)%が再び絶頂に達するのと同時に%NTR_NAME(他人)%はペニスを引き抜き、%CALLNAME:MASTER%を一気に貫き精液を注ぎ込んだ
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者)
+		CALl NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,MASTER)
+		FLAG:1840 = 404
+	ELSEIF FLAG:1840 == 304
+		IF LOCAL:3/10 > LOCAL:3%10
+			PRINTFORMW %NTR_NAME(他人)%は二人の間からペニスを抜き、絶頂の余韻に震えている%CALLNAME:MASTER%の%MSG_SLIT(MASTER)%を貫いた
+			PRINTFORM %CALLNAME:(ARG:1)%は%CALLNAME:MASTER%の嬌声を聞きながら%CALLNAME:MASTER%の%OPPAI_DESCRIPTION(MASTER)%を
+			IF TALENT:MASTER:バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 、二人がかりで攻めた
+			PRINTFORMW {LOCAL}分後、%NTR_NAME(他人)%は%CALLNAME:MASTER%が再び絶頂に達するのと同時に精液を注ぎ込んだ
+			CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者)
+			CALl NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,ARG:1)
+			IF LOCAL:1%10 >= 2
+				LOCAL:1 -= 2
+			ELSEIF LOCAL:1%10 == 1
+				LOCAL:1 -= 1
+			ENDIF
+			IF CFLAG:(ARG:1):屈服度 > CFLAG:(ARG:1):好感度
+				IF LOCAL:1%10 <= 7
+					LOCAL:1 += 2
+				ELSEIF LOCAL:1%10 == 8
+					LOCAL:1 += 1
+				ENDIF
+			ELSEIF CFLAG:(ARG:1):屈服度 < CFLAG:(ARG:1):好感度
+				IF LOCAL:1/10 <= 8
+					LOCAL:1 += 10
+				ENDIF
+			ENDIF
+			IF LOCAL:3/10 >= 2
+				LOCAL:3 -= 20
+			ELSEIF LOCAL:3/10 == 1
+				LOCAL:3 -= 10
+			ENDIF
+			FLAG:1840 = 404
+		ELSE
+			PRINTFORMW %NTR_NAME(他人)%は二人の間からペニスを抜き、絶頂の余韻に震えている%CALLNAME:(ARG:1)%の%MSG_SLIT(ARG:1)%を貫いた
+			PRINTFORM %CALLNAME:MASTER%は%CALLNAME:(ARG:1)%の嬌声を聞きながら%CALLNAME:(ARG:1)%の%OPPAI_DESCRIPTION(ARG:1)%を
+			IF TALENT:(ARG:1):バストサイズ > 0
+				PRINT 揉み
+			ELSE
+				PRINT 撫で
+			ENDIF
+			PRINTW 、二人がかりで攻めた
+			PRINTFORMW {LOCAL}分後、%NTR_NAME(他人)%は%CALLNAME:(ARG:1)%が再び絶頂に達するのと同時に精液を注ぎ込んだ
+			CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者)
+			CALl NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,MASTER)
+			IF CFLAG:MASTER:屈服度 > CFLAG:MASTER:好感度
+				IF LOCAL:1%10 <= 7
+					LOCAL:1 += 2
+				ELSEIF LOCAL:1%10 == 8
+					LOCAL:1 += 1
+				ENDIF
+			ELSEIF CFLAG:MASTER:屈服度 < CFLAG:MASTER:好感度
+				IF LOCAL:1/10 <= 8
+					LOCAL:1 += 10
+				ENDIF
+			ENDIF
+			IF LOCAL:2%10 >= 2
+				LOCAL:2 -= 2
+			ELSEIF LOCAL:2%10 == 1
+				LOCAL:2 -= 1
+			ENDIF
+			IF LOCAL:3%10 >= 2
+				LOCAL:3 -= 2
+			ELSEIF LOCAL:3%10 == 1
+				LOCAL:3 -= 1
+			ENDIF
+			FLAG:1840 = 405
+		ENDIF
+	ENDIF
+ELSEIF FLAG:1840/100 == 4
+	LOCAL:6 = 0
+	LOCAL:7 = 0
+	LOCAL = RAND:10 + 20
+	IF FLAG:1840 == 400
+		PRINTFORMW %CALLNAME:(ARG:1)%が%CALLNAME:MASTER%から体を離すと二人の混ざり合った体液が糸を引いた
+		PRINTFORMW 次は自分の番だと%NTR_NAME(他人)%が%CALLNAME:MASTER%の足を抱える
+		PRINTFORMW 二人は交代しながら何度も%CALLNAME:MASTER%との性交を楽しんだ
+		LOCAL:7 += 1
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+		IF LOCAL:1%10 >= 2
+			LOCAL:1 -= 2
+		ELSEIF LOCAL:1%10 == 1
+			LOCAL:1 -= 1
+		ENDIF
+		IF LOCAL:2/10 <= 7
+			LOCAL:2 += 20
+		ELSEIF LOCAL:2/10 == 8
+			LOCAL:2 += 10
+		ENDIF
+		IF LOCAL:3/10 >= 2
+			LOCAL:3 -= 20
+		ELSEIF LOCAL:3/10 == 1
+			LOCAL:3 -= 10
+		ENDIF
+		FLAG:1840 = 500
+	ELSEIF FLAG:1840 == 401
+		PRINTFORMW %NTR_NAME(他人)%が%CALLNAME:(ARG:1)%からペニスを引き抜くと、二人の交わりを見ていた%CALLNAME:MASTER%は再び体が疼いてしまい、%NTR_NAME(他人)%を求めた
+		PRINTFORMW %NTR_NAME(他人)%は硬いままのペニスを%CALLNAME:MASTER%に挿入し、再び腰を動かし始めた
+		LOCAL:6 += 1
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+		IF LOCAL:1%10 >= 2
+			LOCAL:1 -= 2
+		ELSEIF LOCAL:1%10 == 1
+			LOCAL:1 -= 1
+		ENDIF
+		IF LOCAL:2%10 <= 7
+			LOCAL:2 += 2
+		ELSEIF LOCAL:2%10 == 8
+			LOCAL:2 += 1
+		ENDIF
+		IF LOCAL:3/10 >= 2
+			LOCAL:3 -= 20
+		ELSEIF LOCAL:3/10 == 1
+			LOCAL:3 -= 10
+		ENDIF
+		FLAG:1840 = 501
+	ELSEIF FLAG:1840 == 402
+		PRINTFORMW %CALLNAME:MASTER%が%CALLNAME:(ARG:1)%から体を離すと二人の混ざり合った体液が糸を引いた
+		PRINTFORMW 次は自分の番だと%NTR_NAME(他人)%が%CALLNAME:(ARG:1)%の足を抱える
+		PRINTFORMW 二人は交代しながら何度も%CALLNAME:(ARG:1)%との性交を楽しんだ
+		LOCAL:7 += 1
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+		IF LOCAL:1/10 <= 7
+			LOCAL:1 += 20
+		ELSEIF LOCAL:1/10 == 8
+			LOCAL:1 += 10
+		ENDIF
+		IF LOCAL:2%10 >= 2
+			LOCAL:2 -= 2
+		ELSEIF LOCAL:2%10 == 1
+			LOCAL:2 -= 1
+		ENDIF
+		IF LOCAL:3%10 >= 2
+			LOCAL:3 -= 2
+		ELSEIF LOCAL:3%10 == 1
+			LOCAL:3 -= 1
+		ENDIF
+		FLAG:1840 = 502
+	ELSEIF FLAG:1840 == 403
+		PRINTFORMW %NTR_NAME(他人)%が%CALLNAME:MASTER%からペニスを引き抜くと、二人の交わりを見ていた%CALLNAME:(ARG:1)%は再び体が疼いてしまい、%NTR_NAME(他人)%を求めた
+		PRINTFORMW %NTR_NAME(他人)%は硬いままのペニスを%CALLNAME:(ARG:1)%に挿入し、再び腰を動かし始めた
+		LOCAL:7 += 1
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+		IF LOCAL:1%10 <= 7
+			LOCAL:1 += 2
+		ELSEIF LOCAL:1%10 == 8
+			LOCAL:1 += 1
+		ENDIF
+		IF LOCAL:2%10 >= 2
+			LOCAL:2 -= 2
+		ELSEIF LOCAL:2%10 == 1
+			LOCAL:2 -= 1
+		ENDIF
+		IF LOCAL:3%10 >= 2
+			LOCAL:3 -= 2
+		ELSEIF LOCAL:3%10 == 1
+			LOCAL:3 -= 1
+		ENDIF
+		FLAG:1840 = 501
+	ELSEIF FLAG:1840 == 404
+		PRINTFORMW %NTR_NAME(他人)%の射精が止まると、次は%CALLNAME:(ARG:1)%が%NTR_NAME(他人)%を求める
+		PRINTFORMW しかし%CALLNAME:MASTER%も抜かずにもう一回と%NTR_NAME(他人)%を求め、%NTR_NAME(他人)%は欲望の赴くままに二人との性交を楽しんだ
+		LOCAL:7 += 1
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+		IF LOCAL:1%10 <= 7
+			LOCAL:1 += 2
+		ELSEIF LOCAL:1%10 == 8
+			LOCAL:1 += 1
+		ENDIF
+		IF LOCAL:2%10 >= 2
+			LOCAL:2 -= 2
+		ELSEIF LOCAL:2%10 == 1
+			LOCAL:2 -= 1
+		ENDIF
+		IF LOCAL:3%10 >= 2
+			LOCAL:3 -= 2
+		ELSEIF LOCAL:3%10 == 1
+			LOCAL:3 -= 1
+		ENDIF
+		FLAG:1840 = 503
+	ELSEIF FLAG:1840 == 405
+		PRINTFORMW %NTR_NAME(他人)%の射精が止まると、次は%CALLNAME:MASTER%が%NTR_NAME(他人)%を求める
+		PRINTFORMW しかし%CALLNAME:(ARG:1)%も抜かずにもう一回と%NTR_NAME(他人)%を求め、%NTR_NAME(他人)%は欲望の赴くままに二人との性交を楽しんだ
+		LOCAL:6 += 1
+		CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+		IF LOCAL:1%10 >= 2
+			LOCAL:1 -= 2
+		ELSEIF LOCAL:1%10 == 1
+			LOCAL:1 -= 1
+		ENDIF
+		IF LOCAL:2%10 <= 7
+			LOCAL:2 += 2
+		ELSEIF LOCAL:2%10 == 8
+			LOCAL:2 += 1
+		ENDIF
+		IF LOCAL:3/10 >= 2
+			LOCAL:3 -= 20
+		ELSEIF LOCAL:3/10 == 1
+			LOCAL:3 -= 10
+		ENDIF
+		FLAG:1840 = 503
+	ENDIF
+ELSEIF FLAG:1840/100 == 5
+LOCAL:8 = 0
+	WHILE 1
+		LOCAL += RAND:10 + 10
+		IF FLAG:1840 == 500
+			LOCAL:4 = LOCAL:1/10 + LOCAL:2/10
+			LOCAL:5 = LOCAL:1%10 + LOCAL:3/10
+			IF RAND:(LOCAL:4 + LOCAL:5) < LOCAL:4 && BASE:(ARG:1):体力 >= 500
+				LOCAL:6 += 1
+				IF HAS_PENIS(ARG:1)
+					CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,ARG:1,-1)
+				ELSE
+					CALL NTR_MASTER_3P_SEX_LESBIAN(LOCAL,MASTER,ARG:1)
+				ENDIF
+				IF LOCAL:1/10 >= 2
+					LOCAL:1 -= 20
+				ELSEIF LOCAL:1/10 == 1
+					LOCAL:1 -= 10
+				ENDIF
+				IF LOCAL:2/10 >= 2
+					LOCAL:2 -= 20
+				ELSEIF LOCAL:2/10 == 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3/10 <= 7
+					LOCAL:3 += 20
+				ELSEIF LOCAL:3/10 == 8
+					LOCAL:3 += 10
+				ENDIF
+			ELSE
+				LOCAL:7 += 1
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+				IF LOCAL:1%10 >= 2
+					LOCAL:1 -= 2
+				ELSEIF LOCAL:1%10 == 1
+					LOCAL:1 -= 1
+				ENDIF
+				IF LOCAL:2/10 <= 7
+					LOCAL:2 += 20
+				ELSEIF LOCAL:2/10 == 8
+					LOCAL:2 += 10
+				ENDIF
+				IF LOCAL:3/10 >= 2
+					LOCAL:3 -= 20
+				ELSEIF LOCAL:3/10 == 1
+					LOCAL:3 -= 10
+				ENDIF
+			ENDIF
+			IF BASE:MASTER:体力 < 500
+				FLAG:1840 = 601
+				BREAK
+			ENDIF
+		ELSEIF FLAG:1840 == 501
+			LOCAL:4 = LOCAL:1%10 + LOCAL:3/10
+			LOCAL:5 = LOCAL:2%10 + LOCAL:3%10
+			IF RAND:(LOCAL:4 + LOCAL:5) < LOCAL:4 && BASE:MASTER:体力 >= 500
+				LOCAL:6 += 1
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+				IF LOCAL:1%10 >= 2
+					LOCAL:1 -= 2
+				ELSEIF LOCAL:1%10 == 1
+					LOCAL:1 -= 1
+				ENDIF
+				IF LOCAL:2%10 <= 7
+					LOCAL:2 += 2
+				ELSEIF LOCAL:2%10 == 8
+					LOCAL:2 += 1
+				ENDIF
+				IF LOCAL:3/10 >= 2
+					LOCAL:3 -= 20
+				ELSEIF LOCAL:3/10 == 1
+					LOCAL:3 -= 10
+				ENDIF
+			ELSEIF BASE:(ARG:1):体力 >= 500
+				LOCAL:7 += 1
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+				IF LOCAL:1%10 <= 7
+					LOCAL:1 += 2
+				ELSEIF LOCAL:1%10 == 8
+					LOCAL:1 += 1
+				ENDIF
+				IF LOCAL:2%10 >= 2
+					LOCAL:2 -= 2
+				ELSEIF LOCAL:2%10 == 1
+					LOCAL:2 -= 1
+				ENDIF
+				IF LOCAL:3%10 >= 2
+					LOCAL:3 -= 2
+				ELSEIF LOCAL:3%10 == 1
+					LOCAL:3 -= 1
+				ENDIF
+			ELSE
+				IF BASE:MASTER:体力 < 500 && BASE:(ARG:1):体力 < 500
+					FLAG:1840 = 601
+					BREAK
+				ELSEIF BASE:MASTER:体力 < 500 && BASE:(ARG:1):体力 >= 500
+					IF LOCAL:3%10 <= 4
+						LOCAL:3 += 5
+					ELSEIF LOCAL:3%10 <= 8
+						LOCAL:3 += 1
+					ENDIF
+				ELSE
+					IF LOCAL:3/10 <= 4
+						LOCAL:3 += 50
+					ELSEIF LOCAL:3/10 <= 8
+						LOCAL:3 += 10
+					ENDIF
+				ENDIF
+			ENDIF
+		ELSEIF FLAG:1840 == 502
+			LOCAL:4 = LOCAL:1/10 + LOCAL:2/10
+			LOCAL:5 = LOCAL:2%10 + LOCAL:3%10
+			IF RAND:(LOCAL:4 + LOCAL:5) < LOCAL:4 && BASE:MASTER:体力 >= 500
+				LOCAL:6 += 1
+				IF HAS_PENIS(MASTER)
+					CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,MASTER,-1)
+				ELSE
+					CALL NTR_MASTER_3P_SEX_LESBIAN(LOCAL,ARG:1,MASTER)
+				ENDIF
+				IF LOCAL:1/10 >= 2
+					LOCAL:1 -= 20
+				ELSEIF LOCAL:1/10 == 1
+					LOCAL:1 -= 10
+				ENDIF
+				IF LOCAL:2/10 >= 2
+					LOCAL:2 -= 20
+				ELSEIF LOCAL:2/10 == 1
+					LOCAL:2 -= 10
+				ENDIF
+				IF LOCAL:3%10 <= 7
+					LOCAL:3 += 2
+				ELSEIF LOCAL:3%10 == 8
+					LOCAL:3 += 1
+				ENDIF
+			ELSE
+				LOCAL:7 += 1
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+				IF LOCAL:1/10 <= 7
+					LOCAL:1 += 20
+				ELSEIF LOCAL:1/10 == 8
+					LOCAL:1 += 10
+				ENDIF
+				IF LOCAL:2%10 >= 2
+					LOCAL:2 -= 2
+				ELSEIF LOCAL:2%10 == 1
+					LOCAL:2 -= 1
+				ENDIF
+				IF LOCAL:3%10 >= 2
+					LOCAL:3 -= 2
+				ELSEIF LOCAL:3%10 == 1
+					LOCAL:3 -= 1
+				ENDIF
+			ENDIF
+			IF BASE:(ARG:1):体力 < 500
+				FLAG:1840 = 602
+				BREAK
+			ENDIF
+		ELSEIF FLAG:1840 == 503
+			LOCAL:4 = LOCAL:1%10 + LOCAL:3/10
+			LOCAL:5 = LOCAL:2%10 + LOCAL:3%10
+			IF RAND:(LOCAL:4 + LOCAL:5) < LOCAL:4 && BASE:MASTER:体力 >= 500 && RAND:2
+				LOCAL:6 += 1
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,MASTER,人物_訪問者,-1)
+				IF RAND:10 < (LOCAL:2/10)
+					CALL NTR_MASTER_3P_SEX_KISS(LOCAL,MASTER,ARG:1)
+					CALL NTR_MASTER_3P_SEX_BUST(LOCAL,MASTER,ARG:1)
+				ENDIF
+				IF CFLAG:(ARG:1):好感度 > CFLAG:(ARG:1):屈服度
+					IF LOCAL:2/10 <= 7
+						LOCAL:2 += 20
+					ELSEIF LOCAL:2/10 == 8
+						LOCAL:2 += 10
+					ENDIF
+				ENDIF
+				IF LOCAL:1%10 >= 2
+					LOCAL:1 -= 2
+				ELSEIF LOCAL:1%10 == 1
+					LOCAL:1 -= 1
+				ENDIF
+				IF LOCAL:2%10 <= 7
+					LOCAL:2 += 2
+				ELSEIF LOCAL:2%10 == 8
+					LOCAL:2 += 1
+				ENDIF
+				IF LOCAL:3/10 >= 2
+					LOCAL:3 -= 20
+				ELSEIF LOCAL:3/10 == 1
+					LOCAL:3 -= 10
+				ENDIF
+			ELSEIF BASE:(ARG:1):体力 >= 500 && RAND:2
+				LOCAL:7 += 1
+				CALL NTR_MASTER_3P_SEX_SEX(LOCAL,ARG:1,人物_訪問者,-1)
+				IF RAND:10 < (LOCAL:1/10)
+					CALL NTR_MASTER_3P_SEX_KISS(LOCAL,ARG:1,MASTER)
+					CALL NTR_MASTER_3P_SEX_BUST(LOCAL,ARG:1,MASTER)
+				ENDIF
+				IF CFLAG:(ARG:1):好感度 > CFLAG:MASTER:屈服度
+					IF LOCAL:1/10 <= 7
+						LOCAL:1 += 20
+					ELSEIF LOCAL:1/10 == 8
+						LOCAL:1 += 10
+					ENDIF
+				ENDIF
+				IF LOCAL:1%10 <= 7
+					LOCAL:1 += 2
+				ELSEIF LOCAL:1%10 == 8
+					LOCAL:1 += 1
+				ENDIF
+				IF LOCAL:2%10 >= 2
+					LOCAL:2 -= 2
+				ELSEIF LOCAL:2%10 == 1
+					LOCAL:2 -= 1
+				ENDIF
+				IF LOCAL:3%10 >= 2
+					LOCAL:3 -= 2
+				ELSEIF LOCAL:3%10 == 1
+					LOCAL:3 -= 1
+				ENDIF
+			ELSE
+				IF BASE:MASTER:体力 < 500 && BASE:(ARG:1):体力 < 500
+					FLAG:1840 = 603
+					BREAK
+				ELSEIF BASE:MASTER:体力 < 500 && BASE:(ARG:1):体力 >= 500
+					IF LOCAL:3%10 <= 4
+						LOCAL:3 += 5
+					ELSEIF LOCAL:3%10 <= 8
+						LOCAL:3 += 1
+					ENDIF
+				ELSEIF BASE:MASTER:体力 >= 500 && BASE:(ARG:1):体力 < 500
+					IF LOCAL:3/10 <= 4
+						LOCAL:3 += 50
+					ELSEIF LOCAL:3/10 <= 8
+						LOCAL:3 += 10
+					ENDIF
+				ELSE
+					LOCAL:8 += 1
+					CALL NTR_MASTER_3P_SEX_SLIT(LOCAL,MASTER,人物_訪問者)
+					CALL NTR_MASTER_3P_SEX_SLIT(LOCAL,ARG:1,人物_訪問者)
+				ENDIF
+			ENDIF
+		ENDIF
+		IF LOCAL:6 + LOCAL:7 > 1000
+			PRINTL
+			PRINTFORMW ループ回数が1000回を越えました。エラーの可能性があるのでループを抜けます。
+			BREAK
+		ENDIF
+	WEND
+ELSEIF FLAG:1840/100 == 6
+	PRINTFORMW 　　　　　　・
+	PRINTFORMW 　　　　　　・
+	PRINTFORMW 　　　　　　・
+	IF FLAG:1840 == 600
+		PRINTFORM その後、%CALLNAME:MASTER%は%MSG_HOUR_MIN(LOCAL)%かけて
+		IF LOCAL:6 > 0 && LOCAL:7 > 0
+			PRINTFORMW %CALLNAME:(ARG:1)%と{LOCAL:6}回、%NTR_NAME(他人)%と{LOCAL:7}回交わった
+		ELSEIF LOCAL:6 > 0
+			PRINTFORMW %CALLNAME:(ARG:1)%と{LOCAL:6}回交わって体力の限界を迎えた
+		ELSE
+			PRINTFORMW %NTR_NAME(他人)%と{LOCAL:7}回交わって体力の限界を迎えた
+		ENDIF
+	ELSEIF FLAG:1840 == 601
+		PRINTFORM その後、%NTR_NAME(他人)%は%MSG_HOUR_MIN(LOCAL)%かけて
+		IF LOCAL:6 > 0 && LOCAL:7 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回、%CALLNAME:(ARG:1)%と{LOCAL:7}回交わった
+		ELSEIF LOCAL:6 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回交わった
+		ELSE
+			PRINTFORMW %CALLNAME:(ARG:1)%と{LOCAL:7}回交わった
+		ENDIF
+	ELSEIF FLAG:1840 == 602
+		PRINTFORM その後、%CALLNAME:(ARG:1)%は%MSG_HOUR_MIN(LOCAL)%かけて
+		IF LOCAL:6 > 0 && LOCAL:7 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回、%NTR_NAME(他人)%と{LOCAL:7}回交わった
+		ELSEIF LOCAL:6 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回交わって体力の限界を迎えた
+		ELSE
+			PRINTFORMW %NTR_NAME(他人)%と{LOCAL:7}回交わって体力の限界を迎えた
+		ENDIF
+	ELSEIF FLAG:1840 == 603
+		PRINTFORM その後、%NTR_NAME(他人)%は%MSG_HOUR_MIN(LOCAL)%かけて
+		IF LOCAL:6 > 0 && LOCAL:7 > 0 && LOCAL:8 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回、%CALLNAME:(ARG:1)%と{LOCAL:7}回交わり、二人の間で{LOCAL:8}回射精した
+		ELSEIF LOCAL:6 > 0 && LOCAL:8 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回交わり、二人の間で{LOCAL:8}回射精した
+		ELSEIF LOCAL:7 > 0 && LOCAL:8 > 0
+			PRINTFORMW %CALLNAME:(ARG:1)%と{LOCAL:7}回交わり、二人の間で{LOCAL:8}回射精した
+		ELSEIF LOCAL:6 > 0
+			PRINTFORMW %CALLNAME:MASTER%と{LOCAL:6}回交わった
+		ELSEIF LOCAL:7 > 0
+			PRINTFORMW %CALLNAME:(ARG:1)%と{LOCAL:7}回交わった
+		ELSE
+			PRINTFORMW エラー？
+		ENDIF
+	ENDIF
+	BASE:(ARG:1):怒り = 0
+	BREAK
+ENDIF
+WEND
+RETURN
+
+
+;---------------------------------------------------------------------------------------
+;@param 経過時間…経過時間
+;@param 被害者…犯されている人
+;@param 加害者V…前から犯している人
+;@param 加害者A…後ろから犯している人(-1:なし)
+@NTR_MASTER_3P_SEX_SEX(経過時間,被害者,加害者V,加害者A)
+	#DIM 経過時間
+	#DIM 被害者
+	#DIM 加害者V
+	#DIM 加害者A
+	#DIM iLoop
+	;Ｖ側処理
+	TEQUIP:被害者:Ｖセックス = 加害者V
+	IF 加害者V == 人物_訪問者
+		CALL NTR_ADD_SURRENDER(被害者, (5 + RAND:5))
+	ELSEIF 被害者 != MASTER
+		CFLAG:被害者:好感度 += (5 + RAND:5)
+	ELSE
+		CFLAG:加害者V:好感度 += (5 + RAND:5)
+	ENDIF
+	BASE:(被害者):体力 = MAX(0,BASE:被害者:体力 - 50)
+	;屈服度が高い場合は抵抗しないので気力消費が少ない？
+	BASE:被害者:気力 = MAX(0,BASE:被害者:気力-(150-LIMIT(0,70,CFLAG:被害者:屈服度/10)))
+	SOURCE:被害者:快Ｖ = 400
+	FOR iLoop,0,経過時間,5
+		CALL 締り具合変動, 被害者, 3, 0
+	NEXT
+	;SOURCE:被害者:情愛 = 150
+	;SOURCE:被害者:苦痛 = 500
+	;SOURCE:被害者:露出 = 50
+	;SOURCE:被害者:反感 = 300
+	;SIF TALENT:被害者:自己愛 < 0 || TALENT:(被害者):抵抗
+	;	SOURCE:被害者:鬱屈 += 300
+	;SIF TALENT:被害者:貞操 > 0 && CFLAG:(被害者):屈服度 < 1000
+	;	SOURCE:被害者:反感 += 1000
+	;IF TALENT:被害者:処女 == 1
+	;	SOURCE:被害者:苦痛 += 2000
+	;	SOURCE:被害者:反感 += 3000
+	;ELSEIF TALENT:被害者:処女 == 2
+	;	SOURCE:被害者:苦痛 += 500
+	;	SOURCE:被害者:反感 += 1000
+	;ENDIF
+	EXP:被害者:Ｖ経験 ++
+	EXP:被害者:Ｖ性交経験 ++
+	IF ABL:被害者:Ｖ感覚 > RAND:5
+		EXP:被害者:Ｖ絶頂経験 ++
+		EXP:被害者:絶頂経験 ++
+	ENDIF
+
+	IF 加害者V == 人物_訪問者
+		IF TALENT:被害者:処女
+			CALL LOST_VIRGIN(被害者, 加害者V)
+			CALL NTR_ADD_SURRENDER(被害者, (10 + RAND:10))
+		ENDIF
+	ELSE
+		IF TALENT:被害者:処女
+			CALL LOST_VIRGIN(被害者, 加害者V)
+			CFLAG:被害者:好感度 += (10 + RAND:10)
+			CFLAG:加害者V:好感度 += (10 + RAND:10)
+		ENDIF
+	ENDIF	
+	IF 加害者V != 人物_訪問者
+		BASE:加害者V:体力 = MAX(0,BASE:加害者V:体力 - 50)
+		BASE:加害者V:気力 = MAX(0,BASE:加害者V:気力-(150-LIMIT(0,70,CFLAG:加害者V:屈服度/10)))
+		SOURCE:加害者V:快Ｃ = 400
+		EXP:被害者:レズ経験 += 2
+		EXP:加害者V:レズ経験 += 2
+	ENDIF
+	;V射精処理
+	CALL EJACULATION_V(被害者, 加害者V)
+	;V感覚が高いと絶頂経験加算（強絶頂扱い）
+	;CALL NTR_V_EXP_PLUS(被害者)
+	;Ａ側処理
+	IF -1 != 加害者A
+		TEQUIP:被害者:Ａセックス = 加害者A
+		IF 加害者A == 人物_訪問者
+			CALL NTR_ADD_SURRENDER(被害者, (5 + RAND:5))
+		ELSEIF 被害者 != MASTER
+			CFLAG:被害者:好感度 += (5 + RAND:5)
+		ELSE
+			CFLAG:加害者A:好感度 += (5 + RAND:5)
+		ENDIF
+		BASE:(被害者):体力 = MAX(0,BASE:被害者:体力 - 50)
+		;屈服度が高い場合は抵抗しないので気力消費が少ない？
+		BASE:被害者:気力 = MAX(0,BASE:被害者:気力-(150-LIMIT(0,70,CFLAG:被害者:屈服度/10)))
+		SOURCE:被害者:快Ａ = 400
+		FOR iLoop,0,経過時間,5
+			CALL 締り具合変動, 被害者, 3, 1
+		NEXT
+		;SOURCE:被害者:情愛 = 150
+		;SOURCE:被害者:苦痛 = 500
+		;SOURCE:被害者:露出 = 50
+		;SOURCE:被害者:反感 = 300
+		;SIF TALENT:被害者:自己愛 < 0 || TALENT:(被害者):抵抗
+		;	SOURCE:被害者:鬱屈 += 300
+		;SIF TALENT:被害者:貞操 > 0 && CFLAG:(被害者):屈服度 < 1000
+		;	SOURCE:被害者:反感 += 1000
+		;IF TALENT:被害者:処女 == 1
+		;	SOURCE:被害者:苦痛 += 2000
+		;	SOURCE:被害者:反感 += 3000
+		;ELSEIF TALENT:被害者:処女 == 2
+		;	SOURCE:被害者:苦痛 += 500
+		;	SOURCE:被害者:反感 += 1000
+		;ENDIF
+		EXP:被害者:Ａ経験 ++
+		EXP:被害者:Ａ性交経験 ++
+		IF ABL:被害者:Ａ感覚 > RAND:5
+			EXP:被害者:Ａ絶頂経験 ++
+			EXP:被害者:絶頂経験 ++
+		ENDIF
+		;A射精処理
+		CALL EJACULATION_A(被害者, 加害者A)
+		IF 加害者V == 人物_訪問者
+			;A処女喪失記録
+			CALL LOST_VIRGIN(被害者, 加害者A)
+			CALL NTR_ADD_SURRENDER(被害者, (15 + RAND:10))
+		ELSE
+			CALL LOST_VIRGIN_A(被害者, 加害者A)
+		ENDIF
+	ENDIF
+RETURN
+
+;キス
+@NTR_MASTER_3P_SEX_KISS(経過時間,被害者,加害者)
+	#DIM 経過時間
+	#DIM 被害者
+	#DIM 加害者
+	TCVAR:被害者:行為者 = 加害者
+	IF 加害者 == 人物_訪問者
+		CALL NTR_ADD_SURRENDER(被害者, (2 + (EXP:被害者:NTR陥落経験>0)) )
+		CALL NTR_ADD_SURRENDER(被害者, TALENT:被害者:浮気な唇)
+	ELSEIF 被害者 != MASTER
+		CFLAG:被害者:好感度 += 2
+	ELSE
+		CFLAG:加害者:好感度 += 2
+	ENDIF
+	BASE:被害者:気力 -= 80
+	SOURCE:被害者:情愛 += 50
+	SOURCE:被害者:性行動 += 10
+	SOURCE:被害者:屈従 += 10
+	SOURCE:被害者:逸脱 += 10
+	;SOURCE:被害者:反感 += 10 * !TALENT:被害者:浮気な唇
+	SIF TALENT:被害者:自己愛 < 0 || TALENT:被害者:抵抗
+		SOURCE:被害者:鬱屈 += 10
+	EXP:被害者:キス経験 ++
+	;SIF !TALENT:被害者:親愛
+	;	EXP:被害者:浮気キス経験 ++
+	;SIF TALENT:被害者:親愛
+	;	EXP:被害者:緊縛経験 ++
+	IF 加害者 != 人物_訪問者
+		BASE:加害者:気力 -= 80
+		SOURCE:加害者:情愛 += 50
+		SOURCE:加害者:性行動 += 10
+		SOURCE:加害者:屈従 += 10
+		SOURCE:加害者:逸脱 += 10
+		SIF TALENT:加害者:自己愛 < 0 || TALENT:加害者:抵抗
+			SOURCE:加害者:鬱屈 += 10
+		EXP:加害者:キス経験 ++
+		EXP:被害者:レズ経験 += 2
+		EXP:加害者:レズ経験 += 2
+	ENDIF
+RETURN 0
+
+@NTR_MASTER_3P_SEX_BUST(経過時間,被害者,加害者)
+	#DIM 経過時間
+	#DIM 被害者
+	#DIM 加害者
+	;NTR陥落経験があれば屈服度が増加
+	IF 加害者 == 人物_訪問者
+		CALL NTR_ADD_SURRENDER(被害者, (1 * (EXP:被害者:NTR陥落経験>0)) )
+	ELSE
+		CFLAG:被害者:好感度 += 2
+		CFLAG:加害者:好感度 += 2
+	ENDIF
+	;体力、気力の減少
+	BASE:被害者:体力 -= 5 * (経過時間/5)
+	BASE:被害者:気力 -= 50 * (経過時間/5)
+	;調教ソースの増加。通常プレイが５分毎なのでその分乗算する
+	SOURCE:被害者:快Ｂ   += 120 * (経過時間/5)
+	SOURCE:被害者:歓楽   += 100 * (経過時間/5)
+	SOURCE:被害者:情愛   += 150 * (経過時間/5)
+	SOURCE:被害者:欲情   += 170 * (経過時間/5)
+	SOURCE:被害者:露出   +=  70 * (経過時間/5)
+;	SOURCE:被害者:反感   += 350 * (経過時間/5)
+	;抑圧 or 抵抗があると鬱屈が溜まる
+	SIF TALENT:被害者:自己愛 < 0 || TALENT:被害者:抵抗
+		SOURCE:被害者:鬱屈 += 20
+;	SIF TALENT:被害者:親愛
+;		EXP:被害者:緊縛経験 ++
+	IF 加害者 != 人物_訪問者
+		BASE:加害者:体力 -= 5 * (経過時間/5)
+		BASE:加害者:気力 -= 50 * (経過時間/5)
+		SOURCE:加害者:歓楽   += 100 * (経過時間/5)
+		SOURCE:加害者:情愛   += 150 * (経過時間/5)
+		SOURCE:加害者:欲情   += 170 * (経過時間/5)
+		EXP:被害者:レズ経験 += 2
+		EXP:加害者:レズ経験 += 2
+	ENDIF
+RETURN 0
+
+;Ｃ愛撫
+@NTR_MASTER_3P_SEX_CLI(経過時間,被害者,加害者)
+	#DIM 経過時間
+	#DIM 被害者
+	#DIM 加害者
+	;NTR陥落経験があれば屈服度が増加
+	IF 加害者 == 人物_訪問者
+		CALL NTR_ADD_SURRENDER(被害者, (1 * (EXP:被害者:NTR陥落経験>0)) )
+	ELSE
+		CFLAG:被害者:好感度 += 2
+		CFLAG:加害者:好感度 += 2
+	ENDIF
+	;体力、気力の減少
+	BASE:被害者:体力 -= 5 * (経過時間/5)
+	BASE:被害者:気力 -= 50 * (経過時間/5)
+	;調教ソースの増加。通常プレイが５分毎なのでその分乗算する
+	SOURCE:被害者:歓楽   += 100 * (経過時間/5)
+	SOURCE:被害者:情愛   += 100 * (経過時間/5)
+	SOURCE:被害者:欲情   += 150 * (経過時間/5)
+	SOURCE:被害者:露出   += 100 * (経過時間/5)
+;	SOURCE:被害者:反感   += 370 * (経過時間/5)
+	SOURCE:被害者:快Ｃ   += 100 * (経過時間/5)
+	SOURCE:被害者:受動   += (145+270*ABL:被害者:従順) * (経過時間/5)
+	;抑圧 or 抵抗があると鬱屈が溜まる
+	SIF TALENT:被害者:自己愛 < 0 || TALENT:被害者:抵抗
+		SOURCE:被害者:鬱屈 += 20
+;	SIF TALENT:被害者:親愛
+;		EXP:被害者:緊縛経験 ++
+	IF 加害者 != 人物_訪問者
+		BASE:加害者:体力 -= 5 * (経過時間/5)
+		BASE:加害者:気力 -= 50 * (経過時間/5)
+		SOURCE:加害者:歓楽   += 100 * (経過時間/5)
+		SOURCE:加害者:情愛   += 100 * (経過時間/5)
+		SOURCE:加害者:欲情   += 150 * (経過時間/5)
+		EXP:加害者:レズ経験 += 2
+		EXP:加害者:レズ経験 += 2
+	ENDIF
+RETURN 0
+
+;素股
+@NTR_MASTER_3P_SEX_SLIT(経過時間,被害者,加害者)
+	#DIM 経過時間
+	#DIM 被害者
+	#DIM 加害者
+	IF 加害者 == 人物_訪問者
+		CALL NTR_ADD_SURRENDER(被害者, (1 * (EXP:被害者:NTR陥落経験>0)) )
+	ELSE
+		CFLAG:被害者:好感度 += 2
+		CFLAG:加害者:好感度 += 2
+	ENDIF
+
+	DOWNBASE:被害者:体力 += 40
+	DOWNBASE:被害者:気力 += 130
+
+	SOURCE:被害者:快Ｃ += 150
+	SOURCE:被害者:情愛 += 80
+	SOURCE:被害者:性行動 += 250
+	SOURCE:被害者:達成 += 50
+	SOURCE:被害者:屈従 += 500
+	SOURCE:被害者:逸脱 += 120
+	;SOURCE:被害者:反感 += 120
+	IF 加害者 != 人物_訪問者
+		DOWNBASE:加害者:体力 += 40
+		DOWNBASE:加害者:気力 += 130
+		SOURCE:加害者:快Ｃ += 150
+		SOURCE:加害者:情愛 += 80
+		SOURCE:加害者:性行動 += 250
+		SOURCE:加害者:達成 += 50
+		SOURCE:加害者:逸脱 += 120
+		EXP:被害者:レズ経験 += 2
+		EXP:加害者:レズ経験 += 2
+	ENDIF
+
+	CALL STAIN_ADD_SEMEN_Sumata(被害者, 加害者)
+	CALL STAIN_MOVE_BY_PENIS(部位_Ｖ, 被害者, 加害者)
+
+	EXP:被害者:Ｃ絶頂経験 ++
+	EXP:被害者:絶頂経験 ++
+RETURN 0
+
+@NTR_MASTER_3P_SEX_LESBIAN(経過時間,被害者,加害者)
+	#DIM 経過時間
+	#DIM 被害者
+	#DIM 加害者
+	DOWNBASE:被害者:体力 += 30
+	DOWNBASE:被害者:気力 += 90
+	SOURCE:被害者:快Ｃ += 200
+	SOURCE:被害者:性行動 += 200
+	SOURCE:被害者:達成 += 100
+	SOURCE:被害者:露出 += 50
+	SOURCE:被害者:屈従 += 400
+	SOURCE:被害者:逸脱 += 400
+	;SOURCE:被害者:反感 += 400
+	DOWNBASE:加害者:体力 += 30
+	DOWNBASE:加害者:気力 += 90
+	SOURCE:被害者:快Ｃ += 200
+	SOURCE:被害者:性行動 += 200
+	SOURCE:被害者:達成 += 100
+	SOURCE:被害者:露出 += 50
+	;抑圧、抵抗持ちには、抑鬱ソース追加
+	SIF TALENT:被害者:自己愛 < 0 || TALENT:被害者:抵抗
+		SOURCE:被害者:鬱屈 += 400
+	;奴隷のＶ⇔調教者のＶの汚れが移動
+	STAIN:被害者:Ｖ |= STAIN:加害者:Ｖ
+	STAIN:加害者:Ｖ |= STAIN:被害者:Ｖ
+	;同性愛　レズなら戻り値1ゲイなら戻り値2
+	EXP:被害者:レズ経験 += 2
+	EXP:加害者:レズ経験 += 2
+	;愛情経験
+	EXP:被害者:愛情経験 += 2 * TALENT:被害者:恋慕
+	EXP:加害者:愛情経験 += 2 * TALENT:加害者:恋慕
+	EXP:被害者:Ｃ絶頂経験 ++
+	EXP:被害者:絶頂経験 ++
+	EXP:加害者:Ｃ絶頂経験 ++
+	EXP:加害者:絶頂経験 ++
+RETURN 1

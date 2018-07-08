@@ -1,0 +1,283 @@
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - スケジュール管理 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM420_04_ENABLE
+	RESULTS:0 = %"[ 4]-スケジュール管理"%
+	;常に実行可能
+	RETURN 1
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - スケジュール管理
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM420_04
+$HEAD_42004
+	PRINTFORML %CALLNAME:GET_SEC()% 「スケジュールを管理してあげてください。」
+	PRINTFORML %CALLNAME:GET_SEC()% 「まとめて管理にすると、全員に同じ予定を伝える事ができますよ。」
+	DRAWLINE
+
+	PRINTFORML [1] 一人ずつ管理
+	PRINTFORML [2] まとめて管理
+	SIF FLAG:陥落人数
+		PRINTFORML [5] 秘密のお願い
+	PRINTFORML [999] 終了
+
+	INPUT
+	IF RESULT == 1
+		CALL COM420_04_01
+	ELSEIF RESULT == 2
+		CALL COM420_04_02
+	ELSEIF RESULT == 5
+		CALL COM420_04_05
+	ELSEIF RESULT == 999
+		RETURN 1
+	ENDIF
+	PRINTL
+	GOTO HEAD_42004
+	RETURN 1
+
+@COM420_04_01
+#DIM キャラ番号
+#DIM アイドル総数
+#DIM スキップカウンター
+#DIM 通過カウンター
+#DIM 改行カウンター
+#DIM 分割ページ総数
+#DIM 現在ページ数
+#DIM LOOP_CO
+
+;変数初期化
+アイドル総数 = 0
+分割ページ総数 = 0
+現在ページ数 = 0
+スキップカウンター = 0
+通過カウンター = 0
+改行カウンター = 0
+
+	;事務所所属アイドルの総人数を把握
+	FOR LOCAL,1,CHARA_ACTIVE
+		SIF TALENT:LOCAL:アイドル && CFLAG:LOCAL:開始位置 < 場所番号最大値+1
+			アイドル総数 += 1
+	NEXT
+	;10人ごとにページ分割するため、分割後のページ総数（最大ページ数）を算出
+	;（「10の倍数+1人目」で次ページ追加となるため、特殊な処理となる）
+	分割ページ総数 = ((アイドル総数 - 1) / 10)
+
+$HEAD_4200401
+	PRINTFORML %CALLNAME:GET_SEC()% 「誰のスケジュールを調整しましょうか？」
+	PRINTFORML %CALLNAME:GET_SEC()% 「もっとも、彼女たちも人間なので必ずしも予定通りに動いてくれるとは限りませんが・・」
+	DRAWLINE
+	;改行カウンター初期値（3）確保
+	改行カウンター = 3
+	FOR キャラ番号,1,CHARA_ACTIVE
+		IF TALENT:キャラ番号:アイドル && CFLAG:キャラ番号:開始位置 < 場所番号最大値+1
+			;ページ分割用のスキップカウンターにキャラ数を加算
+			スキップカウンター += 1
+			;関数開始時は0ページ目（最初のページ）なのでスキップ無視
+			IF 現在ページ数 > 0
+				;現在ページ数*10人は一覧対象外のためスキップ処理
+				SIF (現在ページ数 * 10) >= スキップカウンター
+					CONTINUE
+			ENDIF
+			PRINTFORM [{キャラ番号,3,LEFT}] %CALLNAME:キャラ番号,14,LEFT% - %(PRINT_YOTEI(CFLAG:キャラ番号:行動予定)),14,LEFT%
+			CALL PRINT_BASE("体力",キャラ番号,0,8)
+			;一覧表示対象と改行数のカウンター加算処理
+			通過カウンター += 1
+			改行カウンター += 1
+		ENDIF
+		;10人目で対象者表示ループから脱出（10人に満たない場合もループ終了）
+		SIF 通過カウンター == 10
+			BREAK
+	NEXT
+	DRAWLINE
+	;ページ変更表示部（選択できない部分はグレー表示）
+	SIF 現在ページ数 == 0
+		SETCOLOR 64,64,64
+	PRINTFORM [-10] %"1ページ戻る",16,LEFT%
+	SIF 現在ページ数 == 0
+		RESETCOLOR
+	SIF 現在ページ数 == 分割ページ総数
+		SETCOLOR 64,64,64
+	PRINTFORML [-20] %"1ページ進む",16,LEFT%
+	SIF 現在ページ数 == 分割ページ総数
+		RESETCOLOR
+	DRAWLINE
+	;関数脱出表示（この選択じゃないと関数から脱出できない）
+	PRINTFORML [999] 終了
+	INPUT
+	改行カウンター += 5
+	SELECTCASE RESULT
+		CASE 999
+			;ここまでの一覧文字列（改行カウンター数）を消去
+			CLEARLINE 改行カウンター
+			;関数脱出はここのみ
+			RETURN 1
+		CASE -10
+			;ページ数が0であれば[-10]を無処理通過、それ以上ではページ数を1減算
+			SIF 現在ページ数 > 0
+				現在ページ数 -= 1
+			;万一ページ数が負の値になった場合の最低ページ数保証（エラー回避）
+			SIF 現在ページ数 < 0
+				現在ページ数 = 0
+		CASE -20
+			;ページ数が最大ページであれば[-20]を無処理通過、それ以下では1加算
+			SIF 現在ページ数 < 分割ページ総数
+				現在ページ数 += 1
+			;万一ページ数が総ページを超えた場合の最大ページ数保証（エラー回避）
+			SIF 現在ページ数 > 分割ページ総数
+				現在ページ数 = 分割ページ総数
+		;2017/01/07　処理方法変更
+		;トレーナーを雇い入れるとキャラクター番号がずれてしまう問題に対処
+		;抽出方法を変更、アクティブキャラ人数からアイドルのみを選び出すように
+		;弊害として、他ページのキャラもキーボード直接数値入力で操作可能に…
+		CASE IS > 1 , IS <= CHARA_ACTIVE
+			SELECTCASE TALENT:RESULT:アイドル
+				CASE 1
+					キャラ番号 = RESULT
+					PRINTFORML %CALLNAME:GET_SEC()% 「現在%NAMEPLUS(キャラ番号,0)%の予定は%(PRINT_YOTEI(CFLAG:キャラ番号:行動予定))%です」
+					PRINTL 
+					改行カウンター += 2
+					FOR LOOP_CO,0,4
+						PRINTFORML [{LOOP_CO}] - %(PRINT_YOTEI(LOOP_CO))%
+						改行カウンター += 1
+					NEXT
+					PRINTFORML [999] やっぱりやめる
+					改行カウンター += 1
+					$INPUT_LOOP2
+					INPUT
+					IF RESULT == 999
+						改行カウンター += 1
+					ELSEIF RESULT >= 0 && RESULT <= LOOP_CO
+						CFLAG:キャラ番号:行動予定 = RESULT
+						PRINTFORMW %CALLNAME:GET_SEC()% 「%NAMEPLUS(キャラ番号,0)%に%(PRINT_YOTEI(CFLAG:キャラ番号:行動予定))%と伝えておきますね」
+						改行カウンター += 2
+					ELSE
+						CLEARLINE 1
+						GOTO INPUT_LOOP2
+					ENDIF
+			ENDSELECT
+	ENDSELECT
+	;ここまでの一覧文字列（改行カウンター数）を消去
+	CLEARLINE 改行カウンター
+
+	;使用完了カウンター変数の初期化
+	スキップカウンター = 0
+	通過カウンター = 0
+
+;	PRINTFORMW 現ページ:{現在ページ数}／最大ページ数：{分割ページ総数}
+	
+	;スケジュール選択先頭にループ
+	GOTO HEAD_4200401
+
+@COM420_04_02
+#DIM キャラ番号
+#DIM LOOP_CO
+$HEAD_4200402
+	キャラ番号=RESULT
+	PRINTFORML %CALLNAME:GET_SEC()% 「全員のスケジュールをまとめて調整できますよ。」
+	PRINTFORML %CALLNAME:GET_SEC()% 「もっとも、彼女たちも人間なので必ずしも予定通りに動いてくれるとは限りませんが・・」
+	FOR LOOP_CO,0,4
+		PRINTFORML [{LOOP_CO}] - %(PRINT_YOTEI(LOOP_CO))%
+	NEXT
+	PRINTFORML [999] やっぱりやめる
+	INPUT
+	IF RESULT == 999
+		RETURN 1
+	ELSE
+		FOR キャラ番号,1,CHARA_ACTIVE
+			IF TALENT:キャラ番号:アイドル && CFLAG:キャラ番号:開始位置 < 場所番号最大値+1
+				CFLAG:キャラ番号:行動予定 = RESULT
+			ENDIF
+		NEXT
+		PRINTFORMW %CALLNAME:GET_SEC()% 「では、全員に%(PRINT_YOTEI(RESULT))%と伝えておきますね。」
+	ENDIF
+	PRINTL
+	GOTO HEAD_4200402
+	RETURN 1
+
+@COM420_04_05
+#DIM キャラ番号
+#DIM LOOP_CO
+$HEAD_4200401
+	PRINTFORML %CALLNAME:GET_SEC()% 「アイドルに特別な事をお願いできますよ。」
+	PRINTFORML %CALLNAME:GET_SEC()% 「ただし、%CALLNAME:MASTER%さんと親しい子だけにしてくださいね！」
+	DRAWLINE
+	FOR キャラ番号,1,CHARA_ACTIVE
+		IF TALENT:キャラ番号:アイドル && CFLAG:キャラ番号:開始位置 < 場所番号最大値+1 && TALENT:キャラ番号:恋慕
+			PRINTFORM [{キャラ番号,3,LEFT}] %CALLNAME:キャラ番号,14,LEFT% - %(PRINT_YOTEI_B(CFLAG:キャラ番号:行動予定)),14,LEFT%
+			CALL PRINT_BASE("体力",キャラ番号,0,8)
+		ENDIF
+	NEXT
+	PRINTFORML [999] 終了
+	INPUT
+	IF RESULT == 999
+		RETURN 1
+	ELSE
+		キャラ番号=RESULT
+		PRINTFORM %CALLNAME:GET_SEC()% 「現在%CALLNAME:キャラ番号%
+			IF Base:キャラ番号:実年齢 >= 20
+				PRINT さん
+			ELSE
+				PRINT ちゃん
+			ENDIF
+		PRINTFORML の予定は%(PRINT_YOTEI_B(CFLAG:キャラ番号:行動予定))%です。」
+		PRINTL 
+		FOR LOOP_CO,4,5
+			PRINTFORML [{LOOP_CO}] - %(PRINT_YOTEI_B(LOOP_CO))%
+		NEXT
+		PRINTFORML [999] やっぱりやめる
+		INPUT
+		IF RESULT == 999
+		;	RETURN 1
+		ELSE
+			CFLAG:キャラ番号:行動予定 = RESULT
+			PRINTFORM %CALLNAME:GET_SEC()% 「%CALLNAME:キャラ番号%
+			IF Base:キャラ番号:実年齢 >= 20
+				PRINT さん
+			ELSE
+				PRINT ちゃん
+			ENDIF
+			PRINTFORMW に%(PRINT_YOTEI_B(CFLAG:キャラ番号:行動予定))%と伝えておきますね。」
+		ENDIF
+	ENDIF
+	PRINTL
+	GOTO HEAD_4200401
+	RETURN 1
+
+@PRINT_YOTEI(ARG)
+#FUNCTIONS
+;予定を返す
+;IF ARG = 0
+;	RETURNF "事務所待機"
+SELECTCASE ARG
+	CASE 0
+		RETURNF "事務所待機"
+	CASE 1
+		RETURNF "レッスン"
+	CASE 2
+		RETURNF "自由"
+	CASE 3
+		RETURNF "自宅待機"
+	CASEELSE
+		RETURNF "エラー"
+ENDSELECT
+
+@PRINT_YOTEI_B(ARG)
+#FUNCTIONS
+;予定を返す
+SELECTCASE ARG
+	CASE 0
+		RETURNF "事務所待機"
+	CASE 1
+		RETURNF "レッスン"
+	CASE 2
+		RETURNF "自由"
+	CASE 3
+		RETURNF "自宅待機"
+	CASE 4
+		RETURNF "%CALLNAME:MASTER%の家"
+	CASEELSE
+		RETURNF "エラー"
+ENDSELECT

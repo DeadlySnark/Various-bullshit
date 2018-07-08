@@ -1,0 +1,114 @@
+@ENKOU_START_K311(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「ねえねえ、ミキとハニーはとってもなかよしだよね？ だから、どこかに遊びに連れてってなの！ 」
+	PRINTFORML 「ミキは――、思いっきりハニーと汗を流したい気分かな%MSG_HEART()%　んっ…スキにしても良いよ？」
+ELSE
+	PRINTFORML 「そこの人、%CALLNAME:奴隷%と遊びたいの？」
+	PRINTFORML 「%CALLNAME:奴隷%、エッチが大好きだから、気持ちよくしてくれる自信があるなら遊んであげても良いよ？%MSG_HEART()%」
+ENDIF
+
+@ENKOU_FINISH_K311(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「運動しすぎて、ミキ、眠くなっちゃった…。おやすみなさいなの～♪」
+	PRINTFORML 「イタズラしてもいいけど、起こさないようにやさしく動いてね%MSG_HEART()%」
+ELSE
+	PRINTFORML 「%CALLNAME:奴隷%、あなたのこと気に入ったの。アハッ♪」
+	PRINTFORML 「だから……次はも～っと、気持ちよくしてね%MSG_HEART()%」
+ENDIF
+@SORP_START_K311(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「あれ？　ハニーはこんなところで何してるの？」
+	PRINTFORML 「ミキはアルバイト？っていうのしてるの。エッチしてお金も稼げる、ミキのためにあるような仕事なの！」
+ELSE
+	PRINTFORML 「よろしくお願いしますなの！　できれば%CALLNAME:奴隷%も気持ちよくしてくれるとうれしいな%MSG_HEART()%」
+ENDIF
+@SORP_FINISH_K311(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「ハニー、お仕事終わったら後でミキとデートしよ☆」
+	PRINTFORML 「たぶん、あと２、３人は予約が入ってるはずだけど、手早く済ませちゃうの！」
+ELSE
+	PRINTFORML 「お布団が恋しいの…。でもミキ、ガンバるの」
+ENDIF
+
+
+@KOJO_MESSAGE_COM_K311_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「%CALLNAME:MASTER%、最近はいろんな人に大人気なの」
+PRINTFORML 「あんまりメンドーなことはヤだけど、エッチならそこそこなら忙しくてもいいかもって。きっとこれが天職？ってことなんだと思うの！」
+
+@KOJO_MESSAGE_COM_K311_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「%CALLNAME:MASTER%、最近はいろんな人に大人気なの」
+PRINTFORML 「あんまりメンドーなことはヤだけど、エッチならそこそこなら忙しくてもいいかもって。きっとこれが天職？ってことなんだと思うの！」
+
+@KOJO_MESSAGE_COM_K311_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「愛があればお仕事も我慢も余裕なの！」
+			PRINTFORML 「でも、ミキね、ハニーがいなくなったら、全然がんばれない自信あるよ！」
+			PRINTFORML 「他の人とエッチしないのなら、もうミキ達結婚しちゃえーとか思ったりしない？」
+			PRINTFORML 「……むー、なんかごまかされた感じがするの。ハニーのためなら、ミキ、何でもするのに」
+		ELSE
+			PRINTFORML 「ミキ、我慢とかニガテだから自信ないの。代わりにミキを満足させてくれるなら大丈夫…かもしれないの」
+		ENDIF
+	CASE 2
+		PRINTFORML 「%CALLNAME:奴隷%、もう帰っていい？」
+	CASE 3
+		PRINTFORML 「……あふぅ。%CALLNAME:奴隷%、そろそろ帰りたいんだけど」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K311(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORML 「えーと、ミキ、%NTR_NAME_SEX(奴隷,他人)%とエッチすればいいのかな？　ミキは気持ちいいこと大好きだから、ハニーのお願いなら誰とエッチしてもいいよ%MSG_HEART()%」　
+	PRINTFORML 「それに、%NTR_NAME_SEX(奴隷,他人)%はすっごいエッチが上手だし！」
+	PRINTFORMW 「いつも先にミキが根を上げちゃって寝ちゃうんだけど、起きたら体中精液でどろどろにされて、きれいにするのがいつも大変なんだよ%MSG_HEART()%」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「あ、あっ、そこいいの！　もっとしてっ%MSG_HEART()%　あんんっはぅっ、イくの、イくっ！　いっしょ、いっしょにイって！イぃ…っくううぅっ！！！%MSG_HEART()%」
+	PRINTFORML 両足をつかまれ、開脚させられた格好で%NTR_NAME_SEX(奴隷,他人)%に激しく貫かれる美希は、貪欲に快楽をむさぼるように必死に腰の動きを合わせていた。
+	PRINTFORMW 当たり前のように膣内に吐き出される精液を、子宮に送り込むように腰を揺らしながら、絶頂を迎えると、%NTR_NAME_SEX(奴隷,他人)%は%CALLNAME:MASTER%のことを口にする。
+	PRINTFORML 「はぁ――っ、ハニーのことは今は関係ないの！　足りないの！　もっともっとイかせてほしいの！　だって、これハニーのよりもすごいのっ！」　
+	PRINTFORML 「ねぇきて、きて！　いいのっ、もっと突いてほしいの！　ひぃ、んっ、あああぁぁ%MSG_HEART()%　きたっ、きたの、これが欲しいの！！　ひぃうううん%MSG_HEART()%」
+	PRINTFORMW 美希の頭の中にもはや思い人の影はなく、浅ましく快楽をむさぼるその姿は娼婦のように淫靡であった。
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「ねえ、ハニー（%NTR_NAME_SEX(奴隷,他人)%）。ミキの特技は胸がおっきいことだよ%MSG_HEART()%」
+	PRINTFORMW 「あと、エッチが大好きだから、できればお仕事よりもエッチ優先でプロデュースして欲しいな。あはっ%MSG_HEART()%」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K311(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「ん～、これ吸うとすっごく気分が良くなるの。一緒にする？」
+ELSE
+	PRINTFORML 「きょうは、お昼寝びよりなの～。あふぅ……」
+	PRINTFORML %CALLNAME:奴隷%の目は虚ろだが、惰眠をむさぼるその姿はいつもの同じだった。
+ENDIF

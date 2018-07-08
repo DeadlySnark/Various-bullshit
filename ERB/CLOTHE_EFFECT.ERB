@@ -1,0 +1,319 @@
+;20160211更新
+;魔法少女服効果にて、男じゃなくなるが女の子に成れていなかったのを修正しました。
+;ついでにｖ経験、ｖ性交経験が無い時は[処女]も付与される処理を追加しました。
+;----------------------------------
+;服装効果
+;---------------------------------
+;@CLOTHE_EFFECT(ARG)を分割しました
+	;@CLOTHE_EFFECT(ARG)
+	;@SOURCE_CHECK経由で呼ばれる関数
+	;下記二つの関数を呼んだ後、
+	;@SOURCE_CHECK経由で呼ばれる時にしか呼ばれるべきでない部分（経験）を処理
+
+	;@CLOTHE_EFFECT_ON(ARG)
+	;その服を着てて尚且つ条件を満たしている時、
+	;コスプレ着用にそのコスを着ているという状態を示す値をいれます
+
+	;@CLOTHE_EFFECT(ARG)
+	;効果解除
+
+@CLOTHE_EFFECT(ARG)
+CALL CLOTHE_EFFECT_OFF(ARG);効果全オフ
+CALL CLOTHE_EFFECT_ON(ARG);効果オン
+
+;以下、コス効果による経験
+
+IF CFLAG:ARG:コスプレ着用 == 1
+	RETURN 1
+
+;触手服による経験
+ELSEIF CFLAG:ARG:コスプレ着用 == 2
+	EXP:ARG:異常経験 ++
+	EXP:ARG:Ｃ経験 ++
+	EXP:ARG:Ａ経験 ++
+	EXP:ARG:Ｂ経験 ++
+	IF TALENT:ARG:2 != 2 && TALENT:ARG:0 == 0
+		EXP:ARG:Ｖ経験 ++
+	ENDIF
+	RETURN 1
+ENDIF
+
+;以下、全てうふふが条件なので弾きます
+SIF CFLAG:ARG:うふふ == 0
+	RETURN 0
+
+;チア効果
+IF CFLAG:ARG:コスプレ着用 == 3
+	EXP:ARG:奉仕快楽経験 += 1
+	RETURN 1
+
+;エプロン
+ELSEIF CFLAG:ARG:コスプレ着用 == 4
+	EXP:ARG:愛情経験 += 1
+	RETURN 1
+
+ELSEIF CFLAG:ARG:コスプレ着用 == 5
+	RETURN 1
+
+ELSEIF CFLAG:ARG:コスプレ着用 == 6
+	RETURN 1
+
+;ボンデージ
+ELSEIF CFLAG:ARG:コスプレ着用 == 7
+	EXP:ARG:56 += 1
+	RETURN 1
+ELSEIF CFLAG:ARG:コスプレ着用 == 8
+	RETURN 1
+
+ENDIF
+
+
+@CLOTHE_EFFECT_ON(ARG)
+;分割
+;------------------------------------------------------------------------------------------------------------------------------------
+;素質付加について：何も無いなら素質付加後の能力保存(1を保存)、鈍感なら先に能力保存してからの素質付加(-1を保存)、敏感ならそのまま放置
+;				   コスプレ効果発動後、素質が付きっぱなしになるので能力保存の値を元に素質を再設定する。
+;------------------------------------------------------------------------------------------------------------------------------------
+
+;服を着ていて、尚且つ条件を満たしている時にコスプレ着用に値を代入してから
+;能力の退避と付与をする
+
+;魔法少女効果　謎の魔力のある服
+;常時効果：男が女に
+IF EQUIP:ARG:上半身上着２ == 17
+	IF TALENT:ARG:2 == 2
+		CFLAG:ARG:コスプレ着用 = 1
+		TALENT:ARG:2 = 1
+
+		;20160211　v経験が無ければ処女を付与するよう変更
+		IF EXP:ARG:Ｖ経験 < 1 && EXP:ARG:Ｖ性交経験 < 1
+			TALENT:ARG:処女 = 1
+		ENDIF
+	ENDIF
+	RETURN 1
+
+;触手服効果　触手宮から持ってきたのだろうか
+;常時リジェネ：異常経験＋いろいろ増加
+ELSEIF EQUIP:ARG:レオタード == 5
+	CFLAG:ARG:コスプレ着用 = 2
+	RETURN 1
+ENDIF
+
+
+
+SIF CFLAG:ARG:うふふ == 0
+	RETURN 0
+
+
+;チア効果　がんばれがんばれ
+;素質付加：鼓舞
+;リジェネ効果：奉仕快楽経験
+IF EQUIP:ARG:上半身上着２ == 12
+	CFLAG:ARG:コスプレ着用 = 3
+	IF TALENT:ARG:136 == 0								;もし鼓舞が0なら
+		TALENT:ARG:136 = 1								;オン
+		CFLAG:ARG:能力保存１ = TALENT:ARG:136			;保存1に1
+	ELSEIF TALENT:ARG:136 == -1							;もし鼓舞が-1なら
+		CFLAG:ARG:能力保存１ = TALENT:ARG:136			;保存に-1			つまり、元から盛ってらら保存に0、なければ1、-1なら-1が入る
+		TALENT:ARG:136 = -1
+	ENDIF
+	RETURN 1
+
+;エプロン効果　旧「新妻プレイ」
+;リジェネ効果：愛情経験
+ELSEIF EQUIP:ARG:ワンピース == 5
+	CFLAG:ARG:コスプレ着用 = 4
+	RETURN 1
+
+;女騎士効果　気の強い女はなんとやら
+;素質付加：A敏感、尻穴狂い
+;感度増加:Ａ
+ELSEIF EQUIP:ARG:上半身上着１ == 2
+	CFLAG:ARG:コスプレ着用 = 5
+	IF TALENT:ARG:75 == 0
+		TALENT:ARG:75 = 1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:75
+	ELSEIF TALENT:ARG:75 == -1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:75
+		 TALENT:ARG:75 = 1
+	ELSEIF TALENT:ARG:103 == 0
+		TALENT:ARG:103 = 1
+		CFLAG:ARG:能力保存２ = TALENT:ARG:103
+	ELSEIF TALENT:ARG:103 == -1
+		CFLAG:ARG:能力保存２ = TALENT:ARG:75
+		 TALENT:ARG:75 = 1
+	ENDIF
+	RETURN 1
+	
+;忍者効果：アイエ！？対魔忍！？
+ELSEIF EQUIP:ARG:レオタード == 3
+	CFLAG:ARG:コスプレ着用 = 6
+	IF TALENT:ARG:71 == 0
+		TALENT:ARG:71 = 1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:71
+	ELSEIF TALENT:ARG:71 == -1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:71
+		 TALENT:ARG:71 = 1
+	ELSEIF TALENT:ARG:101 == 0
+		TALENT:ARG:101 = 1
+		CFLAG:ARG:能力保存２ = TALENT:ARG:101
+	ELSEIF TALENT:ARG:101 == -1
+		CFLAG:ARG:能力保存２ = TALENT:ARG:101
+		 TALENT:ARG:101 = 1
+	ELSEIF TALENT:ARG:102 == 0
+		TALENT:ARG:102 = 1
+		CFLAG:ARG:能力保存３ = TALENT:ARG:102
+	ELSEIF TALENT:ARG:102 == -1
+		CFLAG:ARG:能力保存３ = TALENT:ARG:102
+		 TALENT:ARG:102 = 1
+	ELSEIF TALENT:ARG:103 == 0
+		TALENT:ARG:103 = 1
+		CFLAG:ARG:能力保存４ = TALENT:ARG:103
+	ELSEIF TALENT:ARG:103 == -1
+		CFLAG:ARG:能力保存４ = TALENT:ARG:103
+		 TALENT:ARG:103 = 1
+	ELSEIF TALENT:ARG:104 == 0
+		TALENT:ARG:104 = 1
+		CFLAG:ARG:能力保存５ = TALENT:ARG:104
+	ELSEIF TALENT:ARG:104 == -1
+		CFLAG:ARG:能力保存５ = TALENT:ARG:104
+		 TALENT:ARG:104 = 1
+	ENDIF
+	RETURN 1
+
+;ボンデージ効果　SM用な感じに
+;素質効果：倒錯的
+;リジェネ効果：緊縛体験
+ELSEIF EQUIP:ARG:下半身下着２ == 4 || EQUIP:ARG:上半身上着２ == 14
+	CFLAG:ARG:コスプレ着用 = 7
+	IF TALENT:ARG:80 == 0
+		TALENT:ARG:80 = 1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:80
+	ELSEIF TALENT:ARG:80 == -1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:80
+		TALENT:ARG:80 = -1
+	ENDIF
+	RETURN 1
+
+;ナース効果　そりゃナースですし
+;素質効果：治癒
+ELSEIF EQUIP:ARG:上半身上着２ == 15
+;ウフフ以外で戻す
+	CFLAG:ARG:コスプレ着用 = 8
+	IF TALENT:ARG:135 == 0
+		TALENT:ARG:135 = 1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:135
+	ELSEIF TALENT:ARG:135 == -1
+		CFLAG:ARG:能力保存１ = TALENT:ARG:135
+		TALENT:ARG:135 = -1
+	ENDIF
+	RETURN 1
+ENDIF
+RETURN 0
+
+
+
+
+
+
+@CLOTHE_EFFECT_OFF(ARG)
+;コスプレ着用に代入された値を参照し、もとの能力を復帰します。
+SIF CFLAG:ARG:コスプレ着用 == 0
+	RETURN 0
+
+;魔法少女効果削除
+IF CFLAG:ARG:コスプレ着用 == 1
+	;性別チェックはあっちでやってたのでこっちではしません。
+		;現状、男じゃない限りCFLAG:ARG:コスプレ着用に1は入らないので
+	TALENT:ARG:2 = 2
+	CFLAG:ARG:コスプレ着用 = 0
+
+	IF TALENT:ARG:処女 == 1
+		TALENT:ARG:処女 = 0
+	ENDIF
+
+	RETURN 0
+
+;触手服効果削除
+ELSEIF CFLAG:ARG:コスプレ着用 == 2
+	CFLAG:ARG:コスプレ着用 = 0
+	RETURN 0
+
+;チア効果
+ELSEIF CFLAG:ARG:コスプレ着用 == 3
+	CFLAG:ARG:コスプレ着用 = 0
+	SIF CFLAG:ARG:能力保存１ == 1  && TALENT:ARG:136 == 1
+		TALENT:ARG:136 = 0
+	SIF CFLAG:ARG:能力保存１ == -1 && TALENT:ARG:136 == 1
+		TALENT:ARG:136 = -1
+	RETURN 0
+
+;エプロン効果
+ELSEIF CFLAG:ARG:コスプレ着用 == 4
+	CFLAG:ARG:コスプレ着用 = 0
+	RETURN 0
+
+;女騎士効果
+ELSEIF CFLAG:ARG:コスプレ着用 == 5
+	CFLAG:ARG:コスプレ着用 = 0
+	SIF CFLAG:ARG:能力保存１ == 1  && TALENT:ARG:75 == 1
+		TALENT:ARG:75 = 0
+	SIF CFLAG:ARG:能力保存１ == -1 && TALENT:ARG:75 == 1
+		TALENT:ARG:75 = -1
+	SIF CFLAG:ARG:能力保存２ == 1 && TALENT:ARG:103 == 1
+		TALENT:ARG:103 = 0
+	SIF CFLAG:ARG:能力保存２ == -1 && TALENT:ARG:103 == 1
+		TALENT:ARG:103 = -1
+	SIF CFLAG:ARG:能力保存３ == 1 && TALENT:ARG:56 == 1
+		TALENT:ARG:56 = 0
+	SIF CFLAG:ARG:能力保存３ == -1 && TALENT:ARG:56 == 1
+		TALENT:ARG:56 = -1
+	RETURN 0
+
+;忍者効果
+ELSEIF CFLAG:ARG:コスプレ着用 == 6
+	CFLAG:ARG:コスプレ着用 = 0
+	SIF CFLAG:ARG:能力保存１ == 1 && TALENT:ARG:71 == 1
+		TALENT:ARG:71 = 0
+	SIF CFLAG:ARG:能力保存１ == -1 && TALENT:ARG:71 == 1
+		TALENT:ARG:71 = -1
+	SIF CFLAG:ARG:能力保存２ == 1 && TALENT:ARG:101 == 1
+		TALENT:ARG:101 = 0
+	SIF CFLAG:ARG:能力保存２ == -1 && TALENT:ARG:101 == 1
+		TALENT:ARG:101 = -1
+	SIF CFLAG:ARG:能力保存３ == 1 && TALENT:ARG:102 == 1
+		TALENT:ARG:102 = 0
+	SIF CFLAG:ARG:能力保存３ == -1 && TALENT:ARG:102 == 1
+		TALENT:ARG:102 = -1
+	SIF CFLAG:ARG:能力保存４ == 1 && TALENT:ARG:103 == 1
+		TALENT:ARG:103 = 0
+	SIF CFLAG:ARG:能力保存４ == -1 && TALENT:ARG:103 == 1
+		TALENT:ARG:103 = -1
+	SIF CFLAG:ARG:能力保存５ == 1 && TALENT:ARG:104 == 1
+		TALENT:ARG:104 = 0
+	SIF CFLAG:ARG:能力保存５ == -1 && TALENT:ARG:75 == 1
+		TALENT:ARG:104 = -1
+	RETURN 0
+
+;ボンデージ効果
+ELSEIF CFLAG:ARG:コスプレ着用 == 7
+	CFLAG:ARG:コスプレ着用 = 0
+	SIF CFLAG:ARG:能力保存１ == 1 && TALENT:ARG:80 == 1
+		TALENT:ARG:80 = 0
+	SIF CFLAG:ARG:能力保存１ == -1 && TALENT:ARG:80 == 1
+		TALENT:ARG:80 = -1
+	RETURN 0
+
+;ナース効果
+ELSEIF CFLAG:ARG:コスプレ着用 == 8
+	CFLAG:ARG:コスプレ着用 = 0
+	SIF CFLAG:ARG:能力保存１ == 1 && TALENT:ARG:135 == 1
+		TALENT:ARG:135 = 0
+	SIF CFLAG:ARG:能力保存１ == -1 && TALENT:ARG:135 == 1
+		TALENT:ARG:135 = -1
+	RETURN 0
+ELSE
+	
+ENDIF
+RETURN 0
+

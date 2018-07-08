@@ -1,0 +1,65 @@
+;-------------------------------------------------
+;アイドルを差し出す
+;-------------------------------------------------
+@COM466
+;表示の都合上こちらで地の分も処理
+PRINTFORML 誰を%NTR_NAME(他人)%に差し出そう…？
+FOR LOCAL, 1, CHARA_ACTIVE
+	;NTRではないか淫乱を取得している、妊娠してない、通常の範囲内にいる 
+	SIF (!TALENT:LOCAL:NTR || TALENT:LOCAL:淫乱) && TALENT:LOCAL:妊娠==0 && CFLAG:LOCAL:現在位置<場所番号最大値+1 && 所属(LOCAL) && !CFLAG:LOCAL:凍結
+		PRINTFORML [{LOCAL}] - %CALLNAME:LOCAL%
+NEXT
+	PRINTFORML [99] - やっぱりやめる
+INPUT
+IF INRANGE(RESULT,1,CHARA_ACTIVE)
+	TIME += 10
+	TARGET=RESULT
+	CFLAG:TARGET:好感度 -= MAX(CFLAG:TARGET:好感度 / 10,500)
+	;念のため
+	CFLAG:TARGET:好感度 = MAX(CFLAG:TARGET:好感度, 0)
+;口上
+	PRINTFORML %CALLNAME:MASTER%は%NTR_NAME(他人)%に今日のところはお引取り願えないか、と頼んだ。
+	PRINTFORML 不機嫌な顔をした%NTR_NAME(他人)%に%CALLNAME:TARGET%を“道案内”として同行させる旨を伝えると
+	PRINTFORML とたんににやけた顔をして快諾した…
+	PRINTL
+	SIF CFLAG:MASTER:現在位置 != CFLAG:TARGET:現在位置
+		PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%をこの場に呼び、事情を説明した。
+	PRINTFORM %CALLNAME:TARGET%は
+		IF TALENT:恋慕>0
+		;恋慕あり:ひどいやつやな
+			IF !TALENT:浮気公認
+				PRINTFORML %CALLNAME:MASTER%の命令ならば仕方ないと思い、涙目になりながら無理に笑顔を浮かべている。
+			ELSE
+				PRINTFORML 怒りながらも%CALLNAME:MASTER%のなさけない様子を見て興奮しているようだ。
+			ENDIF
+		ELSEIF CFLAG:屈服度<10
+		;無垢
+			PRINTFORML 言葉通りに受け取ったのか、不思議そうな顔をしながらも了承した。
+		ELSEIF TALENT:4 >= 1
+				PRINTFORML これから行われるプレイを想像しているのか、頬を上気させ自ら誘うように男と腕を組んだ。
+		ELSEIF CFLAG:屈服度>CFLAG:好感度
+			PRINTFORML これから起こることを想像して、不安と期待のない混ざった顔をした。
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%が自分を生贄に選んだことに気づいて愕然とした。
+		ENDIF
+	PRINTFORML %CALLNAME:MASTER%に大いに失望したようだ。
+	他人=1000
+	CALL NTR_ADD_SURRENDER(TARGET, 100)
+	;まだお召し上がりでないのでして
+
+	CALL VISITER_TAKINGOUT(TARGET)
+
+	;家政婦は見た
+	FOR LOCAL, 1, CHARA_ACTIVE
+	IF CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置 || CAN_MOVE(CFLAG:LOCAL:現在位置, CFLAG:MASTER:現在位置)==2 && TALENT:LOCAL:NTR==0
+		PRINTFORML このやりとりの一部始終を目撃していた%CALLNAME:LOCAL%は%CALLNAME:MASTER%の仲間に対するひどい行動に失望したようだ。
+		CFLAG:LOCAL:好感度 -= MAX(CFLAG:LOCAL:好感度 / 50,100)
+		CFLAG:LOCAL:好感度 = MAX(CFLAG:LOCAL:好感度, 0)
+	ENDIF
+	NEXT
+ELSEIF RESULT==99
+ELSE
+	PRINTFORML 入力値が不正です
+RESTART
+ENDIF
+RETURN 1

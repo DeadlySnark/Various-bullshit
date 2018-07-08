@@ -1,0 +1,14 @@
+;-------------------------------------------------
+;精力剤
+;特殊コマンド、アイテム使用、MAX増加効果は1日
+;-------------------------------------------------
+@COM190
+	SIF CFLAG:MASTER:精力一時保存 == 0
+		CFLAG:MASTER:精力一時保存 = MAXBASE:MASTER:精力
+	MAXBASE:MASTER:精力 = MAXBASE:MASTER:精力 + 100
+	BASE:MASTER:精力 = MIN(MAXBASE:MASTER:精力, (BASE:MASTER:精力+300) )
+	ITEM:精力剤--
+	PRINTFORMW %CALLNAME:MASTER%がグビリと精力剤を飲み干すと、わずかに精力が回復しさらに何かが強化された気がした…
+	SIF ITEM:精力剤 == 0
+		PRINTFORMW 精力剤はこれで最後だ、必要ならまた買い足しておくといいだろう
+	RETURN 1

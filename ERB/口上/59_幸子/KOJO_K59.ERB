@@ -1,0 +1,6059 @@
+;-------------------------------------------------
+;咲夜日常口上 作者：龍鱗
+;-------------------------------------------------
+;※※※※※※他者による修正、加筆、改変についての但し書き※※※※※※
+;前提としてオリジナル作者以外が手を入れる場合は、オリジナル作者の許可を求めること
+;オリジナル作者とコンタクトが取れない場合には以下の但し書きに従ってUPできるかどうか判断してください。
+
+;◎修正（誤字、脱字、条件分岐等ERB構文のバグ修正、本体のバージョンアップ、ダウン対応など）
+;（　許可　　）※どちらかを選択してください
+;
+;◎加筆（未記入箇所、ランダム分岐、条件分岐等の増補）
+;（　別人版と明記の上で許可（導入の際の混乱を防ぐため）　）※どちらかを選択してください
+;
+;◎改変（オリジナル作者によって書かれた部分に対しての上書き、消去を含む）
+;（　上に同じ　）※どちらかを選択してください
+;
+;◎製作中などの理由で時限を設ける
+;（　年　月　日）まで上記の一切を認めない
+;
+;記　紅い人
+;基本的に作者の意思を確認出来ない場合、加筆改変は可能ということにします
+
+;・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+;なんか咲夜と子悪魔の口上がなくて寂しかったので
+;先輩後輩風の日常口上のみを、投稿してみました。
+;さすがにウフフまでは実力的に無理でしたorz
+;・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・・
+
+
+@KOJO_K59(ARG)
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;コマンド非依存イベント
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;部屋で遭遇
+;==================================================
+@KOJO_EVENT_K59_0(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;情事を目撃してしまったことについて問い詰める
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;MASTERが入ってきた
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		;PRINTWにしない方がいいでしょう
+		PRINTFORML
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが入ってきた
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 0
+	ENDIF
+	;その他
+	PRINTFORML
+ENDIF
+RETURN 0
+
+;==================================================
+;情事発覚 うふふ終了 情事を見た人の口上
+;==================================================
+@KOJO_EVENT_K59_1(ARG,ARG:1)
+;口上主はTARGET
+;ARG うふふの対象（最も地位の高い人,ほかにもいる可能性あり）
+;キャラで分岐させるときは IF CFLAG:4:ウフフ (咲夜とウフフしてた)
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;襲われてた
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && CFLAG:PLAYER:うふふ == 2
+		PRINTFORMW
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;まぐわってた
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && MASTER_POSE(6,1,1)
+		PRINTFORMW
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;まぐわってた
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && MASTER_POSE(1,6,1)
+		PRINTFORMW
+		RETURN 0
+	ENDIF
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;情事発覚 うふふ終了 情事を見られた人の口上
+;==================================================
+;小分岐は↑をコピペ
+@KOJO_EVENT_K59_2(ARG,ARG:1)
+;口上主はTARGET
+;ARG 見た人
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;情事発覚 うふふ続行 情事を見た人の口上
+;==================================================
+@KOJO_EVENT_K59_3(ARG,ARG:1)
+;口上主はTARGET
+;ARG うふふの対象（最も地位の高い人,ほかにもいる可能性あり）
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+;==================================================
+;情事発覚 うふふ続行 情事を見られた人の口上
+;==================================================
+@KOJO_EVENT_K59_4(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;おはよう口上
+;==================================================
+@KOJO_EVENT_K59_6(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;起きたのは%CALLNAME:MASTER%
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG
+		PRINTFORMW
+		RETURN 0
+	ENDIF
+	;以降起きたのはTARGET
+	;-------------------------------------------------
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && GET_TRAIN_NAME(PREVCOM) == "掃除"
+		PRINTFORMW
+		RETURN 0
+	ENDIF
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;おやすみ口上
+;==================================================
+@KOJO_EVENT_K59_7(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;眠っている
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF CFLAG:睡眠
+		IF LOCAL:1 && ARG == 2
+			PRINTFORMW 「すぅ…。」
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;眠いので部屋に帰った
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		PRINTFORMW 「そろそろ寝ますね、%CALLNAME:MASTER%さんも無理しないでくださいね。」
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;寝るので%CALLNAME:MASTER%を追い出した
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORMW 「%CALLNAME:MASTER%さんもそろそろ寝ましょう！」
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;%CALLNAME:MASTER%の見てる前で寝ちゃった
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORMW 「ふぁぁ………。」
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;%CALLNAME:MASTER%の見てる前で寝ちゃったのでベッドまでお運び
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORMW 「…眠くなんて、ないですよ…。」
+		PRINTFORMW 眠そうにしている%CALLNAME:TARGET%を%CALLNAME:TARGET%の私室まで運んだ。
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;%CALLNAME:MASTER%の部屋で寝ちゃったのでそのままおやすみ
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORMW 眠る%CALLNAME:TARGET%に%CALLNAME:MASTER%は毛布をかけた。
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;%CALLNAME:MASTER%が寝ちゃったのでお運び
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;おのれー口上
+;==================================================
+@KOJO_EVENT_K59_8(ARG,ARG:1)
+;口上主はTARGET、ARGが空気を変えた犯人
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;移動中にすれ違う
+;==================================================
+@KOJO_EVENT_K59_10(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;無視した
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;立ち止まった
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORMW
+		RETURN 0
+	ENDIF
+	;その他
+	PRINTFORMW
+ENDIF
+RETURN 0
+
+;==================================================
+;弱みを握られる
+;==================================================
+@KOJO_EVENT_K59_11(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;パンツ没収
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		;-------------------------------------------------
+		;誰のパンツか
+		;記入チェック
+		LOCAL:2 = 0
+		;-------------------------------------------------
+			;口上主のぱんつ
+			IF LOCAL:2 && STRCOUNT(CSTR:PLAYER:12,CALLNAME:TARGET)
+				PRINTFORML 
+				PRINTFORMW 
+				PRINTFORMW 
+				RETURN 0
+			ELSEIF LOCAL:2
+				PRINTFORMW 
+				RETURN 0
+			ENDIF
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 0
+
+;==================================================
+;押し倒される
+;==================================================
+@KOJO_EVENT_K59_12(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+LOCAL = 1
+IF LOCAL
+	PRINTFORML %CALLNAME:MASTER%は突然突き飛ばされてよろめいた。
+	PRINTFORML 倒れた%CALLNAME:MASTER%に%CALLNAME:TARGET%が馬乗りになって囁いた。
+	PRINTFORMW 「カワイイボクがこれならばよく見えるでしょう…？」
+	RETURN 0
+ENDIF
+RETURN 0
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;日常系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;300,会話
+;==================================================
+;==================================================
+;300,会話
+;==================================================
+@KOJO_MESSAGE_COM_K59_300
+
+X = -1
+;CALL TRAIN_MESSAGE
+DRAWLINE
+IF TCVAR:302 && !TALENT:恋慕
+	RETURN RESULT
+ELSEIF CFLAG:318 == 1
+	;ど怒り状態
+	PRINTFORML 「…。」
+	RETURN RESULT
+ENDIF
+PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%と
+IF TALENT:恋慕
+	X = RAND:6 
+	IF X == 5
+		PRINTFORM 指先を絡ませながら
+	ELSEIF X == 4
+		PRINTFORM 隣りあって
+	ELSEIF X == 3
+		PRINTFORM 少し照れながら
+	ELSEIF X == 2
+		PRINTFORM じゃれ合いながら
+	ELSEIF X == 1
+		PRINTFORM 微笑みを交わしながら
+	ELSE
+		IF (CFLAG:MASTER:現在位置 == 4) || (CFLAG:MASTER:現在位置 == 5) || (CFLAG:MASTER:現在位置 == 11) || (CFLAG:MASTER:現在位置 == 17) || (CFLAG:MASTER:現在位置 == 18)
+			X = (RAND:5 + 1)
+			IF X == 5
+				PRINTFORM 指先を絡ませながら
+			ELSEIF X == 4
+				PRINTFORM 隣りあって
+			ELSEIF X == 3
+				PRINTFORM 少し照れながら
+			ELSEIF X == 2
+				PRINTFORM じゃれ合いながら
+			ELSEIF X == 1
+				PRINTFORM 微笑みを交わしながら
+			ENDIF
+		ELSE
+			IF TIME >= 360 && TIME <= 1080
+;				PRINTFORM 昼の光の中で
+			ELSE
+;				PRINTFORM 夜の静けさの中で
+			ENDIF
+		ENDIF
+	ENDIF
+ELSE
+	IF RAND:6 == 0
+		PRINTFORM 世間
+	ELSEIF RAND:5 == 0
+		PRINTFORM とりとめのない
+	ELSEIF RAND:4 == 0
+		PRINTFORM 下らない
+	ELSEIF RAND:3 == 0
+		PRINTFORM たわいない
+	ELSEIF RAND:2 == 0
+		PRINTFORM 取るに足らない
+	ELSE
+		PRINTFORM 少し
+	ENDIF
+ENDIF
+PRINTFORML 話をした
+IF TFLAG:193 == 1
+	PRINTFORML 楽しい時間が流れた…
+ELSEIF TFLAG:193 == -1
+	PRINTFORML 会話が途切れると気まずい空気が流れた…
+	RETURN RESULT
+ENDIF
+PRINTFORML 
+CALL KOJO_MESSAGE_COM_K59_300_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_300_1
+IF X >= 0 && TFLAG:193 >= 0
+	IF X == 5 || X ==4 || X ==3
+		PRINTFORML 「%CALLNAME:MASTER%さんはボクに会えたことを感謝するべきですね！」
+		PRINTFORMW 「…ボクは感謝していますよ？」
+	ELSEIF X == 2 || X == 1
+		PRINTFORML 「ボクと過ごすために早く仕事終わらせてください！」
+		PRINTFORMW 「そして買い物にでも行きましょう！」
+	ELSE
+;		IF TIME <= 360 && TIME >= 1080
+;			PRINTFORML 「私にとっては夜こそ昼ね。」
+;			PRINTFORMW 「だってお嬢様が生きている時間だもの。」
+;		ENDIF
+	ENDIF
+ELSEIF TFLAG:193 >= 0
+	IF RAND:2 == 0
+		PRINTFORMW 「ボクとお話しましょう！」
+	ELSE
+		PRINTFORMW 「ふふーん！」
+		
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;301,お茶を淹れる
+;==================================================
+@KOJO_MESSAGE_COM_K59_301
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_301_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_301_1
+;SIF TALENT:恋慕
+;	PRINTFORML 「ある意味、%CALLNAME:MASTER%のお茶の確認ができるのって…。」
+;	PRINTFORMW 「この上なく役得なんじゃないかしら私。」
+IF TFLAG:193 == 1
+;	PRINTFORML 「ん、いい感じじゃないかしら。」
+;	PRINTFORML 「この調子で精進しなさい、お嬢様に出しても恥ずかしくないくらいに。」
+;	PRINTFORMW 「いい具合の出来で褒められた。」
+ELSEIF TFLAG:193 == -1
+;	PRINTFORML 「ねえ、%CALLNAME:MASTER%、少しいいかしら。」 
+;	PRINTFORML 「熱いし渋いしでさすがに論外よ、要勉強ね。」
+;	PRINTFORMW どうやら出来は最悪だったらしい。
+ELSE
+;	PRINTFORML 「ふーん、なかなか悪くないわね、でもまだ及第点よ。」
+;	PRINTFORMW 厳しい評価をもらってしまった。
+ENDIF
+RETURN 1
+@KOJO_MESSAGE_COM_K59_302
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_302_1
+RETURN RESULT
+;==================================================
+;302,スキンシップ
+;==================================================
+@KOJO_MESSAGE_COM_K59_302_1
+;IF CFLAG:MASTER:現在位置 == 18
+;	IF TFLAG:193 == 1
+;		;風呂場にて
+;		PRINTFORML 「あーそこよそこ。」
+;		PRINTFORML 「掃除して疲れた身体には効くわねー…。」
+;		PRINTFORMW %CALLNAME:人物_咲夜%の疲れた体を程よくほぐした
+;	ELSEIF TFLAG:193 == -1
+;		PRINTFORML 「何ジロジロ見てるのかしら？」
+;	ELSE
+;		PRINTFORML 「背中を流してくれるって？」
+;		PRINTFORMW 「うーん、先輩特権なのかしら？」
+;	ENDIF
+IF 0
+ELSE
+	PRINTFORML 「どうかしたんですか？%CALLNAME:MASTER%さん」
+;	IF TFLAG:193 == 1
+;		PRINTFORML 「んーなんか落ち着くわね。」
+;		PRINTFORML 「やっぱり%CALLNAME:MASTER%と一緒にいるからなのかしら。」
+;		PRINTFORMW  「お嬢様と一緒に居ると緊張しちゃうのよね、」
+;	ELSEIF TFLAG:193 == -1
+;		PRINTFORMW スキンシップをしようとしたら%CALLNAME:人物_咲夜%の姿が消えた…。
+;	ELSE
+;		PRINTFORML 「ん？どうしたのいきなり触ってきたりして。」
+;		PRINTFORMW 「まあ悪いってわけじゃないけどほどほどにね。」
+;	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;310,尻を撫でる
+;==================================================
+@KOJO_MESSAGE_COM_K59_310
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_310_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_310_1
+IF TALENT:恋慕
+	PRINTFORML 「%CALLNAME:MASTER%さんは本当にエッチですね！」
+	PRINTFORMW 「…おしりだけで満足ですか？」
+ELSEIF ABL:親密 > 4
+	PRINTFORMW 「%CALLNAME:MASTER%さんをおしりだけで魅了しちゃうなんて罪作りなボクですね」
+ELSEIF ABL:親密 > 2
+	PRINTFORMW 「カワイイボクはおしりもカワイイですから仕方ないですね！」
+ELSE
+	PRINTFORML 「んんっ、急になにするんですか！」
+	PRINTFORMW %CALLNAME:TARGET%は驚いている。
+ENDIF
+RETURN 1
+;==================================================
+;311,抱き付く
+;==================================================
+@KOJO_MESSAGE_COM_K59_311
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_311_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_311_1
+IF ABL:親密 >= 8 && TALENT:恋慕
+	PRINTFORML 「%CALLNAME:MASTER%さん…」
+	PRINTFORMW 「暫く、このままでいてもらえませんか…」
+ELSEIF ABL:親密 >= 8
+	PRINTFORML 「%CALLNAME:MASTER%さんも落ち着きますか？」
+	PRINTFORMW %CALLNAME:TARGET%は目を閉じてリラックスしているようだ。
+ELSEIF ABL:親密 >= 4 && TALENT:恋慕
+	PRINTFORML %CALLNAME:TARGET%は急に抱きついてきた。
+	PRINTFORML 「たまにはボクが抱擁してあげます！」
+	PRINTFORMW しかし抱擁というよりは、木にしがみ付くコアラのようだ…。
+ELSEIF ABL:親密 >= 4
+	PRINTFORMW 「ボクに甘えたいなんて%CALLNAME:MASTER%さんは本当に仕方ないですね！」
+ELSE
+	PRINTFORML 「えっ！」
+	PRINTFORMW 「…急にどうしたんですか%CALLNAME:MASTER%さん？」
+ENDIF
+RETURN 1
+;==================================================
+;312,キスする
+;==================================================
+@KOJO_MESSAGE_COM_K59_312
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_312_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_312_1
+IF ABL:欲望 >= 5
+	PRINTFORML 「%CALLNAME:MASTER%さんは本当にキスが好きですね！」
+	PRINTFORML 「カワイイボクを余すことなく%CALLNAME:MASTER%さんに堪能させてあげます！」	
+	PRINTFORMW %CALLNAME:TARGET%はねっとりと口の中で舌を絡ませてきた。
+ELSE
+	PRINTFORML 「ひゃっ、なななにをするんですか！」
+	PRINTFORMW %CALLNAME:TARGET%は顔を真っ赤にしている。
+ENDIF
+RETURN 1
+;==================================================
+;313,胸愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K59_313
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_313_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_313_1
+IF TFLAG:193 == -1
+;	PRINTFORML 「こ、こら何をするのよ！？」
+;	PRINTFORMW 時を止めて脱出をされてデコピンされた。
+ELSEIF ABL:Ｂ感覚 <= 1
+;	PRINTFORML 「ちょ、ちょっと、何をするのよ、っ…！」
+;	PRINTFORMW わずかばかりでも快感を感じたようだ。
+ELSEIF ABL:Ｂ感覚 <= 4
+;	PRINTFORML 「も、もう！いいかげんにしなさい、仕事中でしょうが…！」
+;	PRINTFORML 「ふぁ、先っぽつまんじゃ…だめ…。」
+ELSE
+;	PRINTFORML 「%CALLNAME:MASTER%、触るのはいいんだけどね？」
+;	PRINTFORML 「もうちょっと、ムードとか、その…。」
+;	PRINTFORML 赤面した顔で%CALLNAME:人物_咲夜%はもじもじしている。
+ENDIF
+RETURN 1
+;-------------------------------------------------
+;314,アナル愛撫
+;-------------------------------------------------
+@KOJO_MESSAGE_COM_K59_314
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_314_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_314_1
+IF ABL:Ａ感覚 <= 1
+;	PRINTFORML 「や、やめなさい、いい加減に…！」 
+;	PRINTFORMW 「くぁ！？な、なにいまの？」」
+ELSEIF ABL:Ａ感覚 <= 3
+;	PRINTFORML 「ん、んん！？」
+;	PRINTFORML 「なんでおしりなんかで、こんな…！」
+;	PRINTFORML 「もう！%CALLNAME:MASTER%が変にいじるから」
+;	PRINTFORMW 「私のおしりがおかしくなっちゃったじゃない！」
+ELSE
+;	PRINTFORML 「こ、こら、撫でるならともかくっ其処に触るって…！」
+;	PRINTFORML さすがに慣れていないのか痛覚のほうが強いようだ。
+ENDIF
+RETURN 1
+;==================================================
+;315,クリ愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K59_315
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_315_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_315_1
+IF ABL:Ｃ感覚 <= 1
+;	PRINTFORML 「ちょ、何するのよ！？？」
+ELSEIF ABL:Ｃ感覚 <= 3
+;	PRINTFORML 「うぅん、な、何今ぴくって…！？」
+;	PRINTFORMW 咲夜は電撃が走ったように身体を震わせた。
+ELSEIF ABL:Ｃ感覚 <= 4
+;	PRINTFORML 「や、やめなさ、くぁぁあ！？」
+;	PRINTFORML 「もう、%CALLNAME:MASTER%が余りにいじるから…。」
+;	PRINTFORML 「こんなに敏感になちゃったじゃない、責任とってよね…。」
+ELSE
+;	PRINTFORML 「いきなり触るってんはどうなのかしら？」
+;	PRINTFORMW 距離を取られて警戒されてしまった。
+ENDIF
+RETURN 1
+;==================================================
+;350,押し倒す
+;==================================================
+@KOJO_MESSAGE_COM_K59_350
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_350_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_350_1
+;IF FIRSTTIME(350,1)
+;初めて集
+	;咲夜ORあなた私室
+;	IF (CFLAG:現在位置 ==13) || (CFLAG:MASTER:現在位置 == 15)
+;		PRINTFORML 「…不思議なものね、お嬢様に委ねる身を%CALLNAME:MASTER%に捧げるんだから。」
+;		PRINTFORMW 「満足させてくれないと嫌よ？」
+;	ELSE
+;		PRINTFORML 「え、まさか此処でするの？」
+;		PRINTFORML 「…部屋に戻らない？そっちのほうが…。」
+;		PRINTFORMW 「はぁ、聞く耳持たないのね、もういいわよ。」
+;	ENDIF
+;ELSEIF TALENT:恋慕
+	;あなたOR咲夜私室
+;	IF (CFLAG:現在位置 ==13) || (CFLAG:MASTER:現在位置 == 15)
+;		PRINTFORML 「今日もするのね、じゃあはじめましょうか。」
+;		PRINTFORML 「%CALLNAME:MASTER%の時間も、私も時間も。」
+;		PRINTFORML 「輝くのは今この時だけよ。」
+;	ELSE
+;		PRINTFORML 「もう%CALLNAME:MASTER%も好きものよね。」
+;		PRINTFORMW 「部屋に戻ってからでもいいと思うんだけど、こういうのも好きなんでしょう？」
+;	ENDIF
+;ELSE
+	;あなたOR咲夜私室
+;	IF (CFLAG:現在位置 ==13) || (CFLAG:MASTER:現在位置 == 15)
+;		PRINTFORML 「別にいいけど…変なことしたら怒るわよ？」
+;	ELSE
+;		PRINTFORMW 「ちょ、此処でするの？部屋に戻りましょうよ…。」
+;	ENDIF
+;ENDIF
+RETURN 1
+;==================================================
+;351,連れ出す
+;==================================================
+@KOJO_MESSAGE_COM_K59_351
+	CALL TRAIN_MESSAGE
+	CALL KOJO_MESSAGE_COM_K59_351_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_351_1
+	#DIM 人物
+
+	人物 = TARGET
+	;この関数が呼ばれるとき既に同行フラグは変化している
+	IF CFLAG:同行
+		IF ABL:親密 > 5 && TALENT:恋慕
+			PRINTFORML 「どこに連れて行ってくれるんですか？」
+			PRINTFORML 「%CALLNAME:MASTER%さん、しっかりエスコートおねがいしますね！」
+			PRINTFORMW %CALLNAME:人物%は腕を絡めてすっかり身を委ねている。
+		ELSEIF ABL:親密 > 3
+			PRINTFORMW 「ショッピングにでもいきましょう！」
+		ELSE
+			PRINTFORMW 「お仕事ですか？」
+		ENDIF
+	ELSE
+		;既に同行していたら同行解除
+		IF ABL:親密 > 5 && TALENT:恋慕
+			PRINTFORML 「えっ…」
+			PRINTFORML 「ボ、ボクと別れるってどういうことですか！」
+			PRINTFORMW どうやら別れるの意味を曲解しているようだ…ちゃんと説明してあげると涙目になりながら怒った。
+		ELSEIF ABL:親密 > 3
+			PRINTFORMW 「また呼んでくださいね」
+		ELSE
+			PRINTFORMW 「ちょうど宿題あるから帰ろうとしていたところです」
+		ENDIF
+	ENDIF
+RETURN 1
+;==================================================
+;352,告白する
+;==================================================
+@KOJO_MESSAGE_COM_K59_352
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_352_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_352_1
+IF TFLAG:193
+	PRINTFORML 「…ドッキリですよね？ボク、アイドルですよ？」
+	PRINTFORML %CALLNAME:MASTER%が本気であることを伝えると、急に%CALLNAME:TARGET%は泣き出した
+	PRINTFORML 「ひっく、違うんです、嫌じゃないんです、嬉しくって…」
+	PRINTFORML ひとしきり泣いて落ち着きを取り戻してから、いつもの口調で彼女は言った。
+	PRINTFORML 
+	PRINTFORML 
+	PRINTFORMW 「%CALLNAME:MASTER%さんはボクがいないとダメなんですね、仕方ない人ですね！」
+ELSE
+	PRINTFORML 「カワイイボクを独り占めするつもりですか？」
+	PRINTFORML %CALLNAME:TARGET%はしらけた視線をあなたに送っている
+ENDIF
+RETURN 1
+;==================================================
+;410,掃除
+;==================================================
+@KOJO_MESSAGE_COM_K59_410
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_410_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_410_1
+IF TALENT:恋慕
+	SELECTCASE TFLAG:194
+		CASE 0
+;			PRINTFORML 「はい、完了ね、あー終わった…。」
+;			PRINTFORML 細かい汚れも全く逃がさないメイドの模範が目の前にいた。
+		CASE 1
+;			PRINTFORML 「そういえば汚れた部屋に下着が落ちてる時があるけど…。」
+;			PRINTFORML 「まさか盗んでないわよね、%CALLNAME:MASTER%…。」
+		CASE 2
+;			PRINTFORML 「妖精メイドももう少し頼りになればねー。」
+;			PRINTFORML 珍しく%CALLNAME:人物_咲夜%が愚痴をこぼした。
+		CASE 3
+;			PRINTFORML 「%CALLNAME:MASTER%、さっさと終わらせるわよ。」
+;			PRINTFORML %CALLNAME:人物_咲夜%が時を止めつつ一足飛びで掃除が進んだ。
+	ENDSELECT
+ELSE
+	SELECTCASE TFLAG:194
+		CASE 0
+;			PRINTFORMW 「私なら細かい汚れも逃さないわ。」
+		CASE 1
+;			PRINTFORMW 「やれやれようやく片付いてきたわ。」
+		CASE 2
+;			PRINTFORML 「お嬢様の館をこんなに汚すなんていい読経度胸してるわよね…！」
+;			PRINTFORMW ゴミ溜めになった部屋を憤慨しながら掃除した。
+		CASE 3
+;			PRINTFORML 「…ふふふ、あははははは！」
+;			PRINTFORMW 隣に居た『メイド長』の何かが音を立てて切れたようだ…。
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;411,戦闘訓練
+;==================================================
+@KOJO_MESSAGE_COM_K59_411
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_411_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_411_1
+IF ABL:交渉能力 > 5 && TALENT:恋慕
+	PRINTFORML 
+	PRINTFORML 
+	PRINTFORML 
+	PRINTFORMW 
+	PRINTFORMW 
+ELSEIF ABL:交渉能力 > 5
+	PRINTFORML 
+	PRINTFORMW 
+ELSEIF ABL:交渉能力 > 2 && TALENT:恋慕
+	PRINTFORML
+	PRINTFORMW 
+ELSEIF ABL:交渉能力 > 2
+	PRINTFORML 
+	PRINTFORMW 
+ELSE
+	PRINTFORML 
+	PRINTFORMW 
+ENDIF
+RETURN 1
+[SKIPSTART]
+;==================================================
+;412,勉強
+;==================================================
+@KOJO_MESSAGE_COM_K59_412
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_412_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_412_1
+IF ABL:教養 > 5 && TALENT:恋慕
+	PRINTFORML 
+	PRINTFORML 
+	PRINTFORMW 
+ELSEIF ABL:教養 > 5
+	PRINTFORML 
+	PRINTFORMW 
+ELSEIF ABL:教養 > 2 && TALENT:恋慕
+	PRINTFORML 
+	PRINTFORMW 
+ELSEIF ABL:教養 > 2
+	PRINTFORML 
+	PRINTFORMW 
+ELSE
+	PRINTFORML 
+	PRINTFORMW 
+ENDIF
+RETURN 1
+;==================================================
+;413,料理
+;==================================================
+@KOJO_MESSAGE_COM_K59_413
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_413_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_413_1
+IF ABL:料理技能 > 3 && TALENT:恋慕
+	PRINTFORML 「ふふ、ある意味特権じゃないかしらね。」
+	PRINTFORMW 「%CALLNAME:MASTER%の料理を最初に味わえるんだもん。」
+ELSEIF ABL:料理技能 > 3
+	PRINTFORML 「ふーん結構様になってるじゃない。」
+	PRINTFORMW 「この調子で精進しなさい、お嬢様を満足させられるぐらいには。」
+	PRINTFORMW ハードルがすごく高そうだ。
+ELSEIF ABL:料理技能 > 1 && TALENT:恋慕
+	;紅魔館の吸血鬼の食事って言ったら…。
+	PRINTFORML 「私と%CALLNAME:MASTER%の血は混ぜちゃ駄目よ。」
+	PRINTFORMW 「血のブレンドほどやっちゃいけないものはないわ。」
+ELSEIF ABL:料理技能 > 1
+	PRINTFORML 「んー少し塩加減が悪いわね。」
+	PRINTFORMW 「まあどんなことでも慣れが大事よ。」
+ELSE
+	PRINTFORML 「あ、%CALLNAME:MASTER%、料理中かしら？」
+	PRINTFORMW 「せっかくだから指導してあげるわ。」
+ENDIF
+RETURN 1
+;==================================================
+;414,食事
+;==================================================
+@KOJO_MESSAGE_COM_K59_414
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_414_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_414_1
+IF ABL:料理技能 > 4 && TALENT:恋慕
+	PRINTFORML 「ふふふ、結構いい腕になっちゃったじゃない、先輩として誇らしいわ。」
+	PRINTFORMW 「この調子で実力を高めて行きなさい。」
+ELSEIF ABL:料理技能 > 3
+	PRINTFORML %CALLNAME:人物_咲夜%は誘われた食事を口に運んだ。
+	PRINTFORMW 「へえ、少し腕を上げたのね。」
+ELSE
+	PRINTFORML 「うん、初めてにしては上出来だわ。」
+	PRINTFORMW 「しっかりと学んで上達しなさい。」
+ENDIF
+RETURN 1
+;==================================================
+;415,食事に誘う
+;==================================================
+@KOJO_MESSAGE_COM_K59_415
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_415_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_415_1
+IF ABL:料理技能 > 4 && TALENT:恋慕
+	PRINTFORML 「ふふふ、結構いい腕になっちゃったじゃない、先輩として誇らしいわ。」
+	PRINTFORMW 「この調子で実力を高めて行きなさい。」
+ELSEIF ABL:料理技能 > 3
+	PRINTFORML %CALLNAME:人物_咲夜%は誘われた食事を口に運んだ。
+	PRINTFORMW 「へえ、少し腕を上げたのね。」
+ELSE
+	PRINTFORML 「うん、初めてにしては上出来だわ。」
+	PRINTFORMW 「しっかりと学んで上達しなさい。」
+ENDIF
+RETURN 1
+[SKIPEND]
+
+
+;==================================================
+;470,アイドルレッスン
+;==================================================
+@KOJO_MESSAGE_COM_K59_470
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_470_1
+RETURN RESULT
+@KOJO_MESSAGE_COM_K59_470_1
+IF TALENT:恋慕
+	PRINTFORML 「ボクのレッスンをちゃんと見ててくださいね」
+ELSE
+	PRINTFORML 「これでボクのカワイさがさらに引き立ちますね！」
+ENDIF
+RETURN 1
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;愛撫系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;0,愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K59_0
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_0_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_0_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;挿入中
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	;V挿入
+	IF LOCAL:1 && TEQUIP:50 == PLAYER
+		;射精した
+		IF NOWEX:PLAYER:11
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;A挿入
+	ELSEIF LOCAL:1 && TEQUIP:51 == PLAYER
+		;射精した
+		IF NOWEX:PLAYER:11
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;ふたなり
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && (TALENT:2 & 3) == 3
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;1,クンニ
+;==================================================
+@KOJO_MESSAGE_COM_K59_1
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_1_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_1_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;膣内射精直後
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;絶頂した
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && NOWEX:0
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+;あとは適当な分岐を追加してください
+;==================================================
+;2,フェラする
+;==================================================
+@KOJO_MESSAGE_COM_K59_2
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_2_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_2_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;3,指挿入れ
+;==================================================
+@KOJO_MESSAGE_COM_K59_3
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_3_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_3_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;4,アナル舐め
+;==================================================
+@KOJO_MESSAGE_COM_K59_4
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_4_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_4_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;5,アナル愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K59_5
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_5_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_5_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;6,胸愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K59_6
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_6_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_6_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;7,乳首責め
+;==================================================
+@KOJO_MESSAGE_COM_K59_7
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_7_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_7_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;8,秘貝開帳
+;==================================================
+@KOJO_MESSAGE_COM_K59_8
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_8_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_8_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;9,自慰
+;==================================================
+@KOJO_MESSAGE_COM_K59_9
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_9_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_9_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;ソフト系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;20,キスする
+;==================================================
+@KOJO_MESSAGE_COM_K59_20
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_20_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_20_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+
+;==================================================
+;21,何もしない
+;==================================================
+@KOJO_MESSAGE_COM_K59_21
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_21_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_21_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;道具系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;40,ローター
+;==================================================
+@KOJO_MESSAGE_COM_K59_40
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_40_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_40_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;41,Ｅマッサージャ
+;==================================================
+@KOJO_MESSAGE_COM_K59_41
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_41_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_41_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;42,クリキャップ
+;==================================================
+@KOJO_MESSAGE_COM_K59_42
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_42_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_42_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:クリキャップ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;43,オナホール
+;==================================================
+@KOJO_MESSAGE_COM_K59_43
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_43_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_43_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:オナホール
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;44,バイブ
+;==================================================
+@KOJO_MESSAGE_COM_K59_44
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_44_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_44_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:バイブ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;45,アナルバイブ
+;==================================================
+@KOJO_MESSAGE_COM_K59_45
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_45_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_45_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:アナルバイブ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;46,アナルビーズ
+;==================================================
+@KOJO_MESSAGE_COM_K59_46
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_46_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_46_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:アナルビーズ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;47,二プルキャップ
+;==================================================
+@KOJO_MESSAGE_COM_K59_47
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_47_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_47_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:ニプルキャップ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;48,搾乳機
+;==================================================
+@KOJO_MESSAGE_COM_K59_48
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_48_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_48_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:搾乳機
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW
+	ENDIF
+ENDIF
+RETURN 1
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;性交系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;60,正常位
+;==================================================
+@KOJO_MESSAGE_COM_K59_60
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_60_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_60_1
+
+;-------------------------------------------------
+;立位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && TFLAG:193
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;-------------------------------------------------
+;正常位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;61,後背位
+;==================================================
+@KOJO_MESSAGE_COM_K59_61
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_61_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_61_1
+;-------------------------------------------------
+;立位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && TFLAG:193
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;-------------------------------------------------
+;後背位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;62,正常位アナル
+;==================================================
+@KOJO_MESSAGE_COM_K59_62
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_62_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_62_1
+;-------------------------------------------------
+;立位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && TFLAG:193
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;-------------------------------------------------
+;正常位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 「…本気でコッチでするんですか？」
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;63,後背位アナル
+;==================================================
+@KOJO_MESSAGE_COM_K59_63
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_63_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_63_1
+;-------------------------------------------------
+;立位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && TFLAG:193
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;-------------------------------------------------
+;後背位
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;64,逆レイプ
+;==================================================
+@KOJO_MESSAGE_COM_K59_64
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_64_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_64_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;調教者が処女
+		IF TALENT:PLAYER:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:PLAYER:100 == TARGET
+		;前回射精した
+		IF TCVAR:PLAYER:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;65,騎乗位
+;==================================================
+@KOJO_MESSAGE_COM_K59_65
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_65_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_65_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;66,騎乗位アナル
+;==================================================
+@KOJO_MESSAGE_COM_K59_66
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_66_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_66_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;67,対面座位
+;==================================================
+@KOJO_MESSAGE_COM_K59_67
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_67_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_67_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;68,背面座位
+;==================================================
+@KOJO_MESSAGE_COM_K59_68
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_68_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_68_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;処女
+		IF TALENT:処女 == 1
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		;前回射精した
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;69,対面座位アナル
+;==================================================
+@KOJO_MESSAGE_COM_K59_69
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_69_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_69_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;70,背面座位アナル
+;==================================================
+@KOJO_MESSAGE_COM_K59_70
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_70_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_70_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		;アナル処女
+		IF !EXP:Ａ性交経験
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;挿入継続
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:101 == PLAYER
+		;前回射精した
+		IF TCVAR:104
+			PRINTFORMW 
+			RETURN 0
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;71,二穴挿し
+;==================================================
+@KOJO_MESSAGE_COM_K59_71
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_71_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_71_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;考えうる分岐が多すぎるので地の文の大まかな分岐だけ
+	;連続
+	IF PREVCOM == SELECTCOM
+		PRINTFORMW 
+		RETURN 0
+	;主人V挿入→助手A挿入
+	ELSEIF TCVAR:100 == MASTER
+		PRINTFORMW 
+		RETURN 0
+	;主人A挿入→助手V挿入
+	ELSEIF TCVAR:101 == MASTER
+		PRINTFORMW 
+		RETURN 0
+	;助手V挿入→主人A挿入
+	ELSEIF TCVAR:100 == ASSI
+		PRINTFORMW 
+		RETURN 0
+	;助手A挿入→主人V挿入
+	ELSEIF TCVAR:101 == ASSI
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;奉仕系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;80,手淫
+;==================================================
+@KOJO_MESSAGE_COM_K59_80
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_80_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_80_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;81,フェラチオ
+;==================================================
+@KOJO_MESSAGE_COM_K59_81
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_81_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_81_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;82,パイズリ
+;==================================================
+@KOJO_MESSAGE_COM_K59_82
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_82_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_82_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;83,素股
+;==================================================
+@KOJO_MESSAGE_COM_K59_83
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_83_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_83_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;84,泡踊り
+;==================================================
+@KOJO_MESSAGE_COM_K59_84
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_84_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_84_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;85,足扱き
+;==================================================
+@KOJO_MESSAGE_COM_K59_85
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_85_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_85_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;加虐系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;100,スパンキング
+;==================================================
+@KOJO_MESSAGE_COM_K59_100
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_100_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_100_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;101,鞭
+;==================================================
+@KOJO_MESSAGE_COM_K59_101
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_101_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_101_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;102,蝋燭
+;==================================================
+@KOJO_MESSAGE_COM_K59_102
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_102_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_102_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;103,針
+;==================================================
+@KOJO_MESSAGE_COM_K59_103
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_103_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_103_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;104,アイマスク
+;==================================================
+@KOJO_MESSAGE_COM_K59_104
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_104_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_104_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:アイマスク
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;105,縄
+;==================================================
+@KOJO_MESSAGE_COM_K59_105
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_105_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_105_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:縄
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;106,ボールギャグ
+;==================================================
+@KOJO_MESSAGE_COM_K59_106
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_106_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_106_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:ボールギャグ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;助手によるコマンド、及びレズプレイ
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;120,クンニ強制
+;==================================================
+@KOJO_MESSAGE_COM_K59_120
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_120_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_120_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;121,貝あわせ
+;==================================================
+@KOJO_MESSAGE_COM_K59_121
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_121_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_121_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;123,足コキする
+;==================================================
+@KOJO_MESSAGE_COM_K59_123
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_123_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_123_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;126,乳の揉み合い
+;==================================================
+@KOJO_MESSAGE_COM_K59_126
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_126_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_126_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;ハードな調教コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;140,イラマチオ
+;==================================================
+@KOJO_MESSAGE_COM_K59_140
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_140_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_140_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;141,フィストファック
+;==================================================
+@KOJO_MESSAGE_COM_K59_141
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_141_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_141_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;142,アナルフィスト
+;==================================================
+@KOJO_MESSAGE_COM_K59_142
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_142_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_142_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;143,両穴フィスト
+;==================================================
+@KOJO_MESSAGE_COM_K59_143
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_143_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_143_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;144,放尿
+;==================================================
+@KOJO_MESSAGE_COM_K59_144
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_144_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_144_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;145,アナル奉仕強制
+;==================================================
+@KOJO_MESSAGE_COM_K59_145
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_145_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_145_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;146,浣腸器＋プラグ
+;==================================================
+@KOJO_MESSAGE_COM_K59_146
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_146_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_146_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;浣腸液注入
+	IF TEQUIP:浣腸
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;147,拡張バルーン
+;==================================================
+@KOJO_MESSAGE_COM_K59_147
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_147_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_147_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:拡張バルーン
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;148,アナル電極
+;==================================================
+@KOJO_MESSAGE_COM_K59_148
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_148_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_148_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;装着
+	IF TEQUIP:アナル電極
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;解除
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;=================================================
+;特殊コマンド
+;=================================================
+;-------------------------------------------------
+;180,ローション
+;-------------------------------------------------
+@KOJO_MESSAGE_COM_K59_180
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_180_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_180_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;181,媚薬,
+;==================================================
+@KOJO_MESSAGE_COM_K59_181
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_181_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_181_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;182,利尿剤,
+;==================================================
+@KOJO_MESSAGE_COM_K59_182
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_182_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_182_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;183,ビデオカメラ,
+;==================================================
+@KOJO_MESSAGE_COM_K59_183
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_183_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_183_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;開始
+	IF TEQUIP:ビデオ撮影
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;終了
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;187,お風呂場プレイ
+;==================================================
+@KOJO_MESSAGE_COM_K59_187
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_187_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_187_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;開始
+	IF TEQUIP:お風呂場プレイ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;終了
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;188,シャワー
+;==================================================
+@KOJO_MESSAGE_COM_K59_188
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_188_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_188_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;開始
+	IF TEQUIP:シャワー
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;終了
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;189,新妻プレイ
+;==================================================
+@KOJO_MESSAGE_COM_K59_189
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_189_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_189_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;開始
+	IF TEQUIP:新妻プレイ
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMW 
+			RETURN 0
+		;屈服3
+		ELSEIF MARK:屈服刻印 == 3
+			PRINTFORMW 
+			RETURN 0
+		;それ以外
+		ELSE
+			PRINTFORMW 
+			RETURN 0
+		ENDIF
+	;終了
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;ハードな調教コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;200,上半身上着脱衣
+;==================================================
+@KOJO_MESSAGE_COM_K59_200
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_200_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_200_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;201,下半身上着脱衣
+;==================================================
+@KOJO_MESSAGE_COM_K59_201
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_201_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_201_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;202,ブラ脱衣
+;==================================================
+@KOJO_MESSAGE_COM_K59_202
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_202_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_202_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;203,パンティ脱衣
+;==================================================
+@KOJO_MESSAGE_COM_K59_203
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K59_203_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K59_203_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;派生コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;1,シックスナイン
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_1
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_1_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_1_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;2,岩清水
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_2
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_2_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_2_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;3,Gスポット刺激
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_3
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_3_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_3_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;4,乱れ牡丹
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_4
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_4_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_4_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;5,手淫フェラ
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_5
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_5_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_5_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;6,挿入Ｇスポ責め
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_6
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_6_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_6_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;7,挿入子宮口責め
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_7
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_7_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_7_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;8,６９パイズリ
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_8
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_8_1
+RETURN RESULT
+@KOJO_MESSAGE_SCOM_K59_8_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;509,ダブルフェラ
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_9
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_9_1
+;戻り値とTARGETを保存、TARGETを二人目に一時的に交代して二人目口上を呼び出した後、TARGETをもどして保存した戻り値でRETURNする
+;二人目はいらない場合はここで処理
+;二人目
+LOCAL = MASTER_POSE(4,1,1)
+RESULT = LOCAL:1
+LOCAL:2 = TARGET
+TARGET = LOCAL
+TRYCALLFORM KOJO_MESSAGE_SCOM_K{TARGET}_9_2
+TARGET = LOCAL:2
+RETURN LOCAL:1
+
+;一人目口上
+@KOJO_MESSAGE_SCOM_K59_9_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;二人目口上
+@KOJO_MESSAGE_SCOM_K59_9_2
+VARSET LOCAL
+;一人目
+LOCAL:101 = MASTER_POSE(4,1)
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+
+;==================================================
+;10,ダブル素股
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_10
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_10_1
+;戻り値とTARGETを保存、TARGETを二人目に一時的に交代して二人目口上を呼び出した後、TARGETをもどして保存した戻り値でRETURNする
+;二人目はいらない場合はここで処理
+;二人目
+LOCAL = MASTER_POSE(2,1,1)
+RESULT = LOCAL:1
+LOCAL:2 = TARGET
+TARGET = LOCAL
+TRYCALLFORM KOJO_MESSAGE_SCOM_K{TARGET}_10_2
+TARGET = LOCAL:2
+RETURN LOCAL:1
+
+@KOJO_MESSAGE_SCOM_K59_10_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+@KOJO_MESSAGE_SCOM_K59_10_2
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+
+;==================================================
+;11,ダブルパイズリ
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_11
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_11_1
+;戻り値とTARGETを保存、TARGETを二人目に一時的に交代して二人目口上を呼び出した後、TARGETをもどして保存した戻り値でRETURNする
+;二人目はいらない場合はここで処理
+;二人目
+LOCAL = MASTER_POSE(5,1,1)
+RESULT = LOCAL:1
+LOCAL:2 = TARGET
+TARGET = LOCAL
+TRYCALLFORM KOJO_MESSAGE_SCOM_K{TARGET}_11_2
+TARGET = LOCAL:2
+RETURN LOCAL:1
+
+@KOJO_MESSAGE_SCOM_K59_11_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+@KOJO_MESSAGE_SCOM_K59_11_2
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+
+;==================================================
+;12,パイズリフェラ
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_12
+CALL TRAIN_MESSAGE
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+;==================================================
+;13,交互挿入
+;==================================================
+@KOJO_MESSAGE_SCOM_K59_13
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_SCOM_K59_13_1
+;戻り値とTARGETを保存、TARGETを二人目に一時的に交代して二人目口上を呼び出した後、TARGETをもどして保存した戻り値でRETURNする
+;二人目はいらない場合はここで処理
+;二人目
+LOCAL = MASTER_POSE(6,1,1)
+RESULT = LOCAL:1
+LOCAL:2 = TARGET
+TARGET = LOCAL
+TRYCALLFORM KOJO_MESSAGE_SCOM_K{TARGET}_13_2
+TARGET = LOCAL:2
+RETURN LOCAL:1
+
+@KOJO_MESSAGE_SCOM_K59_13_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+;未記入
+CALLFORM KOJO_MESSAGE_COM_K59_{SELECTCOM}_1
+RETURN RESULT
+
+@KOJO_MESSAGE_SCOM_K59_13_2
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORMW 
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+ENDIF
+
+;SOURCEやNOWEXを使ってSELECTCOMに依存しない口上があってもいいんじゃない
+@KOJO_MESSAGE_COM_K59_00
+;性交処女喪失をRETURN 100して
+;IF RESULT == 100 でまとめるとか
+;苦痛や快楽のSOURCEをトリガーとして汎用あえぎ口上を作るとか
+;いろいろ利用方法は考えられますが適当にやってください
+
+
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;カウンター口上
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;-------------------------------------------------
+;ソフト
+;-------------------------------------------------
+;==================================================
+;色っぽい仕草
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_10
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_10_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_10_1
+RETURN 1
+
+;==================================================
+;見つめる
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_11
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_11_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_11_1
+RETURN 1
+
+;==================================================
+;体を摺り寄せる
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_12
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_12_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_12_1
+RETURN 1
+
+;==================================================
+;スカートめくり
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_13
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_13_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_13_1
+RETURN 1
+
+;==================================================
+;息を吹きかける
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_14
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_14_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_14_1
+RETURN 1
+
+;==================================================
+;尻を撫でる
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_15
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_15_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_15_1
+RETURN 1
+
+;-------------------------------------------------
+;セクハラ
+;-------------------------------------------------
+;==================================================
+;キス
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_30
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_30_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_30_1
+RETURN 1
+
+;==================================================
+;後ろから抱きつく
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_31
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_31_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_31_1
+RETURN 1
+
+;==================================================
+;前ろから抱きつく
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_32
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_32_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_32_1
+RETURN 1
+
+;==================================================
+;胸を揉ませる
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_33
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_33_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_33_1
+RETURN 1
+
+;==================================================
+;股間をまさぐる
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_34
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_34_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_34_1
+RETURN 1
+
+;==================================================
+;スカートの中を見せる
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_35
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_35_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_35_1
+RETURN 1
+
+;==================================================
+;後ろから胸もみもみ
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_36
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_36_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_36_1
+RETURN 1
+
+
+;-------------------------------------------------
+;愛撫
+;-------------------------------------------------
+;==================================================
+;手淫
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_50
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_50_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_50_1
+RETURN 1
+
+;==================================================
+;口淫
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_51
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_51_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_51_1
+RETURN 1
+
+;==================================================
+;素股
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_52
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_52_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_52_1
+RETURN 1
+
+;==================================================
+;パイズリ
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_53
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_53_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_53_1
+RETURN 1
+
+;==================================================
+;足コキ
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_54
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_54_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_54_1
+RETURN 1
+
+;==================================================
+;アナル愛撫
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_55
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_55_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_55_1
+RETURN 1
+
+;==================================================
+;アナル舐め
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_56
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_56_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_56_1
+RETURN 1
+
+;==================================================
+;指挿入
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_57
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_57_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_57_1
+RETURN 1
+
+;==================================================
+;胸愛撫
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_58
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_58_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_58_1
+RETURN 1
+
+;==================================================
+;乳首吸い
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_59
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_59_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_59_1
+RETURN 1
+
+;==================================================
+;ディープキス
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_60
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_60_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_60_1
+RETURN 1
+
+
+;-------------------------------------------------
+;奉仕
+;-------------------------------------------------
+;==================================================
+;クンニ強制
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_70
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_70_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_70_1
+RETURN 1
+
+;==================================================
+;フェラチオ強制
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_71
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_71_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_71_1
+RETURN 1
+;==================================================
+;アナル奉仕
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_72
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_72_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_72_1
+RETURN 1
+;==================================================
+;ぱふぱふ
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_73
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_73_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_73_1
+RETURN 1
+;==================================================
+;乳合わせ
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_74
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_74_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_74_1
+RETURN 1
+;==================================================
+;タワシ洗い
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_75
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_75_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_75_1
+RETURN 1
+
+;-------------------------------------------------
+;性交
+;-------------------------------------------------
+;==================================================
+;挿入される（MASTER受け）
+;==================================================
+@KOJO_MESSAGE_COUNTER_K59_80
+CALL EVENT_COUNTER_MESSAGE
+CALL KOJO_MESSAGE_COUNTER_K59_80_1
+RETURN RESULT
+@KOJO_MESSAGE_COUNTER_K59_80_1
+RETURN 1
+
+;-------------------------------------------------
+;うふふカウンター
+;-------------------------------------------------
+;まだ
+
+;-------------------------------------------------
+;奴隷の絶頂時の口上
+;NOWEX:0～3 CVAB絶頂
+;NOWEX:4 二重絶頂
+;NOWEX:5 三重絶頂
+;NOWEX:6 四重絶頂
+;NOWEX:10 噴乳
+;NOWEX:11 射精
+;NOWEX:12 放尿
+;適当に組み合わせて使ってください
+;-------------------------------------------------
+@KOJO_MESSAGE_PALAMCNG_B_K59
+CALL PALAM_MESSAGE_B
+;-------------------------------------------------
+;噴乳
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && NOWEX:10
+	PRINTFORMW 
+ENDIF
+;-------------------------------------------------
+;射精
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && NOWEX:11
+	PRINTFORMW 
+ENDIF
+;-------------------------------------------------
+;放尿
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL && NOWEX:12
+	PRINTFORMW 
+ENDIF
+;-------------------------------------------------
+;絶頂
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;四重絶頂
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF NOWEX:6
+		PRINTFORMW 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;三重絶頂
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF NOWEX:5
+		SELECTCASE NOWEX:5
+			;Ｃ＆Ｖ＆Ａ絶頂
+			CASE 1
+				PRINTFORMW 
+				RETURN 0
+			;Ｂ＆Ｖ＆Ａ絶頂
+			CASE 2
+				PRINTFORMW 
+				RETURN 0
+			;Ｃ＆Ｂ＆Ａ絶頂
+			CASE 3
+				PRINTFORMW 
+				RETURN 0
+			;Ｃ＆Ｖ＆Ｂ絶頂
+			CASE 4
+				PRINTFORMW 
+				RETURN 0
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;二重絶頂
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF NOWEX:4
+		SELECTCASE NOWEX:4
+			;Ｃ＆Ｖ絶頂
+			CASE 1
+				PRINTFORMW 
+				RETURN 0
+			;Ｃ＆Ａ絶頂
+			CASE 2
+				PRINTFORMW 
+				RETURN 0
+			;Ｖ＆Ａ絶頂
+			CASE 3
+				PRINTFORMW 
+				RETURN 0
+			;Ｃ＆Ｂ絶頂
+			CASE 4
+				PRINTFORMW 
+				RETURN 0
+			;Ｖ＆Ｂ絶頂
+			CASE 5
+				PRINTFORMW 
+				RETURN 0
+			;Ａ＆Ｂ絶頂
+			CASE 6
+				PRINTFORMW 
+				RETURN 0
+		ENDSELECT
+	ENDIF
+	IF NOWEX:0
+		;強絶頂Ｃ
+		IF NOWEX:0 == 2
+			PRINTFORMW 
+		;絶頂Ｃ
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	ENDIF
+	IF NOWEX:1
+		;強絶頂Ｖ
+		IF NOWEX:1 == 2
+			PRINTFORMW 
+		;絶頂Ｖ
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	ENDIF
+	IF NOWEX:2
+		;強絶頂Ａ
+		IF NOWEX:2 == 2
+			PRINTFORMW 
+		;絶頂Ａ
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	ENDIF
+	IF NOWEX:3
+		;強絶頂Ｂ
+		IF NOWEX:3 == 2
+			PRINTFORMW 
+		;絶頂Ｂ
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	ENDIF
+ENDIF
+
+
+;-------------------------------------------------
+;射精に関する口上の表示
+;一時的にTARGETを口上主に設定している
+;-------------------------------------------------
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_0(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;コンドーム
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_23(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;イラマチオ
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_22(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;シックスナイン
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;同時射精
+	IF NOWEX:11 && NOWEX:MASTER:11
+		PRINTFORMW
+		RETURN 1
+	;TARGETだけ射精
+	ELSEIF NOWEX:11
+		;PLAYERについてる
+		IF TALENT:PLAYER & 2
+			PRINTFORMW
+			RETURN 1
+		;付いてない
+		ELSE
+			PRINTFORMW
+			RETURN 1
+		ENDIF
+	;PLAYERだけ射精
+	ELSE
+		;TARGETについてる
+		IF TALENT:2 & 2
+			PRINTFORMW
+			RETURN 1
+		;付いてない
+		ELSE
+			PRINTFORMW
+			RETURN 1
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_21(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;パイズリフェラ
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_20(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;手淫フェラ
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_9(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;アナル奉仕
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_8(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;泡踊り
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;同時射精
+	IF NOWEX:11 && NOWEX:MASTER:11
+		PRINTFORMW
+		RETURN 1
+	;TARGETだけ射精
+	ELSEIF NOWEX:11
+		;PLAYERについてる
+		IF TALENT:PLAYER & 2
+			PRINTFORMW
+			RETURN 1
+		;付いてない
+		ELSE
+			PRINTFORMW
+			RETURN 1
+		ENDIF
+	;PLAYERだけ射精
+	ELSE
+		;TARGETについてる
+		IF TALENT:2 & 2
+			PRINTFORMW
+			RETURN 1
+		;付いてない
+		ELSE
+			PRINTFORMW
+			RETURN 1
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_7(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;足コキ
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_6(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;素股
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_5(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;パイズリ
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_4(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;フェラチオ
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_3(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;手淫
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_2(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;アナル
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+@KOJO_MESSAGE_PALAMCNG_A_K59_1(ARG)
+CALL PALAM_MESSAGE_A
+;-------------------------------------------------
+;膣内
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	RETURN 1
+ENDIF
+RETURN 0
+
+;-------------------------------------------
+;調教後のテキスト
+;TFLAG:8 (1=TARGETがお掃除 2=ASSIがお掃除 3=TARGETとASSIがお掃除)
+;-------------------------------------------
+@KOJO_MESSAGE_PALAMCNG_C_K59
+CALL PALAM_MESSAGE_C
+;処女喪失
+IF TFLAG:4
+	PRINTFORMW 
+ENDIF
+
+;フェラで射精後のお掃除
+IF (TFLAG:8 & 1) && NOWEX:PLAYER:11
+	PRINTFORMW 
+ENDIF
+
+;-------------------------------------------
+;刻印取得
+;-------------------------------------------
+@KOJO_MESSAGE_MARKCNG_K59
+;苦痛刻印
+IF TFLAG:22 == 1
+	PRINTFORMW 
+ELSEIF TFLAG:22 == 2
+	PRINTFORMW 
+ELSEIF TFLAG:22 == 3
+	PRINTFORMW 
+ENDIF
+
+;快楽刻印
+IF TFLAG:23 == 1
+	PRINTFORMW 「んひやぁぁ…。」
+ELSEIF TFLAG:23 == 2
+	PRINTFORMW 「ふぁぁぁぁ！…もう、すっかり敏感になりました…。」
+ELSEIF TFLAG:23 == 3
+	PRINTFORMW 「き、気持ちいいです、%CALLNAME:MASTER%さん…も、もっとしてくれてもいいんですよ！」
+ENDIF
+
+;屈服刻印
+;快楽による刻印
+;LV1
+IF TFLAG:24 == 11
+	PRINTFORMW 「う、あ…。」
+;LV2
+ELSEIF TFLAG:24 == 12
+	PRINTFORMW 「これ以上は…！」
+;LV3
+ELSEIF TFLAG:24 == 13
+	PRINTFORMW 「もう、駄目です、ボク%CALLNAME:MASTER%さんにおとされちゃいました…。」
+;苦痛、恐怖による刻印
+;LV1
+ELSEIF TFLAG:24 == 21
+	PRINTFORMW 
+;LV2
+ELSEIF TFLAG:24 == 22
+	PRINTFORMW 
+;LV3
+ELSEIF TFLAG:24 == 23
+	PRINTFORMW 
+;屈服、恭順による刻印
+;LV1
+ELSEIF TFLAG:24 == 31
+	PRINTFORMW 「ふふっ、中々の仕事ぶりですね！」
+;LV2
+ELSEIF TFLAG:24 == 32
+	PRINTFORMW 「%CALLNAME:MASTER%さんはなかなか見所がありますね！」
+;LV3
+ELSEIF TFLAG:24 == 33
+	PRINTFORMW 「最近の%CALLNAME:MASTER%さんはボクから見てもいい感じですよ？」
+ENDIF
+
+;反発刻印
+IF TFLAG:21 == 1
+	PRINTFORMW 
+ELSEIF TFLAG:21 == 2
+	PRINTFORMW 
+ELSEIF TFLAG:21 == 3
+	PRINTFORMW 
+ENDIF
+

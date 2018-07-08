@@ -1,0 +1,49 @@
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - 薬物中毒 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM420_06_ENABLE
+	#DIM LOOP_CHR
+	RESULTS:0 = %"[ 6]-薬物依存治療の方法変更"%
+
+	FOR LOOP_CHR,1, CHARA_ACTIVE
+		SIF PRENTR(LOOP_CHR, 人物_ヤク売人, NTRPRE_職既知 )&& 所属(LOOP_CHR)
+			RETURN 1
+	NEXT
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - 薬物中毒
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM420_06
+#DIM キャラ番号
+#DIM LOOP_CHR
+#DIM LOOP_NUM
+#DIMS 治療方法,3
+TIME+=3
+	PRINTFORML %CALLNAME:TARGET% 「今現在の治療方法は次のようになっています。」
+	PRINTFORML %CALLNAME:TARGET% 「変更しましょうか？」
+	治療方法:0=放置
+	治療方法:1=自己努力
+	治療方法:2=医療機関で治療($1000-)
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	IF PRENTR(LOOP_CHR, 人物_ヤク売人, NTRPRE_職既知 )&& 所属(LOOP_CHR)
+		PRINTFORML [{LOOP_NUM}] - %NAME:LOOP_CHR,10% %治療方法:(CFLAG:LOOP_CHR:薬物治療)%
+	ENDIF
+NEXT
+	PRINTL [999] - 変更しない
+INPUT
+IF RESULT==999
+	RETURN 0
+ELSE
+	LOOP_CHR=RESULT
+	PRINTFORML %CALLNAME:TARGET% 「%CALLNAME:RESULT%の治療方法を何に変えますか？」
+	FOR LOOP_NUM, 0, 3
+		PRINTFORML [{LOOP_NUM}] - %治療方法:LOOP_NUM%
+	NEXT
+	INPUT
+	CFLAG:LOOP_CHR:薬物治療=RESULT
+	PRINTFORML %CALLNAME:TARGET% 「ではそのように変更しておきますね」
+	RETURN 1
+ENDIF

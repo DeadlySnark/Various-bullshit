@@ -1,0 +1,134 @@
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - 引退の検討 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM420_03_ENABLE
+	RESULTS:0 = %"[ 3]-解雇の検討"%
+	;アイドルが一人もいない=登録番号2がアイドルではない
+	SIF !所属(2)
+		RETURN 0
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - 引退の検討
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM420_03
+#DIM 奴隷
+#DIM 判定
+#DIM 行動
+;TARGETには事務員さんが入っているはず
+PRINTFORML %CALLNAME%「残念ですけれども、誰かを解雇しましょうか・・・？」
+DRAWLINE
+FOR 奴隷,0, CHARA_ACTIVE
+	SIF 所属(奴隷) && 奴隷 != MASTER && !TALENT:奴隷:事務員 && CFLAG:奴隷:現在位置<場所番号最大値+1
+		PRINTFORML [{奴隷}] - %NAME:奴隷%
+NEXT
+PRINTL
+PRINTL [999] - やめる
+INPUT
+奴隷=RESULT
+SIF RESULT == 999
+	RETURN 0
+
+TIME += 10
+;行動パティーンの作成
+判定=(FLAG:共通ランダム数+NO:奴隷)%100
+;行動は高い程素直にあきらめる,一部勧誘と共通で勧誘しやすいキャラほどあきらめが悪い、みたいな
+行動=40+FLAG:事務所知名度/5+CFLAG:奴隷:好感度/50-(TALENT:奴隷:目立ちたがり*5-TALENT:奴隷:無関心*5+TALENT:奴隷:態度*5-TALENT:奴隷:羞恥心*5-TALENT:奴隷:応答*5+TALENT:奴隷:プライド*10)
+IF 判定 < 行動
+;円満？解決
+	PRINTFORM 解雇する旨を%CALLNAME:奴隷%に伝えると、
+	PRINTDATA
+			DATAFORM %CALLNAME:MASTER%が決めたなら従う
+			DATAFORM 残念だけど事情があるのだろうから仕方ない
+			DATAFORM 事務所の仲間と過ごした日々は楽しかった
+	ENDDATA
+	PRINTFORML と言って同意してくれた。
+	CALL FIRED_IDOL(奴隷)
+	RETURN 1
+ELSE
+;円満ではない
+	PRINTFORM 解雇する旨を%CALLNAME:奴隷%に伝えると、
+	PRINTDATA
+			DATAFORM あきらめたくない、考え直して欲しい
+			DATAFORM 努力するから首にしないで
+			DATAFORM 事務所の仲間と離れ離れになるのは嫌だ
+	ENDDATA
+	PRINTFORML と言って同意してはくれなかった…
+	PRINTL どうしようか？
+	PRINTL [0] - 解雇する
+	PRINTL [1] - 撤回する
+	INPUT
+	IF !RESULT
+		;好感度の削減
+		REPEAT RAND:4+1
+			CFLAG:奴隷:好感度 /= 2
+		REND
+		PRINTFORML %CALLNAME:MASTER%は方針を変えなかった
+		PRINTFORM %CALLNAME:奴隷%は
+		;分岐
+		;NTR用スイッチをあとで増設します。
+		IF (FLAG:共通ランダム数+NO:奴隷+BASE:奴隷:21)%10 > 6 && GETBIT(FLAG:ＮＴＲパッチ設定,9)
+		;破滅ルート
+			PRINTDATA
+				DATAFORM どんな手を使ってでも這い上がってみせる
+				DATAFORM 絶対に後悔させてやる
+				DATAFORM なんとしても認めさせてやる
+			ENDDATA
+			PRINTFORML と息巻いて出て行ってしまった
+			CFLAG:奴隷:現在位置=場所_ダミー
+			
+			SELECTCASE (FLAG:共通ランダム数+NO:奴隷)%10
+				CASE 0 TO 3
+					CALL NTRPRE堕ち(奴隷, 人物_AV男優)
+				CASE 4 TO 7
+					CALL NTRPRE堕ち(奴隷, 人物_パパ)
+				CASEELSE
+					CALL NTRPRE堕ち(奴隷, 人物_AV男優)
+					CALL NTRPRE堕ち(奴隷, 人物_パパ)
+				;double!
+			ENDSELECT
+		ELSE
+			PRINTDATA
+				DATAFORM 項垂れて
+				DATAFORM とぼとぼと
+				DATAFORM 放心して
+				DATAFORM 泣きながら
+			ENDDATA
+			PRINTFORML 事務所を出て行った・・・
+			CFLAG:奴隷:現在位置=場所_ダミー
+		ENDIF
+
+		CALL FIRED_IDOL(奴隷)
+
+		RETURN 1
+		
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は解雇を撤回した
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 0
+
+@FIRED_IDOL(ARG)
+;ARG番を首にする処理
+#DIM 交換対象
+#DIM LOOP_CHR
+SIF TALENT:ARG:アイドル
+	TALENT:ARG:アイドル = 2
+SIF TALENT:ARG:トレーナー == 2
+	TALENT:ARG:トレーナー = 1
+FOR LOOP_CHR, 1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:開始位置!=場所番号最大値
+		CONTINUE
+	交換対象=LOOP_CHR
+	BREAK
+NEXT
+CFLAG:ARG:所属 = 0
+CFLAG:交換対象:開始位置=CFLAG:ARG:開始位置
+CFLAG:ARG:開始位置=場所_ダミー
+CALL SWAP_IDOL(ARG, 交換対象)
+場所番号最大値 -= 1
+
+RETURN 1

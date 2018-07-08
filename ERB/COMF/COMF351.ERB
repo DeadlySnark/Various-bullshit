@@ -1,0 +1,157 @@
+;-------------------------------------------------------------------------------
+;コマンド:連れ出す
+;@return 1:成功,0:失敗
+@COM351
+
+	VARSET LOCAL
+
+	;連れ出せる対象が何人いるか探す
+	FOR LOCAL,1,CHARA_ACTIVE
+		IF (CFLAG:(TARGET:LOCAL):馴れ合い強度度 || 所属(TARGET:LOCAL)) && TARGET:LOCAL!=MASTER
+			LOCAL:1 ++
+			IF CFLAG:(TARGET:LOCAL):同行
+				RESULT = LOCAL+500
+			ELSE
+				RESULT = LOCAL
+			ENDIF
+		ENDIF
+	NEXT
+
+	;複数人連れ出し対象がいる場合は選択させる
+	IF LOCAL:1 > 1
+		PRINTL 誰を誘いますか？
+		;連れ出せる対象を探す
+		FOR LOCAL,1,CHARA_ACTIVE
+			IF ((CFLAG:(TARGET:LOCAL):馴れ合い強度度 || 所属(TARGET:LOCAL)) && TARGET:LOCAL!=MASTER) && !CFLAG:(TARGET:LOCAL):同行
+				PRINTFORML %"["+TOSTR(LOCAL)+"] - "+CALLNAME:(TARGET:LOCAL)%
+				LOCAL:2 += 1
+			ENDIF
+		NEXT
+		;離れる対象を探す
+		FOR LOCAL,1,CHARA_ACTIVE
+			IF CFLAG:(TARGET:LOCAL):同行
+				PRINTFORML %"["+TOSTR(500+LOCAL)+"] - "+CALLNAME:(TARGET:LOCAL)+"と離れる"%
+				LOCAL:3 += 1
+			ENDIF
+		NEXT
+		
+		;まとめて同行
+		IF LOCAL:2 >= 2
+			PRINTFORML [997] %"まとめて連れ出す"%
+		ENDIF
+		;まとめて離れる
+		IF LOCAL:3 >= 2
+			PRINTFORML [998] %"まとめて離れる"%
+		ENDIF
+		PRINTFORML [999] %"やめる"%
+		
+		$INPUT_LOOP
+		INPUT
+		IF RESULT <= 0
+			GOTO INPUT_LOOP
+		ELSEIF  RESULT >= 997 && RESULT <= 999
+		;
+		ELSEIF RESULT < CHARA_ACTIVE
+			IF !TARGET:RESULT
+				GOTO INPUT_LOOP
+			ELSEIF CFLAG:(TARGET:RESULT):馴れ合い強度度 < 1 && !所属(TARGET:RESULT)
+				GOTO INPUT_LOOP
+			ENDIF
+		ENDIF
+	ENDIF
+	
+	IF RESULT == 999
+		RETURN 0
+	ELSEIF RESULT == 997
+		;まとめて同行
+		CALL COM351_Bring_ALL
+	ELSEIF RESULT == 998
+		;まとめて同行解除
+		CALL COM351_Leave_ALL
+	ELSEIF RESULT > 500
+		;同行解除
+		CALL COM351_Leave(TARGET:(RESULT-500))
+	ELSE
+		;同行させる
+		CALL COM351_Bring(TARGET:RESULT)
+	ENDIF
+	
+	;同一コマンド連続実行を回避させないための処理
+	LOCAL = SELECTCOM
+	SELECTCOM = 351
+
+	;SOURCEまでを回さないのでここで口上を表示させる
+	IF TEQUIP:ボールギャグ && SELECTCOM != 106 && FLAG:情景テキスト設定 > 0
+		;ボールギャグのコマンドって106だよね……？
+		SELECTCOM = LOCAL
+		RETURN 1
+	ELSE
+		RESULT = 0
+		RESULTS =
+		;口上の存在判定 and RESULTSに文字列代入
+		TRYCALLFORM KOJO_K{NO:TARGET}
+		IF !RESULT && FLAG:情景テキスト設定 > 0
+			SELECTCOM = LOCAL
+			RETURN 1
+		ENDIF
+		RESULT = 0
+		TRYCALLFORM KOJO%RESULTS%_MESSAGE_COM_K{NO:TARGET}_351
+	ENDIF
+
+	SELECTCOM = LOCAL
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;同行させる
+;@param ARG:0 キャラクター番号
+;@return 1:連れ出し成功,0:連れ出し失敗
+@COM351_Bring(ARG:0)
+	IF CFLAG:(ARG:0):幽閉
+		PRINTFORMW %CALLNAME:(TARGET:RESULT)+"は幽閉中のため連れ出せません"%
+		RETURN 0
+	ENDIF
+	PRINTFORMW %CALLNAME:(ARG:0)+"を連れ出します"%
+	CFLAG:(ARG:0):同行 = 120
+	TIME += 1
+	
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;離れる
+;@param ARG:0 キャラクター番号
+;@return 1:離別成功,0:離別失敗
+@COM351_Leave(ARG:0)
+	IF !CFLAG:(ARG:0):同行
+		PRINTFORMW %CALLNAME:(TARGET:RESULT)+"は同行していませんが……？"%
+		RETURN 0
+	ENDIF
+	PRINTFORMW %CALLNAME:(ARG:0)+"と離れました"%
+	CFLAG:(ARG:0):同行 = 0
+	TIME += 1
+	
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;同行させる
+;@return 1:連れ出し成功,0:連れ出し失敗
+@COM351_Bring_ALL
+FOR LOCAL,1,CHARA_ACTIVE
+	IF ((CFLAG:(TARGET:LOCAL):馴れ合い強度度|| 所属(TARGET:LOCAL)) && TARGET:LOCAL!=MASTER) && !CFLAG:(TARGET:LOCAL):同行
+		CALL COM351_Bring(TARGET:LOCAL)
+	ENDIF
+NEXT
+
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;まとめて離れる
+;@param ARG:0 キャラクター番号
+;@return 1:離別成功,0:離別失敗
+@COM351_Leave_ALL
+FOR LOCAL,1,CHARA_ACTIVE
+	IF CFLAG:(TARGET:LOCAL):同行
+		CALL COM351_Leave(TARGET:LOCAL)
+	ENDIF
+NEXT
+
+

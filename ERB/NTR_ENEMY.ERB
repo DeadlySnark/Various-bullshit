@@ -1,0 +1,317 @@
+;ENEMYの行動集
+@ENEMY_DO(ARG)
+;ARG番号に登録されたENEMYの行動
+#DIM CHR_TARGET
+;同じ場所にいるキャラでもっとも屈服値の高いキャラ
+#DIM LOOP_CHR
+#DIM 屈服番号
+#DIM 判断変数
+#DIM 屈服量
+屈服番号=屈服IX+TALENT:ARG:ＥＮＥＭＹ-人物_訪問者
+;バグ避け
+IF CFLAG:ARG:現在位置> 場所番号最大値
+		SELECTCASE RAND:4
+			CASE 0
+				CFLAG:ARG:現在位置=場所_繁華街
+			CASE 1
+				CFLAG:ARG:現在位置=場所_住宅街
+			CASE 2
+				CFLAG:ARG:現在位置=場所_大通り西
+			CASE 3
+				CFLAG:ARG:現在位置=場所_大通り東
+		ENDSELECT
+	RETURN 1
+ENDIF
+CHR_TARGET=-1
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	;自分および同業者はスキップ
+	SIF TALENT:LOOP_CHR:ＥＮＥＭＹ
+		CONTINUE
+	IF CFLAG:ARG:現在位置==CFLAG:LOOP_CHR:現在位置
+		IF CHR_TARGET==-1
+			;-1はとりあえず仮置き
+			CHR_TARGET=LOOP_CHR
+;		ELSEIF CFLAG:LOOP_CHR:屈服番号 >= CFLAG:CHR_TARGET:屈服番号 && RAND:5
+			;4/5で屈服値の高いキャラに切り替わる
+;			CHR_TARGET=LOOP_CHR
+;		ELSEIF (LIMIT(CFLAG:LOOP_CHR:好感度/100, 0, 20)+10*MIN(CFLAG:LOOP_CHR:名前フラグ,1))*CFLAG:LOOP_CHR:屈服番号 > (LIMIT(CFLAG:CHR_TARGET:好感度/100, 0, 20)+10*MIN(CFLAG:CHR_TARGET:名前フラグ,1))*CFLAG:CHR_TARGET:屈服番号 && RAND:10
+			;0510 お試し　好感度*屈服が高そうな方を狙う
+;			CHR_TARGET=LOOP_CHR
+		;v0.620 アイドルキャラを集中的に狙うオプション導入 1.5倍で勘定する
+		ELSEIF (CFLAG:LOOP_CHR:屈服番号-LIMIT(CFLAG:LOOP_CHR:好感度/10, 0, 100))*(2+(MIN(1, TALENT:LOOP_CHR:アイドル))*GETBIT(FLAG:ＮＴＲパッチ設定,14))/2 > (CFLAG:CHR_TARGET:屈服番号-LIMIT(CFLAG:CHR_TARGET:好感度/10, 0, 100))*(2+(MIN(1, TALENT:CHR_TARGET:アイドル))*GETBIT(FLAG:ＮＴＲパッチ設定,14))/2 && RAND:5
+			CHR_TARGET=LOOP_CHR
+		ELSEIF 1 < CFLAG:LOOP_CHR:屈服番号 && CFLAG:LOOP_CHR:屈服番号 < 200
+			;200以下1以上のときはサービスで屈服値減少(延々と上昇させてしまう危険性があるため)
+			CFLAG:LOOP_CHR:屈服番号 -= RAND:3
+		ENDIF
+	ENDIF
+NEXT
+
+SIF CHR_TARGET==-1
+	RETURN 0
+
+他人=TALENT:ARG:ＥＮＥＭＹ
+;さじ加減が難しい…
+;v0.620 屈服量をCHR_TARGETのTALENTに依存するように
+;image的にはオラオラ系の人に対する反応を想定しています
+屈服量=RAND:5+TALENT:CHR_TARGET:浮気癖*10+TALENT:CHR_TARGET:淫乱*5+TALENT:CHR_TARGET:公衆便所*5-TALENT:CHR_TARGET:度胸*2-TALENT:CHR_TARGET:態度*2-TALENT:CHR_TARGET:応答*2-TALENT:CHR_TARGET:プライド*2-TALENT:CHR_TARGET:自制心*2
+;長いので分割
+屈服量=屈服量-TALENT:CHR_TARGET:無関心*2-TALENT:CHR_TARGET:感情乏しい*2+TALENT:CHR_TARGET:性的興味*2-TALENT:CHR_TARGET:貞操*2-TALENT:CHR_TARGET:羞恥心*2+TALENT:CHR_TARGET:快感応答*2+TALENT:CHR_TARGET:浮気公認*10
+;PRINTFORML 対象は%CALLNAME:CHR_TARGET%、屈服量={屈服量}
+CALL NTR_ADD_SURRENDER(CHR_TARGET, MAX(1, 屈服量) )
+CALL ENEMY_ETC(ARG, CHR_TARGET)
+;面倒だが違うNTRシステムで動かしているため分岐せざるを得ない
+IF 他人==人物_パパ
+	判断変数= 150+(-PRENTR(CHR_TARGET, 人物_パパ, NTRPRE_職)-TALENT:CHR_TARGET:浮気癖-MIN(1, TALENT:CHR_TARGET:NTR)+TALENT:CHR_TARGET:恋慕+TALENT:CHR_TARGET:アイドル)*50
+	IF PRENTR(CHR_TARGET, 人物_パパ, NTRPRE_職)
+	;既に円光している
+;		CALL VISITER_TAKINGOUT(CHR_TARGET)
+;		CFLAG:ARG:自主性=1
+;		EXP:ARG:援助交際経験+=1
+;		CFLAG:ARG:現在位置=場所_ダミー
+		CALL NTR_ADD_SURRENDER(CHR_TARGET, 5+RAND:6)
+	ELSEIF RAND:(CFLAG:CHR_TARGET:屈服番号) > 判断変数
+	;少なくとも今はしていない
+	;落ちるかチェック
+		CALL NTRPRE堕ち(CHR_TARGET, 人物_パパ)
+		CFLAG:ARG:現在位置=場所_ダミー
+	ENDIF
+ELSEIF 他人==人物_AV男優 ||他人==人物_風俗オーナー
+	判断変数= 150+(-PRENTR(CHR_TARGET, 他人, NTRPRE_職)-MIN(1, TALENT:CHR_TARGET:NTR)+TALENT:CHR_TARGET:恋慕+TALENT:CHR_TARGET:アイドル*2)*50
+	IF PRENTR(CHR_TARGET, 他人, NTRPRE_職)
+	;既に女優である
+;		CALL VISITER_TAKINGOUT(CHR_TARGET)
+;		CFLAG:ARG:現在位置=場所_ダミー
+		CALL NTR_ADD_SURRENDER(CHR_TARGET, 5+RAND:6)
+	ELSEIF RAND:(CFLAG:CHR_TARGET:屈服番号) > 判断変数
+		CALL NTRPRE堕ち(CHR_TARGET, 他人)
+		CFLAG:ARG:現在位置=場所_ダミー
+	ENDIF
+ENDIF
+他人=人物_訪問者
+RETURN 1
+
+
+@ENEMY_ETC(ARG,ARG:1)
+;ARG-敵 ARG:1-被害者(口上用)
+;ここでENEMYの外見とかをてきとーに設定
+
+;見えないときはいらない
+SIF !NTR_CHK_VISIBLE(CFLAG:ARG:現在位置)
+	RETURN 0
+
+IF CFLAG:ARG:名前フラグ == 0 && GETBIT(FLAG:ＮＴＲパッチ設定,30)
+	CFLAG:ARG:名前フラグ=1
+	LOCALS=""
+	SELECTCASE RAND:5
+		CASE 0
+			LOCALS=小汚い
+		CASE 1
+			LOCALS=貧相な
+		CASE 2
+			LOCALS=太った
+		CASE 3
+			LOCALS=臭そうな
+		CASE 4
+			LOCALS=強面の
+	ENDSELECT
+	SELECTCASE RAND:5
+		CASE 0
+			LOCALS+="おっさん"
+		CASE 1
+			LOCALS+="チンピラ"
+		CASE 2
+			LOCALS+="クソガキ"
+		CASE 3
+			LOCALS+="中年"
+		CASE 4
+			LOCALS+="青年"
+	ENDSELECT
+	CALLNAME:ARG=%LOCALS%
+	NAME:ARG=%LOCALS%
+ELSEIF CFLAG:ARG:名前フラグ == 0
+	CFLAG:ARG:名前フラグ=1
+	LOCALS=""
+			LOCALS=
+	SELECTCASE RAND:8
+		CASE 0
+			LOCALS+="男達"
+		CASE 1
+			LOCALS+="青年"
+		CASE 2
+			LOCALS+="不良"
+		CASE 3
+			LOCALS+="少年達"
+		CASE 4
+			LOCALS+="男の子"
+		CASE 5
+			LOCALS+="男の娘"
+		CASE 6
+			LOCALS+="中年達"
+		CASE 7
+			LOCALS+="おじさん"
+	ENDSELECT
+	CALLNAME:ARG=%LOCALS%
+	NAME:ARG=%LOCALS%
+ENDIF
+
+PRINTFORML %CALLNAME:(ARG:1)%が%CALLNAME:ARG%に声を掛られている…
+
+@DRAG_DO(ARG)
+#DIM LOOP_CHR
+;フラグの確認
+SIF !GETBIT(FLAG:ＮＴＲパッチ設定,12)
+	RETURN 0
+;バグ避け
+SIF ARG == MASTER
+	RETURN 0
+;事務所所属でないキャラはスキップ
+SIF !所属(ARG) 
+	RETURN 0
+;中毒していないキャラはスキップ
+SIF MAXBASE:ARG:薬物 < 100
+	RETURN 0
+;BASEMAXを超えないように
+SIF BASE:ARG:薬物 > MAXBASE:ARG:薬物
+	BASE:ARG:薬物=MAXBASE:ARG:薬物
+SIF CFLAG:ARG:睡眠
+	RETURN 0
+;100以上のキャラの処理
+;呼ばれるのは約20分に一回と定義されていることに留意
+;強すぎないように設定
+SIF BASE:ARG:満足*2 < MAXBASE:ARG:満足
+	BASE:ARG:薬物=MAX(0, BASE:ARG:薬物-RAND:(1+(MAXBASE:ARG:薬物)/75))
+SIF MAXBASE:ARG:薬物 <500+CFLAG:ARG:好感度/10
+	RETURN 0
+;500+alphaの処理
+SIF BASE:ARG:満足*2 < MAXBASE:ARG:満足
+	BASE:ARG:薬物=MAX(0, BASE:ARG:薬物-RAND:(1+(MAXBASE:ARG:薬物)/75))
+
+SIF MAXBASE:ARG:薬物 <1500+CFLAG:ARG:好感度/10
+	RETURN 0
+;1000+alphaの処理
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	;周囲のキャラ（除事務員）に影響を及ぼす
+	SIF CFLAG:ARG:現在位置 != CFLAG:LOOP_CHR:現在位置
+		CONTINUE
+	SIF ARG==LOOP_CHR
+		CONTINUE
+	SIF !所属(LOOP_CHR)
+		CONTINUE
+	SIF !TALENT:LOOP_CHR:アイドル
+		CONTINUE
+	;random好感度とやくちゅう度で比較して中毒増進効果、アイドルとしての格が高いと＋補正
+	SIF RAND:(MAX(1, CFLAG:LOOP_CHR:好感度-MAXBASE:ARG:薬物/20))+CFLAG:LOOP_CHR:アイドルランク*100 > RAND:(MAXBASE:ARG:薬物/10)+CFLAG:ARG:アイドルランク*100
+		CONTINUE
+	CALL ADD_ADDICT_DRAG(LOOP_CHR , LIMIT(RAND:(MAXBASE:ARG:薬物/100),1, 100) ,0)
+NEXT
+SIF MAXBASE:ARG:薬物 <3000+CFLAG:ARG:好感度/10
+	RETURN 0
+;2000+alphaの処理
+他人=人物_ヤク売人
+CALL NTR_ADD_SURRENDER(ARG, RAND:(MAX(1, (MAXBASE:ARG:薬物-BASE:ARG:薬物)/100)))
+他人=人物_訪問者
+
+@DRAG_TURNEND
+#DIM LOOP_CHR
+;フラグの確認
+SIF !GETBIT(FLAG:ＮＴＲパッチ設定,12)
+	RETURN 0
+他人=人物_ヤク売人
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:凍結
+		CONTINUE
+	SIF !所属(LOOP_CHR)
+		CONTINUE
+	;自動発覚:中毒度5000以上or中毒度2000以上かつ好感度1000以上or機械ありかつ100以上
+	IF (MAXBASE:LOOP_CHR:薬物 > 5000 || (MAXBASE:LOOP_CHR:薬物 > 2000 && CFLAG:LOOP_CHR:好感度 > 1000 ) || (ITEM:31 && MAXBASE:LOOP_CHR:薬物 > 200)) && !PRENTR(LOOP_CHR, 他人, NTRPRE_職既知 ) && !RAND:5
+	SETBIT CFLAG:LOOP_CHR:NTRPREKNOW, 他人-人物_訪問者
+		IF MAXBASE:LOOP_CHR:薬物 > 5000 || (MAXBASE:LOOP_CHR:薬物 > 2000 && CFLAG:LOOP_CHR:好感度 > 1000 )
+			PRINTFORML 最近%CALLNAME:LOOP_CHR%の様子がおかしい
+			PRINTFORML どこか空ろな目をしていたり、今までにしそうもない行動をしたり……
+			PRINTFORML 不審に思った%CALLNAME:MASTER%が問い詰めたところ、クスリを使っていることを告白してきた
+		ELSE
+			;機械による発覚
+			PRINTFORML %CALLNAME:GET_SEC()%からの報告によると、機械による定期健診を行ったところ%CALLNAME:LOOP_CHR%から薬物陽性反応が検出されたようだ
+			PRINTFORML 中毒としてはまだ軽度のようだが……
+		ENDIF
+		TRYCALLFORM KOJO_MESSAGE_DRAG_DISCLOSE_K{NO:LOOP_CHR}(LOOP_CHR)
+		PRINTFORMW どうしよう？
+		PRINTL [0] - 放置(治療効果 無)
+		PRINTL [1] - 注意する(治療効果 小)
+		PRINTL [2] - 治療を受けさせる(治療効果 大:費用 毎日$1000-)
+		PRINTL [3] - 解雇する
+		INPUT
+		IF RESULT==3
+			PRINTFORML このまま雇い続けることは難しいだろう……
+			PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:LOOP_CHR%を解雇した
+			SETBIT TALENT:LOOP_CHR:NTRPRE, 他人-人物_訪問者
+			SETBIT CFLAG:LOOP_CHR:NTRPRELOG, 他人-人物_訪問者
+			SELECTCASE RAND:3
+				CASE 0
+					CALL NTRPRE堕ち(LOOP_CHR, 人物_AV男優)
+				CASE 1
+					CALL NTRPRE堕ち(LOOP_CHR, 人物_風俗オーナー)
+				CASEELSE
+					CALL NTRPRE堕ち(LOOP_CHR, 人物_パパ)
+			ENDSELECT
+			CALL FIRED_IDOL(LOOP_CHR)
+			CONTINUE
+		ELSEIF RESULT==1
+			PRINTFORML 以降使わないようにと厳重に注意した
+			PRINTFORMW 果たして守ってくれるだろうか…
+		ELSEIF RESULT==2
+			PRINTFORMW %CALLNAME:GET_SEC()%に口の堅い医者を紹介してもらい、そこで継続的に治療してもらうことにした
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%は敢えて何もしないことにした
+		ENDIF
+		CFLAG:LOOP_CHR:薬物治療=RESULT
+		
+		CONTINUE
+	ENDIF
+	;治療関連
+	;自然治癒
+	MAXBASE:LOOP_CHR:薬物=MAX(0, MAXBASE:LOOP_CHR:薬物-RAND:5)
+	
+	IF CFLAG:LOOP_CHR:薬物治療==1 && PRENTR(LOOP_CHR, 他人, NTRPRE_職既知 )
+	;自力
+		MAXBASE:LOOP_CHR:薬物=MAX(0, MAXBASE:LOOP_CHR:薬物-RAND:10-CFLAG:LOOP_CHR:好感度/100)
+	ELSEIF CFLAG:LOOP_CHR:薬物治療==2 && MONEY >= 1000  && PRENTR(LOOP_CHR, 他人, NTRPRE_職既知 )
+	;医者による治療
+		MONEY-=1000
+		MAXBASE:LOOP_CHR:薬物=MAX(0, MIN(MAXBASE:LOOP_CHR:薬物-RAND:20-CFLAG:LOOP_CHR:好感度/50 , MAXBASE:LOOP_CHR:薬物*3/5))
+		PRINTFORMW %CALLNAME:LOOP_CHR%は薬物の依存症状から脱却するために治療を受けている……
+	ELSEIF CFLAG:LOOP_CHR:薬物治療==2  && PRENTR(LOOP_CHR, 他人, NTRPRE_職既知 )
+		PRINTFORMW %CALLNAME:LOOP_CHR%の薬物の依存症状から脱却するための治療は資金不足のため行われなかった
+		MAXBASE:LOOP_CHR:薬物=MAX(0, MAXBASE:LOOP_CHR:薬物-RAND:10-CFLAG:LOOP_CHR:好感度/100)
+	ENDIF
+	;完治
+	IF MAXBASE:LOOP_CHR:薬物 < 10 && PRENTR(LOOP_CHR, 他人, NTRPRE_職既知 )
+		PRINTFORMW %CALLNAME:LOOP_CHR%は薬物依存状態から脱却したようだ
+		CLEARBIT CFLAG:LOOP_CHR:NTRPREKNOW, 他人-人物_訪問者
+		CLEARBIT TALENT:LOOP_CHR:NTRPRE, 他人-人物_訪問者
+	ENDIF
+	
+	SIF MAXBASE:LOOP_CHR:薬物 >2000+CFLAG:LOOP_CHR:好感度/10
+		CALL NTRPRE堕ち(LOOP_CHR, 人物_パパ)
+	SIF MAXBASE:LOOP_CHR:薬物 >3000+CFLAG:LOOP_CHR:好感度/10 && !TALENT:LOOP_CHR:処女 && PRENTR(LOOP_CHR, 他人, NTRPRE_職既知 )
+		SETBIT TALENT:LOOP_CHR:NTRPRE, 他人-人物_訪問者
+	SIF MAXBASE:LOOP_CHR:薬物 < 2*BASE:LOOP_CHR:薬物
+		CONTINUE
+	;ここから　禁断症状関連
+	CALL ADD_ADDICT_DRAG(LOOP_CHR, MAXBASE:LOOP_CHR:薬物/3, 1)
+
+		
+NEXT
+他人=人物_訪問者
+
+
+@ADD_ADDICT_DRAG(奴隷, 加算値 , 充足フラグ)
+;薬を打たれる処理
+#DIM 奴隷
+#DIM 加算値
+#DIM 充足フラグ
+MAXBASE:奴隷:薬物+=加算値
+SIF 充足フラグ
+	BASE:奴隷:薬物+=MAXBASE:奴隷:薬物
+RETURN 1

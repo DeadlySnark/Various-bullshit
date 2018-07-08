@@ -1,0 +1,384 @@
+;位置関係
+;部屋名出力
+@GETPLACENAME(場所番号,場所番号詳細)
+#FUNCTIONS
+#DIM 場所番号
+#DIM 場所番号詳細
+SELECTCASE 場所番号
+CASE 0
+		RETURNF "どこか"
+CASE 場所_事務所玄関
+		RETURNF "事務所玄関"
+CASE 場所_事務所オフィス
+		RETURNF "オフィス"
+CASE 場所_事務所休憩室
+		RETURNF "ロビーホール"
+CASE 場所_事務所キッチン
+		RETURNF "キッチン"
+CASE 場所_事務所廊下
+		RETURNF "廊下"
+CASE 場所_事務所レッスン室
+		RETURNF "レッスンルーム"
+CASE 場所_事務所衣装ルーム
+		RETURNF "衣装室"
+CASE 場所_事務所応接室
+		RETURNF "応接室"
+CASE 場所_事務所宿泊室
+		RETURNF "ベッドルーム"
+CASE 場所_事務所トイレ
+		RETURNF "トイレ"
+CASE 場所_事務所倉庫
+		RETURNF "倉庫"
+CASE 場所_事務所更衣室
+		RETURNF "更衣室"
+CASE 場所_シャワールーム
+		RETURNF "シャワールーム"
+;住宅街
+CASE 場所_住宅街
+		RETURNF "住宅街"
+CASE 場所_公園
+		RETURNF "公園"
+CASE 場所_公園茂み
+		RETURNF "公園の茂み"
+CASE 場所_公園トイレ
+		RETURNF "公園のトイレ"
+CASE 場所_駄菓子屋
+		RETURNF "駄菓子屋"
+CASE 場所_コンビニ
+		RETURNF "コンビニ"
+CASE 場所_スーパー
+		RETURNF "スーパー"
+;大通り_西
+CASE 場所_大通り西
+		RETURNF "大通り(西)"
+CASE 場所_レストラン
+		RETURNF "レストラン"
+CASE 場所_書店
+		RETURNF "書店"
+CASE 場所_家電店
+		RETURNF "家電店"
+CASE 場所_文房具屋
+		RETURNF "文房具屋"
+;大通り_東
+CASE 場所_大通り東
+		RETURNF "大通り(東)"
+CASE 場所_ライバル事務所
+		RETURNF "ライバル事務所"
+CASE 場所_役所
+		RETURNF "役所"
+CASE 場所_ジム
+		RETURNF "ジム"
+CASE 場所_収録スタジオ
+		RETURNF "スタジオ"
+CASE 場所_出版社
+		RETURNF "出版社"
+;繁華街
+CASE 場所_繁華街
+		RETURNF "繁華街"
+CASE 場所_繁華街南
+		RETURNF "駅前通り"
+CASE 場所_花屋
+		RETURNF "花屋"
+CASE 場所_喫茶店
+		RETURNF "喫茶店"
+CASE 場所_服屋
+		RETURNF "服屋"
+CASE 場所_ゲームセンター
+		RETURNF "ゲームセンター"
+CASE 場所_カラオケ
+		RETURNF "カラオケ"
+CASE 場所_居酒屋
+		RETURNF "居酒屋"
+CASE 場所_フードショップ
+		RETURNF "フードショップ"
+CASE 場所_音楽店
+		RETURNF "タワーレコード"
+CASE 場所_ビデオ屋
+		RETURNF "TATSUYA"
+CASE 場所_交番所
+		RETURNF "交番"
+CASE 場所_駅
+		RETURNF "駅"
+;学校
+CASE 場所_学校
+		RETURNF "学校"
+CASE 場所_学校初等部
+		RETURNF "初等部"
+CASE 場所_学校中等部
+		RETURNF "中等部"
+CASE 場所_学校高等部
+		RETURNF "高等部"
+;裏通り
+CASE 場所_裏路地
+		RETURNF "裏路地"
+CASE 場所_ラブホ
+		RETURNF "ラブホテル入口"
+CASE 場所_雑貨屋
+		RETURNF "雑貨屋"
+CASE 場所_ソープ待合室
+		RETURNF "ソープ(待合室)"
+CASE 場所_AV事務所
+		RETURNF "AVメーカー事務所"
+;寮
+CASE 場所_寮玄関
+		RETURNF "寮玄関"
+CASE 場所_寮ホール
+		RETURNF "ホール"
+CASE 場所_あなたの家玄関
+		IF CFLAG:MASTER:現在位置 < 場所_あなたの家玄関
+			RETURNF @"%CALLNAME:人物_あなた%の家"
+		ELSE
+			RETURNF "自宅玄関"
+		ENDIF
+CASE 場所_あなたの家風呂
+		RETURNF "風呂"
+CASE 場所_あなたの家居間
+		RETURNF "リビング"
+CASE 場所_あなたの家
+		RETURNF "寝室"
+CASE IS < 場所番号最大値+1
+		RETURNF @"%CALLNAME:(場所番号-場所_あなたの家)%の部屋"
+
+	CASE 場所_訪問者宅
+		RETURNF NTR_NAME(0)+"宅"
+	CASE 場所_ソープあなた用
+		RETURNF "ソープ"
+	CASE 場所_売春宿
+		RETURNF "売春宿"
+	CASE 場所_薄暗い路地裏
+		RETURNF "薄暗い路地裏"
+	CASE 場所_凍結用
+		RETURNF "？？？"
+	CASE 場所_審査員宅
+		RETURNF "審査員宅"
+	CASE 場所_ソープ
+		RETURNF "ソープ"
+	CASE 場所_生徒指導室
+		RETURNF "生徒指導室"
+	CASE 場所_薄暗い撮影所
+		RETURNF "薄暗い撮影所"
+	CASE 場所_彼氏の家
+		RETURNF "彼氏の家"
+	CASE 場所_動物小屋
+		RETURNF "動物小屋"
+	CASE 場所_阿片窟
+		RETURNF "阿片窟"
+	CASE 場所_ラブホ内部
+		RETURNF "ラブホテル"
+	CASE 場所_ラブホあなた用
+		RETURNF "ラブホテル"
+	CASE 場所_カラオケあなた用
+		RETURNF "カラオケ(個室)"
+	CASE 場所_ダミー , 場所_アイドル長屋 , 場所_間男長屋
+		RETURNF "どこか"
+	;エラー対策
+	CASEELSE
+		RETURNF "人目につかない場所(えらー？"
+ENDSELECT
+
+;-------------------------------------------------
+;関数名:NTR_GETPLACENAME
+;訪問者の現在位置を返す
+;MASTERから見えない位置の場合"あなたの目の届かない場所"を返す
+;-------------------------------------------------
+@NTR_GETPLACENAME(ARG)
+#FUNCTIONS
+;訪問者位置筒抜け
+IF IS_NTR_SHOW_POS()
+	RETURNF GETPLACENAME(ARG)
+;訪問者位置隠蔽
+ELSE
+	IF CFLAG:MASTER:現在位置 != FLAG:訪問者の現在位置 && CAN_MOVE(CFLAG:MASTER:現在位置, FLAG:訪問者の現在位置) != 2
+	;IF CAN_MOVE(CFLAG:MASTER:現在位置, FLAG:訪問者の現在位置) != 場所_広間
+		RETURNF CALLNAME:MASTER + "の目の届かない場所"
+	ELSE
+		RETURNF GETPLACENAME(ARG)
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;関数名:IN_ROOM
+;部屋の中で特定要素での最低・最高を持つキャラを取得
+;-------------------------------------------------
+@IN_ROOM(MINORMAX, 場所, 対象変数, 変数番号, 睡眠SKIP)
+	#FUNCTION
+	#DIMS MINORMAX		; "MIN" or "MAX"
+	#DIM 場所			; 場所コード
+	#DIMS 対象変数		; 対象となる変数の名前
+	#DIM 変数番号		; 変数の番号
+	#DIM 睡眠SKIP		; 0:全員が対象　1:睡眠中の住人は対象外
+	#DIM LOOP_CHR		; ループ変数
+	#DIM RET_VAL		; 戻り値
+	#DIM V_CMP			; 比較する値
+	#DIM N_CNT			; 該当する人数
+	RET_VAL=0
+	N_CNT = 0
+	SELECTCASE 対象変数
+		CASE "CFLAG"
+			FOR LOOP_CHR, 1, CHARANUM
+				SIF CFLAG:LOOP_CHR:現在位置 != 場所
+					CONTINUE
+				SIF 睡眠SKIP && CFLAG:LOOP_CHR:睡眠
+					CONTINUE
+				IF N_CNT++ == 0
+					V_CMP = CFLAG:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MAX" && V_CMP < CFLAG:LOOP_CHR:変数番号
+					V_CMP = CFLAG:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MIN" && V_CMP > CFLAG:LOOP_CHR:変数番号
+					V_CMP = CFLAG:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF V_CMP == CFLAG:LOOP_CHR:変数番号 && RAND:2
+					V_CMP = CFLAG:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ENDIF
+			NEXT
+			RETURNF RET_VAL
+		CASE "TCVAR"
+			FOR LOOP_CHR, 1, CHARANUM
+				SIF CFLAG:LOOP_CHR:現在位置 != 場所
+					CONTINUE
+				SIF 睡眠SKIP && CFLAG:LOOP_CHR:睡眠
+					CONTINUE
+				IF N_CNT++ == 0
+					V_CMP = TCVAR:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MAX" && V_CMP < TCVAR:LOOP_CHR:変数番号
+					V_CMP = TCVAR:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MIN" && V_CMP > TCVAR:LOOP_CHR:変数番号
+					V_CMP = TCVAR:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF V_CMP == TCVAR:LOOP_CHR:変数番号 && RAND:2
+					V_CMP = TCVAR:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ENDIF
+			NEXT
+			RETURNF RET_VAL
+		CASE "ABL"
+			FOR LOOP_CHR, 1, CHARANUM
+				SIF CFLAG:LOOP_CHR:現在位置 != 場所
+					CONTINUE
+				SIF 睡眠SKIP && CFLAG:LOOP_CHR:睡眠
+					CONTINUE
+				IF N_CNT++ == 0
+					V_CMP = ABL:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MAX" && V_CMP < ABL:LOOP_CHR:変数番号
+					V_CMP = ABL:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MIN" && V_CMP > ABL:LOOP_CHR:変数番号
+					V_CMP = ABL:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF V_CMP == ABL:LOOP_CHR:変数番号 && RAND:2
+					V_CMP = ABL:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ENDIF
+			NEXT
+			RETURNF RET_VAL
+		CASE "TALENT"
+			FOR LOOP_CHR, 1, CHARANUM
+				SIF CFLAG:LOOP_CHR:現在位置 != 場所
+					CONTINUE
+				SIF 睡眠SKIP && CFLAG:LOOP_CHR:睡眠
+					CONTINUE
+				IF N_CNT++ == 0
+					V_CMP = TALENT:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MAX" && V_CMP < TALENT:LOOP_CHR:変数番号
+					V_CMP = TALENT:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF MINORMAX == "MIN" && V_CMP > TALENT:LOOP_CHR:変数番号
+					V_CMP = TALENT:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ELSEIF V_CMP == TALENT:LOOP_CHR:変数番号 && RAND:2
+					V_CMP = TALENT:LOOP_CHR:変数番号
+					RET_VAL = LOOP_CHR
+				ENDIF
+			NEXT
+			RETURNF RET_VAL
+	ENDSELECT
+
+;部屋にいる人数を求める
+;ARG … 対象の部屋
+;ARG:1 … 0:MASTERは含めない 1:MASTERも含める
+;ARG:2 … 0:訪問者は含めない 1:訪問者も含める
+;ARG:3 … 0:魔理沙は含めない 1:魔理沙も含める
+@GET_N_IN_ROOM(ARG, ARG:1, ARG:2, ARG:3)
+#FUNCTION
+LOCAL:1 = 0
+;住人
+FOR LOCAL, 1, CHARA_ACTIVE
+	SIF CFLAG:LOCAL:現在位置 == ARG
+		LOCAL:1 ++
+NEXT
+;MASTER
+SIF ARG:1 && FLAG:訪問者の現在位置 == ARG
+	LOCAL:1 ++
+;訪問者
+;魔理沙
+;SIF ARG:1 && FLAG:侵入者の現在位置 == ARG
+;	LOCAL:1 ++
+
+RETURNF LOCAL:1
+
+@MAXROOM()
+#FUNCTION
+RETURNF 場所番号最大値+1
+
+;ベッドがある部屋
+@BEDROOM(ARG)
+#FUNCTION
+;特殊
+SIF (ARG == 場所_あなたの家居間 || (場所_あなたの家 <= ARG && ARG <= 場所番号最大値) || ARG >= 場所_訪問者宅 || ARG == 場所_ラブホあなた用 || ARG == 場所_ソープあなた用)
+		RETURNF 1
+;事務所
+SIF ARG == 場所_事務所宿泊室 || ARG == 場所_事務所応接室
+		RETURNF 1
+;街中
+SIF ARG == 場所_居酒屋 || ARG == 場所_公園茂み
+		RETURNF 1
+;風呂(プレイマットが必要)
+IF ARG == 場所_あなたの家風呂
+		;プレイマット
+		SIF ITEM:20
+			RETURNF 1
+ENDIF
+
+RETURNF 0
+
+;お風呂がある部屋
+@BATHROOM(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE 場所_シャワールーム
+		RETURNF 1
+	CASE 場所_あなたの家風呂
+		RETURNF 1
+ENDSELECT
+RETURNF 0
+
+;厨房がある部屋
+@KITCHEN(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE 場所_事務所キッチン
+		RETURNF 1
+ENDSELECT
+RETURNF 0
+
+;見通しがいい場所
+;戻り値2 野外プレイ 1室内
+@OPENPLACE(ARG)
+#FUNCTION
+SELECTCASE ARG
+;	;庭、正門、湖、テラス
+;	CASE 場所_繁華街
+;		RETURNF 2
+;	;広間,踊り場,廊下
+;	CASE 場所_学校
+;		RETURNF 1
+ENDSELECT
+RETURNF 0
+

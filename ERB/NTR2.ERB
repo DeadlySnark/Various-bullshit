@@ -1,0 +1,131 @@
+;NTRを複数人化するのに必要な関数
+
+@NTR拠点(ARG)
+;ARG/NTR人物番号に対してその拠点を返す。
+#FUNCTION
+SIF ARG == 人物_訪問者
+	RETURNF 場所_訪問者宅
+SIF ARG == 人物_審査員
+	RETURNF 場所_審査員宅
+SIF ARG == 人物_風俗オーナー
+	RETURNF 場所_ソープ
+SIF ARG == 人物_教師
+	RETURNF 場所_生徒指導室
+SIF ARG == 人物_AV男優
+	RETURNF 場所_薄暗い撮影所
+SIF ARG == 人物_彼氏
+	RETURNF 場所_彼氏の家
+SIF ARG == 人物_パパ
+	RETURNF 場所_ラブホ内部
+SIF ARG == 人物_犬
+	RETURNF 場所_動物小屋
+SIF ARG == 人物_ヤク売人
+	RETURNF 場所_阿片窟
+RETURNF 0
+
+@MAX屈服(ARG)
+;屈服地のMAXを返す
+#FUNCTION
+#DIM くっぷくぷー
+#DIM LOOP用
+くっぷくぷー=0
+	FOR LOOP用, 屈服IX, 屈服IX+100
+		SIF CFLAG:ARG:LOOP用 > くっぷくぷー
+			くっぷくぷー= CFLAG:ARG:LOOP用
+	NEXT
+RETURNF くっぷくぷー
+@MAX屈服_WHO(ARG)
+;屈服値のMAXの対象を返す
+#FUNCTION
+#DIM NTRった人
+#DIM 最大NTR
+#DIM 現在NTR
+現在NTR=0
+最大NTR=屈服IX
+	FOR NTRった人, 屈服IX, 屈服IX+100
+		IF CFLAG:ARG:NTRった人 > 現在NTR
+			現在NTR= CFLAG:ARG:NTRった人
+			最大NTR=NTRった人
+		ENDIF
+	NEXT
+RETURNF (最大NTR-屈服IX+1000)
+
+@NTR_WHO(ARG)
+;誰"に"陥落しているかを返す
+#FUNCTION
+#DIM NTRった人
+FOR NTRった人, 0, 64
+	SIF GETBIT(TALENT:ARG:NTR, NTRった人)
+	RETURNF (NTRった人+1000)
+NEXT
+RETURNF -1
+
+
+@朝奉仕_まとめ(ARG)
+;朝のご奉仕イベント
+#DIM 奉仕種別
+			IF NTR_CHK_VISIBLE(CFLAG:ARG:現在位置)
+				CALL NTR_MESSAGE_14(ARG)
+			ENDIF
+			;LOOP_CHR:2…行為(0:口奉仕,1:尻穴奉仕,2:淫壷奉仕,)
+			奉仕種別 = 0
+			奉仕種別 = RAND:3
+			SIF TALENT:ARG:処女
+				奉仕種別=MIN(2, 奉仕種別)
+			;奉仕実行
+			IF 奉仕種別 == 0
+				CALL NTR_MORNING_SERVICE_FELLATIO(ARG)
+			ELSEIF 奉仕種別 == 1
+				CALL NTR_MORNING_SERVICE_ASEX(ARG)
+			ELSEIF 奉仕種別 == 2
+				CALL NTR_MORNING_SERVICE_VSEX(ARG)
+			ENDIF
+			;公衆便所時もっと汚れて帰ってくる
+			CALL MORNING_ADD_STAIN(ARG)
+			;帰宅時のおみやげ
+			CALL NTR_PUNISHMENT(ARG)
+			CALL NTR_SOURCE_CHECK(ARG, 他人)
+			IF NTR_CHK_VISIBLE(CFLAG:ARG:現在位置)
+				PRINTFORMW  ：
+				PRINTFORMW  ：
+				PRINTFORMW %CALLNAME:ARG%が帰ってきたようだ
+				CALL NTR_MESSAGE_0(ARG)
+				TRYCALLLIST
+					FUNC NTR_KOJO_K{ARG}_0(ARG)
+					FUNC NTR_KOJO_K_0(ARG)
+				ENDFUNC
+			ENDIF
+			SIF !TALENT:ARG:親愛
+					EXP:ARG:浮気外泊経験 ++
+			IF 所属(ARG)
+			CFLAG:ARG:現在位置 = 場所_事務所玄関
+			ELSE
+			CFLAG:ARG:現在位置 = 場所_ダミー
+			ENDIF
+[SKIPSTART]
+@ヤクザの集金
+#DIM 奴隷
+他人=人物_風俗オーナー
+PRINTFORML ガラの悪い男たちが事務所に乗り込んできた
+PRINTFORMW 「今月分の金をもらいに来たぜ」
+IF MONEY < 10000
+;足らない
+;生贄の選択(好感度が高い、かつまだ沈められていない)
+	奴隷=1
+	FOR COUNT,1, CHARA_ACTIVE
+		SIF CFLAG:COUNT:好感度 >= CFLAG:奴隷:好感度 && (CFLAG:COUNT:現在位置 != 場所_ソープ || CFLAG:COUNT:自主性)
+			奴隷=COUNT
+	NEXT
+	PRINTFORML %CALLNAME:MASTER%は恐る恐る、足らなかったので来月まで待ってもらえないかと頼んだ。
+	PRINTFORML %NTR_NAME(他人)%はダメに決まってるだろう、と怒鳴りつけると
+	PRINTFORMW 予め目をつけていたのだろう、%CALLNAME:奴隷%の写真を懐から取り出して、こいつを預かるぜ、と言った。
+	CALL VISITER_TAKINGOUT(奴隷)
+	CALL NTR_ADD_SURRENDER(奴隷, 250)
+ELSE
+;足りる
+	PRINTFORML ちひろさんは震える手でお金の入った袋を%NTR_NAME(他人)%に渡した
+	PRINTFORMW %NTR_NAME(他人)%は中身を確認すると舌打ちして、来月もちゃんと払えよ、と言い捨てて帰っていた。
+	MONEY -= 10000
+ENDIF
+他人=人物_訪問者
+[SKIPEND]

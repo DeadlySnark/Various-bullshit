@@ -1,0 +1,92 @@
+;v640
+;紅のシステムだと到底無理なので一回掃除
+;-------------------------------------------------------------------------------
+;v640住人の相性変動のみ この関数は20分おきに呼ばれていることに注意
+@INHABITANT_DO
+#DIM LOOP_CHR,2
+;doublecount防止用 最悪でもCSVキャラ数あれば大丈夫
+#DIM CHK_AISHO, CSVキャラ数
+#DIM TARGET_INHABIT
+#DIM POINT
+#DIM RATE,2
+SIF !GETBIT(FLAG:住人同士イベント設定,0)
+	RETURN 0
+;初期化 これは相性変動済かどうかを記憶
+VARSET CHK_AISHO
+FOR LOOP_CHR:0 ,1, CHARA_ACTIVE-1
+	TARGET_INHABIT=-1
+	;行動済の場合は飛ばし
+	SIF CHK_AISHO:(LOOP_CHR:0) != 0
+		CONTINUE
+	;ENEMY相当はスキップ
+	SIF TALENT:(LOOP_CHR:0):ＥＮＥＭＹ
+		CONTINUE
+	;凍結中はスキップ
+	SIF CFLAG:(LOOP_CHR:0):凍結
+		CONTINUE
+	;睡眠時及びアイドル長屋はスキップ
+	SIF CFLAG:(LOOP_CHR:0):睡眠 ||CFLAG:(LOOP_CHR:0):現在位置==場所_アイドル長屋
+		CONTINUE
+	;上番号だけで大丈夫のはず
+	FOR LOOP_CHR:1, LOOP_CHR:0+1 , CHARA_ACTIVE
+		;ENEMY相当はスキップ
+		SIF TALENT:(LOOP_CHR:1):ＥＮＥＭＹ
+			CONTINUE
+		;睡眠はスキップ
+		SIF CFLAG:(LOOP_CHR:1):睡眠
+			CONTINUE
+		;別の場所はスキップ
+		SIF CFLAG:(LOOP_CHR:0):現在位置!=CFLAG:(LOOP_CHR:1):現在位置
+			CONTINUE
+		;行動済はスキップ
+		SIF CHK_AISHO:(LOOP_CHR:1) != 0
+		CONTINUE
+		;ここから処理開始
+		;まだ誰もいないときは記録
+		SIF TARGET_INHABIT==-1
+			TARGET_INHABIT=LOOP_CHR:1
+		;念のため0処理
+		SIF RELATION:(LOOP_CHR:0):(NO:(LOOP_CHR:1))==0
+			RELATION:(LOOP_CHR:0):(NO:(LOOP_CHR:1))=100
+		SIF RELATION:(LOOP_CHR:1):(NO:(LOOP_CHR:0))==0
+			RELATION:(LOOP_CHR:1):(NO:(LOOP_CHR:0))=100
+		;すでにいるときは比較、100から遠いほど交流確率が高くなるように
+		;タレント補正あってもいいかも？
+		RATE:0=LIMIT(ABS(RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))-100), 10, 100)
+		RATE:1=LIMIT(ABS(RELATION:(LOOP_CHR:0):(NO:(LOOP_CHR:1))-100), 10, 100)
+		;RATE:1/(RATE:0+RATE:1)の確率で新しい方に行く
+		SIF RAND:(1+RATE:0+RATE:1)> RATE:0
+			TARGET_INHABIT=LOOP_CHR:1
+	NEXT
+	SIF TARGET_INHABIT==-1
+		CONTINUE
+	;行動済にする
+	CHK_AISHO:(LOOP_CHR:0)=1
+	CHK_AISHO:(TARGET_INHABIT)=1
+	;190以上、10以下は危険なのでv0640現時点ではスキップ
+	SIF ABS(RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))-100)>90
+		CONTINUE
+	;相性変動
+	IF ABS(RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))-100)<25
+		;75~125
+		;ランダムに変動、頻度は低め
+		SIF !RAND:3
+			CONTINUE
+		;-2~2
+		POINT=RAND:5-2
+		RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))=POINT+RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))
+		RELATION:(TARGET_INHABIT):(NO:(LOOP_CHR:0))=POINT+RELATION:(TARGET_INHABIT):(NO:(LOOP_CHR:0))
+	ELSE
+		;相性の良いキャラはどんどんよく、悪いキャラはどんどんわるく まるでげんじつみたいだあ
+		SIF !RAND:4
+			CONTINUE
+		;-1~2
+		POINT=RAND:4-1
+		SIF (RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))-100)<0
+			POINT=-1*POINT
+		RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))=POINT+RELATION:(LOOP_CHR:0):(NO:(TARGET_INHABIT))
+		RELATION:(TARGET_INHABIT):(NO:(LOOP_CHR:0))=POINT+RELATION:(TARGET_INHABIT):(NO:(LOOP_CHR:0))
+	ENDIF
+	;いずれ住人同市筒抜け設定で見えるように
+;	PRINTFORML %CSTR:(LOOP_CHR:0):フルネーム%と%CSTR:TARGET_INHABIT:フルネーム%の仲が{POINT}変動した
+NEXT

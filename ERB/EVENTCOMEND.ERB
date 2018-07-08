@@ -1,0 +1,903 @@
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@EVENTCOM
+
+;-------------------------------------------------------------------------------
+;ターン終了の処理
+@EVENTCOMEND
+	CALL TURN_RESET
+	;気温・天候変更
+;	CALL 天候によるステータス増減処理
+	CALL 現在気温設定
+	CALL 天候状態
+	;特殊起床処理
+	CALL 特殊起床
+	TFLAG:行為騒音 = 0
+	;公園トイレ→とりあえず解錠、条件によって施錠
+	FLAG:(300+場所_公園トイレ)=0
+	
+	FOR LOCAL, 0, CHARA_ACTIVE
+		;凍結
+		IF CFLAG:LOCAL:凍結
+			CFLAG:LOCAL:現在位置=場所_凍結用
+			CONTINUE
+		ENDIF
+		;円光関連
+		IF !CFLAG:LOCAL:うふふ && CFLAG:LOCAL:現在位置 == 場所_ラブホあなた用 && FLAG:従順一時保存 && LOCAL!=MASTER
+			SIF CFLAG:LOCAL:現在位置==CFLAG:MASTER:現在位置
+				PRINTFORML 情事が終わると%CALLNAME:LOCAL%はお金を持ってそそくさとホテルから出て行った…
+			TRYCALLFORM ENKOU_FINISH_K{NO:LOCAL}(LOCAL)
+			ABL:LOCAL:従順=FLAG:従順一時保存-1
+			FLAG:従順一時保存=0
+			CFLAG:LOCAL:現在位置=場所_ダミー
+			TIME +=10
+		ENDIF
+		;sorp処理
+		IF !CFLAG:LOCAL:うふふ && CFLAG:LOCAL:現在位置 == 場所_ソープあなた用 && FLAG:従順一時保存 && LOCAL!=MASTER
+			SIF CFLAG:LOCAL:現在位置==CFLAG:MASTER:現在位置
+				PRINTFORML 時間が来たので、部屋を出たところで%CALLNAME:LOCAL%と別れた…
+			TRYCALLFORM SORP_FINISH_K{NO:LOCAL}(LOCAL)
+			ABL:LOCAL:従順=FLAG:従順一時保存-1
+			FLAG:従順一時保存=0
+			CFLAG:LOCAL:現在位置=場所_ダミー
+			他人=人物_風俗オーナー
+			CALL VISITER_TAKINGOUT(LOCAL)
+			他人=人物_訪問者
+			TIME +=10
+		ENDIF
+		;皆援交関係　従順を戻す
+		IF !CFLAG:LOCAL:うふふ && CFLAG:LOCAL:従順一時保存 > 0 && LOCAL != MASTER
+			ABL:LOCAL:従順 = CFLAG:LOCAL:従順一時保存-1
+			CFLAG:LOCAL:従順一時保存 = 0
+		ENDIF
+		;TALENT:NTRPRELOGDISPの調整
+		CALL CHK_NTRPRELOGDISP(LOCAL)
+		CALL CHK_好感度(LOCAL)
+		IF 天候(天候値) == "桃霧"
+			CFLAG:LOCAL:桃霧性欲フラグ += TIME_PROGRESS(TFLAG:300)
+			IF OPENPLACE(CFLAG:LOCAL:現在位置) == 2
+				IF CFLAG:LOCAL:桃霧性欲フラグ >= 5
+					LOCAL:1 = CFLAG:LOCAL:桃霧性欲フラグ / 5
+					CFLAG:LOCAL:性欲 += LOCAL:1
+					CFLAG:LOCAL:桃霧性欲フラグ -= (LOCAL:1*5)
+				ENDIF
+			ELSE
+				IF CFLAG:LOCAL:桃霧性欲フラグ >= 20
+					LOCAL:1 = CFLAG:LOCAL:桃霧性欲フラグ / 20
+					CFLAG:LOCAL:性欲 += LOCAL:1
+					CFLAG:LOCAL:桃霧性欲フラグ -= (LOCAL:1*20)
+				ENDIF
+			ENDIF
+		ENDIF
+		;満足度最大値上昇処理
+		SIF !CFLAG:LOCAL:満足度上昇 && BASE:LOCAL:満足 >= MAXBASE:LOCAL:満足
+			CFLAG:LOCAL:満足度上昇 = 1
+		;満足後の絶頂で性欲減少
+		IF LOCAL == MASTER && EXP:LOCAL:絶頂経験 > CFLAG:LOCAL:前回絶頂経験数
+			CFLAG:LOCAL:性欲 /= 2
+		ELSEIF CFLAG:LOCAL:満足度上昇 && EXP:LOCAL:絶頂経験 > CFLAG:LOCAL:前回絶頂経験数
+			CFLAG:LOCAL:性欲 /= 2
+		ENDIF
+		;自慰処理
+		IF CFLAG:LOCAL:自慰中 > 0 && (TALENT:LOCAL:事務員 > 0 || TALENT:LOCAL:アイドル > 0 || TALENT:LOCAL:トレーナー >= 2)
+			CALL キャラ自慰中処理, LOCAL
+		ENDIF
+		;娼婦紋による発情処理
+		TRYCALL COM417_add_sexual_desire_ex(LOCAL)
+		CALL COM417_add_sexual_desire(LOCAL)
+		;傷心時の屈服度増加
+		IF TALENT:LOCAL:傷心 && FLAG:訪問者の現在位置 == CFLAG:LOCAL:現在位置
+			LOCAL:1 = TIME_PROGRESS(TFLAG:300)
+			IF TALENT:LOCAL:傷心 >= 1000
+				TIMES LOCAL:1, 1.30
+			ELSEIF TALENT:LOCAL:傷心 >= 600
+				TIMES LOCAL:1, 1.15
+			ELSEIF TALENT:LOCAL:傷心 >= 300
+				TIMES LOCAL:1, 0.90
+			ELSEIF TALENT:LOCAL:傷心 >= 150
+				TIMES LOCAL:1, 0.70
+			ELSE
+				TIMES LOCAL:1, 0.50
+			ENDIF
+			CALL NTR_ADD_SURRENDER(LOCAL, LOCAL:1)
+		ENDIF
+		CFLAG:LOCAL:前回絶頂経験数 = EXP:LOCAL:絶頂経験
+		;公園トイレ
+		;公衆便所持ち、誰かに誘拐されている
+		SIF TALENT:LOCAL:公衆便所 && CFLAG:LOCAL:現在位置 == NTR拠点(CFLAG:LOCAL:軟禁者) && CFLAG:LOCAL:客人数
+			FLAG:(300+場所_公園トイレ)=1
+	NEXT
+	;パンツ没収、収集
+	IF TFLAG:COMABLE管理 < 2
+		IF TARGET > 0 && !CFLAG:睡眠
+			IF STRLENS(CSTR:MASTER:12) && 収集品死守戦発生(TARGET)
+				PRINTL 
+				CALL 収集品死守戦開始, TARGET, 1
+				IF RESULT == 1
+					PRINTFORMW %CALLNAME:TARGET%に見とがめられ身体検査をされた…
+					PRINTFORMW 
+					PRINTFORMW 
+					PRINTFORMW 
+					PRINTFORMW 収集品を没収された
+					SIF !GETBIT (CFLAG:10 ,0)
+						PRINTFORMW %CALLNAME:TARGET%に弱みを握られた
+					SETBIT CFLAG:10 ,0
+					CALL KOJO_EVENT(11, TARGET, 0)
+					CSTR:MASTER:12 =
+				ENDIF
+			ELSEIF FLAG:貞操帯鍵購入フラグ && RAND:2 && CFLAG:TARGET:NTR貞操帯反応
+				;NTR貞操帯鍵
+				PRINTL 
+				PRINTFORMW %CALLNAME:TARGET%に見とがめられ身体検査をされた…
+				PRINTFORMW 
+				PRINTFORMW 
+				PRINTFORMW 
+				PRINTFORMW 貞操帯の鍵を発見された。
+				CALL NTR_LOCK_REACTION(TARGET)
+			ENDIF
+		ENDIF
+	ENDIF
+	
+	;学校処理
+	IF CFLAG:MASTER:現在位置 >= 場所_学校 && CFLAG:MASTER:現在位置 <= 場所_学校高等部 && TIME > 300 && TIME < 360
+		PRINTL
+		PRINTFORMW もうすぐ朝になる…
+		PRINTFORMW 時間を確認した%CALLNAME:MASTER%は、すぐに学校を後にした。
+		PRINTL
+		CFLAG:MASTER:現在位置 = 場所_繁華街
+	ENDIF
+	IF CFLAG:MASTER:現在位置 >= 場所_学校 && CFLAG:MASTER:現在位置 <= 場所_学校高等部 && TIME > 1080 && TIME < 1320
+		PRINTL
+		PRINTFORMW 下校時間を過ぎたようだ…
+		PRINTFORMW 時間を確認した%CALLNAME:MASTER%は、すぐに学校を後にした。
+		PRINTL
+		CFLAG:MASTER:現在位置 = 場所_繁華街
+	ENDIF
+
+	;カラオケ処理
+	IF CFLAG:MASTER:現在位置 == 場所_カラオケあなた用
+		FOR LOCAL, 2, CHARA_ACTIVE
+			;同行していないキャラクターを個室から出す
+			IF CFLAG:LOCAL:現在位置 == 場所_カラオケあなた用 && CFLAG:LOCAL:同行 == 0
+				CFLAG:LOCAL:現在位置 = 場所_カラオケ
+				PRINTL
+				PRINTFORMW %CALLNAME:LOCAL%は個室を後にした。
+			ENDIF
+		NEXT
+		CALL MANAGE_KARAOKE_TIME(0)
+	ENDIF
+	
+	;キャラクター発見処理
+	;433 お酒を注文する(居酒屋)
+	IF TFLAG:発見キャラ_居酒屋 > 0 && SELECTCOM == 433
+		;移動処理
+		CFLAG:(TFLAG:発見キャラ_居酒屋):現在位置=場所_居酒屋
+		TARGET = TFLAG:発見キャラ_居酒屋
+	ENDIF
+	
+	
+	IF BASE:MASTER:体力 <= 500
+		PRINTW （体力が限界に来ています　一日を終了します）
+		FLAG:1840 = 0
+		CFLAG:MASTER:睡眠 = 1
+		CFLAG:MASTER:就寝時間 = DATETIME()
+		IF TARGET > 0 && TALENT:恋慕 && CFLAG:現在位置 != 場所_訪問者宅 && BASE:体力 >= 500 && !CFLAG:睡眠
+			PRINTFORMW %CALLNAME%が%CALLNAME:MASTER%を私室へと運んでくれた…
+			CFLAG:MASTER:現在位置 = CFLAG:MASTER:開始位置
+			CFLAG:現在位置 = CFLAG:MASTER:開始位置
+			CALL KOJO_EVENT(7, TARGET, 5)
+		ENDIF
+		FOR LOCAL,0,CHARA_ACTIVE
+			CFLAG:LOCAL:うふふ = 0
+			CFLAG:LOCAL:物陰 = 0
+		NEXT
+		BEGIN AFTERTRAIN
+	ENDIF
+	IF TARGET && CFLAG:不機嫌 && FLAG:従順一時保存 == 0 && CFLAG:TARGET:従順一時保存 == 0
+		PRINTFORMW %CALLNAME:TARGET%を怒らせてしまった…
+		FOR LOCAL,0,CHARA_ACTIVE
+			CFLAG:LOCAL:うふふ = 0
+			CFLAG:LOCAL:物陰 = 0
+		NEXT
+	ENDIF
+	;円光or風俗なら限界まで返さないゾ
+	IF TARGET && BASE:体力 < 10 && CFLAG:TARGET:現在位置 != 場所_訪問者宅 && ( FLAG:従順一時保存 > 0 ||  CFLAG:TARGET:従順一時保存 > 0 )
+		PRINTFORMW （%CALLNAME:TARGET%の体力が限界に来ています）
+		CFLAG:TARGET:衰弱 = 360
+		CFLAG:TARGET:睡眠深度 = 10000
+		CFLAG:TARGET:自慰中 = 0
+		CALL CHARA_SLEEP, TARGET
+		;うふふ途中脱落設定ON
+		IF GETBIT(FLAG:雑多設定, 15) == 1
+			;当該キャラだけ脱落
+			CFLAG:TARGET:うふふ = 0
+			CFLAG:TARGET:物陰 = 0
+			;全員うふふ無しならあなたからもうふふフラグ外して中止
+			LOCAL:2 = 0
+			FOR LOCAL,0,CHARA_ACTIVE
+				IF CFLAG:LOCAL:うふふ > 0
+					LOCAL:2 = 1
+					BREAK
+				ENDIF
+			NEXT
+			IF LOCAL:2 == 0
+				CFLAG:MASTER:うふふ = 0
+				CFLAG:MASTER:物陰 = 0
+			ENDIF
+		;うふふ途中脱落設定OFF デフォルト処理
+		ELSE
+			FOR LOCAL,0,CHARA_ACTIVE
+				CFLAG:LOCAL:うふふ = 0
+				CFLAG:LOCAL:物陰 = 0
+			NEXT
+		ENDIF
+	ENDIF
+	IF TARGET && BASE:体力 < 500 && CFLAG:TARGET:現在位置 != 場所_訪問者宅 && FLAG:従順一時保存 == 0 && CFLAG:TARGET:従順一時保存 == 0
+		PRINTFORMW （%CALLNAME:TARGET%の体力が限界に来ています）
+		CFLAG:TARGET:衰弱 = 360
+		CFLAG:TARGET:睡眠深度 = 10000
+		CFLAG:TARGET:自慰中 = 0
+		CALL CHARA_SLEEP, TARGET
+		;うふふ途中脱落設定ON
+		IF GETBIT(FLAG:雑多設定, 15) == 1
+			;当該キャラだけ脱落
+			CFLAG:TARGET:うふふ = 0
+			CFLAG:TARGET:物陰 = 0
+			;全員うふふ無しならあなたからもうふふフラグ外して中止
+			LOCAL:2 = 0
+			FOR LOCAL,0,CHARA_ACTIVE
+				IF CFLAG:LOCAL:うふふ > 0
+					LOCAL:2 = 1
+					BREAK
+				ENDIF
+			NEXT
+			IF LOCAL:2 == 0
+				CFLAG:MASTER:うふふ = 0
+				CFLAG:MASTER:物陰 = 0
+			ENDIF
+		;うふふ途中脱落設定OFF デフォルト処理
+		ELSE
+			FOR LOCAL,0,CHARA_ACTIVE
+				CFLAG:LOCAL:うふふ = 0
+				CFLAG:LOCAL:物陰 = 0
+			NEXT
+		ENDIF
+	ENDIF
+	CALL ChastityBelt_Check()
+	
+	
+	
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@TURN_RESET
+	;処女喪失(念のため、程度。実際に破った時はLOST_VIRGINを呼ぶ事)
+	FOR LOCAL,0,CHARA_ACTIVE
+		IF TCVAR:LOCAL:破瓜
+			TALENT:LOCAL:処女 = 0
+		ENDIF
+	NEXT
+	;童貞喪失
+	SELECTCASE SELECTCOM
+		CASE 60,61,65,67,68
+			TALENT:MASTER:1 |= 1
+		CASE 62,63,66,69,70
+			TALENT:MASTER:1 |= 2
+	ENDSELECT
+	SELECTCASE SELECTCOM
+		CASE 64, 97, 98 ,99
+			TALENT:1 |= 1
+		CASE 92,93,94
+			TALENT:1 |= 2
+		CASE 71
+			IF MASTER_POSE(6,1,1)
+				TALENT:1 |= 2
+			ELSE
+				TALENT:1 |= 1
+			ENDIF
+	ENDSELECT
+	;既成事実
+	FOR LOCAL,1,CHARA_ACTIVE
+		SIF CFLAG:LOCAL:うふふ
+			SETBIT CFLAG:LOCAL:既成事実 , 1
+	NEXT
+	;告白成功
+	SIF SELECTCOM == 352 && TFLAG:193 > 0
+		SETBIT CFLAG:1 , 0
+	;食事
+	SIF SELECTCOM == 414 || SELECTCOM == 415
+		FLAG:料理 = 0
+	;脱衣コマンド
+	SELECTCASE SELECTCOM
+			;上半身脱衣
+		CASE 200
+			EQUIP:上半身上着１ = 0
+			EQUIP:上半身上着２ = 0
+			EQUIP:ボディースーツ = 0
+			EQUIP:ワンピース = 0
+			EQUIP:着物 = 0
+			EQUIP:レオタード = 0
+			CALL CLOTHES_SETTING_TRAIN(TARGET)
+			;下半身脱衣
+		CASE 201
+			EQUIP:下半身上着１ = 0
+			EQUIP:下半身上着２ = 0
+			EQUIP:スカート = 0
+			CALL CLOTHES_SETTING_TRAIN(TARGET)
+			;上半身下着脱衣
+		CASE 202
+			EQUIP:上半身下着１ = 0
+			EQUIP:上半身下着２ = 0
+			CALL CLOTHES_SETTING_TRAIN(TARGET)
+			;下半身下着脱衣
+		CASE 203
+			EQUIP:下半身下着１ = 0
+			EQUIP:下半身下着２ = 0
+			CALL CLOTHES_SETTING_TRAIN(TARGET)
+	ENDSELECT
+	;調教履歴を1ターン保存
+	FOR LOCAL,0,CHARA_ACTIVE
+		TCVAR:LOCAL:110 = TCVAR:LOCAL:10
+		TCVAR:LOCAL:112 = TCVAR:LOCAL:12
+		SIF TCVAR:LOCAL:102
+			TCVAR:LOCAL:102 --
+		SIF !TCVAR:LOCAL:102
+			TCVAR:LOCAL:103 = -1
+		SIF TCVAR:LOCAL:104
+			TCVAR:LOCAL:104 --
+		SIF !TCVAR:LOCAL:104
+			TCVAR:LOCAL:105 = -1
+		;体位の保存
+		FOR LOCAL:1,1,11
+			TEQUIP:LOCAL:(110 + LOCAL:1) = TEQUIP:LOCAL:(100 + LOCAL:1)
+		NEXT
+		;体勢制御
+		IF TCVAR:LOCAL:体勢制御
+			TCVAR:LOCAL:体勢制御 --
+			SIF TCVAR:LOCAL:体勢制御 == 0
+				TCVAR:LOCAL:体勢 = 0
+		ENDIF
+		;位置関係制御
+		IF TCVAR:LOCAL:位置関係制御
+			TCVAR:LOCAL:位置関係制御 --
+			SIF TCVAR:LOCAL:位置関係制御 == 0
+				TCVAR:LOCAL:位置関係 = 0
+		ENDIF
+		;ついでに射精処理用文字列変数の初期化
+		CSTR:LOCAL:10 = /
+		CSTR:LOCAL:11 = /
+		;服装フラグ
+		CALL CLOTHES_SETTING_TRAIN(LOCAL)
+	NEXT
+	;BASEの変動
+	FOR LOCAL,0,CHARA_ACTIVE
+		;勃起度
+		;加算後
+		CFLAG:LOCAL:勃起度２ = BASE:LOCAL:勃起
+		BASE:LOCAL:勃起 = MIN(BASE:LOCAL:勃起,1500)
+		;DEBUGPRINTFORML %CALLNAME:LOCAL+"の勃起＝"+TOSTR(BASE:LOCAL:勃起)%
+		IF NOWEX:LOCAL:射精
+			;射精後
+			IF !MASTER_POSE(6,1) && !MASTER_POSE(7,1)
+				;挿入中じゃなければ萎える
+				BASE:LOCAL:勃起 = (BASE:LOCAL:勃起*(ABL:LOCAL:欲望+1)*(BASE:LOCAL:精力+200)/((MAXBASE:LOCAL:精力+200)*(ABL:LOCAL:欲望+10)))
+			ELSE
+				;挿入中なら1000を維持
+				BASE:LOCAL:勃起 = 1000
+			ENDIF
+		ELSE
+			;射精時以外、精力が無いと萎えやすい。（精力100以下になると顕著）
+			BASE:LOCAL:勃起 = MIN(BASE:LOCAL:勃起, ( BASE:LOCAL:勃起 * (BASE:LOCAL:精力+2000*(BASE:LOCAL:精力>100))/(MAXBASE:LOCAL:精力+2000)))
+		ENDIF
+		;勃起ペナルティ判定
+		CALL SOJI_SexHara_ErectPunishment(LOCAL)
+	NEXT
+	;フラグのリセット
+	TFLAG:193 = 0
+	TFLAG:194 = 0
+	TSTR:2 = 
+	;TCVARのリセット
+	FOR LOCAL,0,100
+		FOR LOCAL:1,0,CHARA_ACTIVE
+			TCVAR:(LOCAL:1):LOCAL = 0
+		NEXT
+	NEXT
+	;挿入履歴
+	FOR LOCAL,0,CHARA_ACTIVE
+		TCVAR:LOCAL:100 = TEQUIP:LOCAL:Ｖセックス
+		TCVAR:LOCAL:101 = TEQUIP:LOCAL:Ａセックス
+	NEXT
+	TFLAG:110 = TCVAR:MASTER:130
+	;ビデオテープの残量
+	SIF TEQUIP:ビデオ撮影
+		TEQUIP:ビデオ撮影 --
+	;FIRSTTIMEにSELECTCOMをぶっこむ
+	CALLF FIRSTTIME(SELECTCOM)
+	FOR LOCAL,1,CHARA_ACTIVE
+		SIF EXP_UP(15,LOCAL)
+			CALLF FIRSTTIME("精飲",0,LOCAL)
+	NEXT
+	;射精箇所
+	FOR LOCAL:1,0,60
+		IF GETBIT(TFLAG:1,LOCAL:1)
+			LOCALS = "射精"{LOCAL:1}
+			CALLF FIRSTTIME(LOCALS,0,TARGET)
+		ENDIF
+	NEXT
+	PREVCOM = SELECTCOM
+	;派生コマンドの履歴
+	TFLAG:151 = TFLAG:50
+	;前回のTARGET
+	TFLAG:103 = TARGET
+	TFLAG:150 = ASSIPLAY
+	;経験値取表示用
+	FOR LOCAL,0,CHARA_ACTIVE
+		;現在位置の保存
+		;円光&sorp用 従順のリセット
+		IF (CFLAG:LOCAL:前ターン位置 == 場所_ラブホあなた用 || CFLAG:LOCAL:前ターン位置 == 場所_ソープあなた用) && CFLAG:LOCAL:前ターン位置 != CFLAG:LOCAL:現在位置 && FLAG:従順一時保存 && LOCAL != MASTER
+			ABL:LOCAL:従順=FLAG:従順一時保存-1
+			FLAG:従順一時保存=0
+			IF CFLAG:LOCAL:前ターン位置==場所_ソープあなた用
+				他人=人物_風俗オーナー
+				CALL VISITER_TAKINGOUT(LOCAL)
+				他人=人物_訪問者
+			ENDIF
+		ENDIF
+		CFLAG:LOCAL:前ターン位置 = CFLAG:LOCAL:現在位置
+		FOR LOCAL:1,0,100
+			TCVAR:LOCAL:(400 + LOCAL:1) = EXP:LOCAL:(LOCAL:1)
+		NEXT
+	NEXT
+	;TFLAGのリセット
+	REPEAT 100
+		TFLAG:COUNT = 0
+	REND
+	;眠いと気力が減少していく
+	IF TIME_PROGRESS(CFLAG:MASTER:起床時間) >= 1260 && !CFLAG:MASTER:睡眠
+		BASE:MASTER:体力 = MAX(BASE:MASTER:体力 - 3 * TIME_PROGRESS(TFLAG:300) , 0)
+		BASE:MASTER:気力 = MAX(BASE:MASTER:気力 - 5 * TIME_PROGRESS(TFLAG:300) , 0)
+	ENDIF
+	;行為者をリセット
+	FOR LOCAL:1,0,CHARA_ACTIVE
+		TCVAR:(LOCAL:1):行為者 = -1
+	NEXT
+
+;------------------------------------------------
+@キャラ自慰中処理, ARG
+
+;LOCAL   前:誰かが来たか 後:弄る箇所数
+;LOCAL:1 弄る場所１
+;LOCAL:2 弄る場所２
+
+;LOCAL:3~6 弄る場所判定
+
+;弄る箇所数
+;	自慰中毒Lv0~1 １ヶ所
+;	          2~3 １～２ヶ所
+;	          4~5 ２ヶ所
+;自慰行動保存 Bit 0=行為C 1=行為V 2=行為A 3=行為B 4=2点行為 5=絶頂
+CFLAG:ARG:自慰行動保存 = 0
+
+SELECTCASE ABL:ARG:自慰中毒
+	CASE 0, 1
+		LOCAL = 1
+	CASE 2, 3
+		LOCAL = RAND:2 + 1
+	CASEELSE
+		LOCAL = 2
+ENDSELECT
+
+SIF LOCAL == 2
+	SETBIT CFLAG:ARG:自慰行動保存, 4
+
+BASE:ARG:体力 -= (15 * LOCAL)
+BASE:ARG:気力 -= (10 * LOCAL)
+
+
+;弄る場所設定、感覚の高い順
+LOCAL:10 = MAX(ABL:ARG:Ｃ感覚, ABL:ARG:Ｖ感覚, ABL:ARG:Ａ感覚, ABL:ARG:Ｂ感覚)
+LOCAL:3 = 0
+LOCAL:4 = 0
+LOCAL:5 = 0
+LOCAL:6 = 0
+LOCAL:11 = 0
+WHILE 1
+	IF !LOCAL:3 && LOCAL:10 == ABL:ARG:Ｃ感覚
+		LOCAL:3 = 1
+		LOCAL:11 += 1
+		SETBIT CFLAG:ARG:自慰行動保存, 0
+	ENDIF
+	SIF LOCAL == LOCAL:11
+		BREAK
+	IF !LOCAL:4 && LOCAL:10 == ABL:ARG:Ｂ感覚
+		LOCAL:4 = 1
+		LOCAL:11 += 1
+		SETBIT CFLAG:ARG:自慰行動保存, 3
+	ENDIF
+	SIF LOCAL == LOCAL:11
+		BREAK
+	IF !LOCAL:5 && LOCAL:10 == ABL:ARG:Ｖ感覚
+		LOCAL:5 = 1
+		LOCAL:11 += 1
+		SETBIT CFLAG:ARG:自慰行動保存, 1
+	ENDIF
+	SIF LOCAL == LOCAL:11
+		BREAK
+	IF !LOCAL:6 && LOCAL:10 == ABL:ARG:Ａ感覚
+		LOCAL:6 = 1
+		LOCAL:11 += 1
+		SETBIT CFLAG:ARG:自慰行動保存, 2
+	ENDIF
+	SIF LOCAL == LOCAL:11
+		BREAK
+	LOCAL:10 -= 1
+WEND
+
+LOCAL:12 = MAX(TIME_PROGRESS(TFLAG:300) / 5, 1)
+
+IF LOCAL:3
+	PALAM:ARG:快Ｃ += 自慰中変動値_快(ARG, ABL:ARG:Ｃ感覚, ABL:ARG:指, ABL:ARG:技巧, LOCAL:12)
+	PALAM:ARG:欲情 += 自慰中変動値_欲情(ARG, ABL:ARG:Ｃ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	PALAM:ARG:潤滑 += 自慰中変動値_潤滑(ARG, ABL:ARG:Ｃ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	EXP:ARG:Ｃ経験 += LOCAL:12
+	IF PALAM:ARG:快Ｃ >= 10000
+		PALAM:ARG:快Ｃ -= (10000 * (PALAM:ARG:快Ｃ / 10000))
+		EXP:ARG:Ｃ絶頂経験 += 1
+		EXP:ARG:絶頂経験 += 1
+		CFLAG:ARG:自慰中 = MAX(CFLAG:ARG:自慰中 - 1, 0)
+		SETBIT CFLAG:ARG:自慰行動保存, 5
+	ENDIF
+ENDIF
+IF LOCAL:4
+	PALAM:ARG:快Ｂ += 自慰中変動値_快(ARG, ABL:ARG:Ｂ感覚, ABL:ARG:指, ABL:ARG:技巧, LOCAL:12)
+	PALAM:ARG:欲情 += 自慰中変動値_欲情(ARG, ABL:ARG:Ｂ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	PALAM:ARG:潤滑 += 自慰中変動値_潤滑(ARG, ABL:ARG:Ｂ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	EXP:ARG:Ｂ経験 += LOCAL:12
+	IF PALAM:ARG:快Ｂ >= 10000
+		PALAM:ARG:快Ｂ -= (10000 * (PALAM:ARG:快Ｂ / 10000))
+		EXP:ARG:Ｂ絶頂経験 += 1
+		EXP:ARG:絶頂経験 += 1
+		CFLAG:ARG:自慰中 = MAX(CFLAG:ARG:自慰中 - 1, 0)
+		SETBIT CFLAG:ARG:自慰行動保存, 5
+	ENDIF
+ENDIF
+IF LOCAL:5
+	PALAM:ARG:快Ｖ += 自慰中変動値_快(ARG, ABL:ARG:Ｖ感覚, ABL:ARG:指, ABL:ARG:技巧, LOCAL:12)
+	PALAM:ARG:欲情 += 自慰中変動値_欲情(ARG, ABL:ARG:Ｖ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	PALAM:ARG:潤滑 += 自慰中変動値_潤滑(ARG, ABL:ARG:Ｖ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	EXP:ARG:Ｖ経験 += LOCAL:12
+	IF PALAM:ARG:快Ｖ >= 10000
+		PALAM:ARG:快Ｖ -= (10000 * (PALAM:ARG:快Ｖ / 10000))
+		EXP:ARG:Ｖ絶頂経験 += 1
+		EXP:ARG:絶頂経験 += 1
+		CFLAG:ARG:自慰中 = MAX(CFLAG:ARG:自慰中 - 1, 0)
+		SETBIT CFLAG:ARG:自慰行動保存, 5
+	ENDIF
+	CALL 締り具合変動, ARG, 1, 0
+ENDIF
+IF LOCAL:6
+	PALAM:ARG:快Ａ += 自慰中変動値_快(ARG, ABL:ARG:Ａ感覚, ABL:ARG:指, ABL:ARG:技巧, LOCAL:12)
+	PALAM:ARG:欲情 += 自慰中変動値_欲情(ARG, ABL:ARG:Ａ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	PALAM:ARG:潤滑 += 自慰中変動値_潤滑(ARG, ABL:ARG:Ａ感覚, ABL:ARG:指, ABL:ARG:欲望, LOCAL:12)
+	EXP:ARG:Ａ経験 += LOCAL:12
+	IF PALAM:ARG:快Ａ >= 10000
+		PALAM:ARG:快Ａ -= (10000 * (PALAM:ARG:快Ａ / 10000))
+		EXP:ARG:Ａ絶頂経験 += 1
+		EXP:ARG:絶頂経験 += 1
+		CFLAG:ARG:自慰中 = MAX(CFLAG:ARG:自慰中 - 1, 0)
+		SETBIT CFLAG:ARG:自慰行動保存, 5
+	ENDIF
+	CALL 締り具合変動, ARG, 1, 1
+ENDIF
+EXP:ARG:自慰経験 += 1
+
+IF !CFLAG:ARG:自慰中
+	CFLAG:ARG:性欲 /= 10
+ENDIF
+
+
+
+@自慰中変動値_快(ARG, ARG:1, ARG:2, ARG:3, ARG:4)
+#FUNCTION
+;ARG   キャラ
+;ARG:1 感覚
+;ARG:2 性技・指
+;ARG:3 技巧
+;ARG:4 経過時間による倍率
+
+IF ARG:1 >= 5
+	LOCAL = 5000
+ELSEIF ARG:1 == 4
+	LOCAL = 4700
+ELSEIF ARG:1 == 3
+	LOCAL = 4400
+ELSEIF ARG:1 == 2
+	LOCAL = 4100
+ELSEIF ARG:1 == 1
+	LOCAL = 3800
+ELSE
+	LOCAL = 3500
+ENDIF
+
+IF RAND:2
+	LOCAL += RAND:500
+ELSE
+	LOCAL -= RAND:500
+ENDIF
+
+IF (ARG:2 + ARG:3) >= 7
+	TIMES LOCAL, 2.15
+ELSEIF (ARG:2 + ARG:3) >= 5
+	TIMES LOCAL, 1.85
+ELSEIF (ARG:2 + ARG:3) >= 3
+	TIMES LOCAL, 1.55
+ELSEIF (ARG:2 + ARG:3) >= 1
+	TIMES LOCAL, 1.25
+ENDIF
+
+RETURNF LOCAL * ARG:4
+
+@自慰中変動値_欲情(ARG, ARG:1, ARG:2, ARG:3, ARG:4)
+#FUNCTION
+
+;ARG   キャラ
+;ARG:1 感覚
+;ARG:2 性技・指
+;ARG:3 欲望
+;ARG:4 経過時間による倍率
+
+IF ARG:1 >= 5
+	LOCAL = 1800
+ELSEIF ARG:1 == 4
+	LOCAL = 1500
+ELSEIF ARG:1 == 3
+	LOCAL = 1200
+ELSEIF ARG:1 == 2
+	LOCAL = 900
+ELSEIF ARG:1 == 1
+	LOCAL = 600
+ELSE
+	LOCAL = 300
+ENDIF
+
+IF RAND:2
+	LOCAL += RAND:200
+ELSE
+	LOCAL -= RAND:200
+ENDIF
+
+IF (ARG:2 + ARG:3) >= 8
+	TIMES LOCAL, 2.15
+ELSEIF (ARG:2 + ARG:3) >= 6
+	TIMES LOCAL, 1.85
+ELSEIF (ARG:2 + ARG:3) >= 4
+	TIMES LOCAL, 1.55
+ELSEIF (ARG:2 + ARG:3) >= 2
+	TIMES LOCAL, 1.25
+ENDIF
+
+RETURNF LOCAL * ARG:4
+
+
+@自慰中変動値_潤滑(ARG, ARG:1, ARG:2, ARG:3, ARG:4)
+#FUNCTION
+
+;ARG   キャラ
+;ARG:1 感覚
+;ARG:2 性技・指
+;ARG:3 欲望
+;ARG:4 経過時間による倍率
+
+IF ARG:1 >= 5
+	LOCAL = 1800
+ELSEIF ARG:1 == 4
+	LOCAL = 1500
+ELSEIF ARG:1 == 3
+	LOCAL = 1200
+ELSEIF ARG:1 == 2
+	LOCAL = 900
+ELSEIF ARG:1 == 1
+	LOCAL = 600
+ELSE
+	LOCAL = 300
+ENDIF
+
+IF RAND:2
+	LOCAL += RAND:200
+ELSE
+	LOCAL -= RAND:200
+ENDIF
+
+IF (ARG:2 + ARG:3) >= 8
+	TIMES LOCAL, 2.15
+ELSEIF (ARG:2 + ARG:3) >= 6
+	TIMES LOCAL, 1.85
+ELSEIF (ARG:2 + ARG:3) >= 4
+	TIMES LOCAL, 1.55
+ELSEIF (ARG:2 + ARG:3) >= 2
+	TIMES LOCAL, 1.25
+ENDIF
+
+RETURNF LOCAL * ARG:4
+
+@自慰中断, ARG
+
+SIF CFLAG:ARG:自慰中 <= 0
+	RETURN
+;誰かが来た
+LOCAL:1 = 0
+FOR LOCAL, 0, CHARA_ACTIVE
+	IF ARG != LOCAL && CFLAG:ARG:現在位置 == CFLAG:LOCAL:現在位置
+		LOCAL:1 = 1
+		GOTO GGT_33443
+	ENDIF
+NEXT
+$GGT_33443
+IF (CFLAG:ARG:現在位置 == FLAG:訪問者の現在位置 || LOCAL:1 == 1)
+;	SIF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
+;		PRINTFORMW %CALLNAME:LOCAL%が部屋をノックすると、中からドタドタと物音が聞こえてきた
+	IF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置 && RAND:3 == 0
+		IF RAND:3 == 0
+			PRINTFORMW %CALLNAME:LOCAL%が部屋に入ると、%CALLNAME:ARG%がベッドの上で自慰をしていた
+		ELSEIF RAND:3 == 1
+			PRINTFORMW %CALLNAME:LOCAL%が部屋に入ると、%CALLNAME:ARG%があられもない姿で自慰をしていた
+		ELSEIF RAND:3 == 2
+			PRINTFORMW %CALLNAME:LOCAL%が部屋に入ると、%CALLNAME:ARG%が四つん這いになって自慰をしていた
+		ELSE
+			PRINTFORMW %CALLNAME:LOCAL%が部屋に入ると、%CALLNAME:ARG%が自慰をしていた
+		ENDIF
+		PRINT 悲鳴と共に
+		IF TALENT:ARG:幼稚 == 1
+			PRINT 可愛らしいぬいぐるみ
+		ELSEIF TALENT:ARG:小○生 == 1
+			PRINT 赤いランドセル
+		ELSE
+			PRINT ふかふかの枕
+		ENDIF
+		PRINTL が飛んできた…
+		PRINTL 
+
+		;能力で怒り度が変わる
+		IF ABL:ARG:親密 <= 10
+			BASE:ARG:怒り += 250
+		ENDIF
+		IF ABL:ARG:従順 <= 4
+			BASE:ARG:怒り += 250
+		ENDIF
+		IF ABL:ARG:欲望 <= 4
+			BASE:ARG:怒り += 250
+		ENDIF
+		IF ABL:ARG:露出癖 <= 3
+			BASE:ARG:怒り += 250
+		ENDIF
+		;最大値だったらキレる
+		IF BASE:ARG:怒り == 1000
+			CFLAG:ARG:怒り += 1
+		ENDIF
+		;素質で雰囲気が変わる
+		IF TALENT:ARG:淫乱
+			BASE:ARG:ムード += 500
+		ENDIF
+		IF TALENT:ARG:恋慕
+			BASE:ARG:ムード += 500
+		ENDIF
+		;理性は尽きる
+		BASE:ARG:ムード += 500
+		BASE:ARG:理性 = 0
+		EXP:ARG:露出快楽経験 += 1
+		;調教自慰のソースを一部入手する
+		SOURCE:露出 = 400
+		SOURCE:屈従 = 500
+		SOURCE:逸脱 = 300
+
+		PRINTFORML 露出快楽経験 += 1(%CALLNAME:ARG%)
+		PRINTL 
+	ELSE
+		PRINTFORMW %CALLNAME:LOCAL%が部屋をノックすると、中からドタドタと物音が聞こえてきた
+	ENDIF
+	CFLAG:ARG:自慰中 = -(CFLAG:ARG:自慰中)
+	RETURN
+ENDIF
+
+
+@CHK_好感度(ARG)
+#DIM 判断変数
+;CSV
+SIF NO:ARG > CSVキャラ数
+	RETURN 0
+;今のところ会話ぐらいしかないけど、将来的にはいろいろな好感度上昇手段が欲しいので
+;名前の聞き出し(本名)
+;
+;大きいと実行しにくい
+判断変数=MAX(25, 25-TALENT:ARG:目立ちたがり*5+TALENT:ARG:無関心*10+TALENT:ARG:態度*5+TALENT:ARG:羞恥心*5)
+IF CFLAG:ARG:好感度 > (判断変数 * (1 + (ＮＴＲ追加処理 / 3))) && CFLAG:ARG:名前フラグ==0
+	;ＮＴＲ日数に余裕がある場合は簡単に明かさない
+	;具体的には3日余裕がある時だけ2倍になる
+	PRINTFORML %CALLNAME:MASTER%は相手の名前を聞き出すことに成功した。
+	IF GETBIT(TALENT:ARG:性別,0)
+		PRINTFORM 彼女
+	ELSE
+		PRINTFORM 彼
+	ENDIF
+	PRINTFORM は
+	;色の設定
+	;ここでタイプに合わせた色の設定
+	;今のところNOで判定可能(将来的にはどうなるんですかね？)
+	;関数化
+	CALL 名前色決め(NO:ARG)
+	
+	IF (TALENT:ARG:NTRPRE && TALENT:ARG:態度 > -1 ) || ( TALENT:ARG:態度 > -1 && GETBIT(FLAG:皆援交設定,6) == 1 && CFLAG:ARG:あなた援交金額合計 > 0)
+	;円光してる子は本名を簡単には明かさない
+	;でも素直な子は嘘を付けない
+		CALL 偽名(ARG)
+		PRINTFORM %NAME:ARG%
+		RESETCOLOR
+		PRINTFORML と名乗った。
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,15)
+			PRINTFORMW しかし、どうやら本名ではないようだ…
+	ELSE
+	;通常
+		CALL 真名看破(ARG)
+		PRINTFORM %NAME:ARG%
+		RESETCOLOR
+		PRINTFORMW と名乗った。
+	ENDIF
+ENDIF
+;偽名を名乗られているとき
+IF CFLAG:ARG:好感度 > 判断変数 * 4 && CFLAG:ARG:名前フラグ==2
+	IF GETBIT(FLAG:ＮＴＲパッチ設定,15) && GETBIT(FLAG:皆援交設定,6) == 0
+		PRINTFORML なんと%NAME:ARG%は今まで適当な名前を%CALLNAME:MASTER%に教えていたらしい。
+		PRINTFORML %CALLNAME:MASTER%は相手の本名を聞き出すことに成功した。
+
+		IF GETBIT(TALENT:ARG:性別,0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+			PRINTFORM は
+			CALL 名前色決め(NO:ARG)
+
+			CALL 真名看破(ARG)
+			PRINTFORM %NAME:ARG%
+			RESETCOLOR
+			PRINTFORMW と名乗った。
+	ELSEIF ( GETBIT(FLAG:皆援交設定,6) == 1 ) && ( CFLAG:ARG:あなた援交金額合計 > (99999-CFLAG:ARG:好感度*10) )
+		PRINTFORML なんと%NAME:ARG%は今まで適当な名前を%CALLNAME:MASTER%に教えていたらしい。
+		PRINTFORML %CALLNAME:MASTER%は相手の本名を聞き出すことに成功した。
+		IF GETBIT(TALENT:ARG:性別,0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		PRINTFORM は
+		CALL 名前色決め(NO:ARG)
+		CALL 真名看破(ARG)
+		PRINTFORM %NAME:ARG%
+		RESETCOLOR
+		PRINTFORMW と名乗った。
+	ENDIF
+ENDIF
+
+;携帯番号入手フラグ
+;v0.620　うふふのときはダメ！
+IF CFLAG:ARG:好感度 > 判断変数*3 && !PHONE:(NO:ARG) && !CFLAG:ARG:うふふ
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:ARG%に携帯の番号を教えて貰った
+	PHONE:(NO:ARG)=1
+ENDIF
+
+;情報開示
+;v0.620 エッチするor恋慕で開示するようにしてみる
+IF CFLAG:ARG:好感度 > MIN(200, 判断変数*10) && !CFLAG:ARG:乙女の秘密 && (CFLAG:ARG:うふふ || TALENT:ARG:恋慕)
+	PRINTFORML %CALLNAME:ARG%との付き合いもだいぶ長くなったもので、いろいろな事が分かってきた…
+	PRINTFORMW %CALLNAME:ARG%の乙女の秘密を覗けるようになった
+	CFLAG:ARG:乙女の秘密=1
+ENDIF
+;;;;before version
+;情報開示
+;
+;IF CFLAG:ARG:好感度 > MIN(200, 判断変数*10) && !CFLAG:ARG:乙女の秘密
+;	PRINTFORML %CALLNAME:ARG%との付き合いもだいぶ長くなったもので、いろいろな事が分かってきた…
+;	PRINTFORMW %CALLNAME:ARG%の乙女の秘密を覗けるようになった
+;	CFLAG:ARG:乙女の秘密=1
+;ENDIF

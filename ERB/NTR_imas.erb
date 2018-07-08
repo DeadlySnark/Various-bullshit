@@ -1,0 +1,469 @@
+
+@GAMEEND_CHK
+;ゲームオーバー集をここにリストアップ
+;将来的にはゲームクリア的な要素も作りたいけど日常系の趣旨には反してるんだよなあ
+
+;借金まみれ
+;やくざに全資産(全アイドル)を借金の担保で巻き上げられた状態
+;多分にっちもさっちもいかなくなるのでいっそのことゲームオーバーに
+LOCAL=1
+FOR COUNT,1, CHARA_ACTIVE
+	SIF CFLAG:COUNT:軟禁者 != 人物_風俗オーナー || CFLAG:COUNT:自主性
+		LOCAL=0
+NEXT
+IF LOCAL
+	;がめおべあ
+	他人=人物_風俗オーナー
+	PRINTFORML アイドル全員が“担保”になってしまって数日が経った。
+	PRINTFORML これからどうしよう、と%CALLNAME:MASTER%が自宅で途方に暮れていると、チャイムが鳴った。
+	PRINTFORML 誰だろう、と不審に思いつつ%CALLNAME:MASTER%がドアを開けたとたんに覆面の男がスタンガンを押し付けてきた！
+	PRINTFORMW 薄れ行く意識の中、最後に分かったことは車のトランクに押し込められたことだった。
+	PRINTFORML 　　　・
+	PRINTFORML 　　　・
+	PRINTFORMW 　　　・
+	PRINTFORML 意識を取り戻した%CALLNAME:MASTER%の視界に飛び込んできたのは、異様な光景だった。
+	PRINTFORML 目の前の打ちっぱなしのコンクリの壁から、{CHARA_ACTIVE-1}個の大小さまざまな女性の下半身らしき物体が“生えて”いる！
+	PRINTFORML その物体にある秘所とおぼしき箇所はピクピクと震え、直下の床には愛液や精液が成分であろう水溜りができている。
+	PRINTFORML 驚いた%CALLNAME:MASTER%は立ち上がろうとしたが、どうやら椅子に縛られているらしく身動きが取れないことに気づいた。
+	PRINTFORMW ショックで呆然としていた%CALLNAME:MASTER%は、%NTR_NAME(他人)%がこの薄暗い部屋にいることが話しかけられるまで分からなかった。
+	PRINTFORML 「金を回収するにはこの壁尻スタイルが一番時間効率がいいんだよ」
+	PRINTFORML 「壁のこっち側とあっち側で別々に客が取れるからな」
+	PRINTFORML 「お前のところのアイドル達は当分コレで行くぜ」
+	PRINTFORMW ではこの下半身は、%CALLNAME:1%たちだったのだ！
+	PRINTFORML 「多分十数年ぐらい頑張って働けば全額返せると思うぜ」
+	PRINTFORML 「それまで働き続けられるかどうかは分からんがな」
+	PRINTFORML 「少なくとも、アイドルとしての全盛期はこの薄暗い部屋で消費することになるだろうな」
+	PRINTFORMW %CALLNAME:MASTER%は自分が悪かった、彼女たちは何も悪くないから許してくれないか、と懇願した。
+	PRINTFORML 「ああん？いまさら何を言ってるんだてめえは！」
+	PRINTFORML 「担保として預けた時点でこうなってることはわかってたんだろ？」
+	PRINTFORML 「…やれやれ、こんなやつと話しててもラチがあかねえ」
+	PRINTFORM そういうと%NTR_NAME(他人)%は
+	IF !GETBIT(TALENT:MASTER:性別,0)
+	;オトコの場合
+		PRINTFORML %CALLNAME:MASTER%に注射をし、部屋の外から医者の格好をした男を連れてきた。
+		PRINTFORML 　　　・
+		PRINTFORML 　　　・
+		PRINTFORMW 　　　・
+		PRINTFORMW しばらくすると意識が朦朧としてきた。どうやら麻酔だったらしい。
+		PRINTFORML 「アイドル達だけに働かせちゃあお前も気がかりだろうからな、できることを紹介してやるよ」
+		PRINTFORML 「この医者の病院は金持ちの患者がたくさんいてだな、臓器を高値で買い取ってくれるらしいんだ」
+		PRINTFORML 「全部買い取って貰えばアイドル達がここにいる時間も１年ぐらいは短くなるんじゃないか？」
+		PRINTFORML 「お前の代わりに売る臓器の指定は済ませてあるから、ただ寝てるだけでいいんだ、楽なもんだろ？」
+		PRINTFORMW %CALLNAME:MASTER%が最期に見たのは、麻酔が効くまでの暇つぶしと称して壁尻を蹂躙する%NTR_NAME(他人)%と医者の姿だった…。
+	ELSE
+	;オンナの場合
+		PRINTFORMW {CHARA_ACTIVE-1}人が埋まっている壁の真ん中のスペースを指した。
+		PRINTFORML 「あそこ、不自然に空いてると思わないか？アレはお前のために空けといたんだぞ」
+		PRINTFORML 「アイドル達だけに働かせちゃあお前も気がかりだろうからな、一緒にいさせてやろうって心配りさ」
+		PRINTFORMW ここまで言った後%NTR_NAME(他人)%はいったん外に出て、%CALLNAME:MASTER%を見ながらニヤける男たちとともに入ってきた。
+		PRINTFORML 「この人たちは壁に埋まる前にできるプレイをしたいって方々だ。工事が終わるまで相手してるんだな」
+		PRINTFORMW 一斉に飛び掛ってくる男たちを見ながら、%CALLNAME:MASTER%はどこで間違ってしまったのだろうか、と絶望した。
+	ENDIF
+	PRINTL
+	PRINTFORMW ゲームオーバー
+	QUIT
+ENDIF
+
+[SKIPSTART]
+@焦りイベント
+;活動初めて30日で焦る
+;以降130-(経過日時)の確率でAV落ち
+;目立ちたがり、プライドで確率変化
+#DIM LOOP_CHR
+#DIM 確率
+FOR LOOP_CHR,1, CHARA_ACTIVE
+;子供はスルー
+	SIF NO:LOOP_CHR==人物_息子 || NO:LOOP_CHR==人物_娘
+		CONTINUE
+;30日以下はスルー
+	SIF (DAY-CFLAG:LOOP_CHR:活動開始日)<30
+		CONTINUE
+	SIF !GETBIT(FLAG:ＮＴＲパッチ設定,7)
+		CONTINUE
+;警告
+	IF (DAY-CFLAG:LOOP_CHR:活動開始日==30) && !TALENT:LOOP_CHR:恋慕 && !TALENT:LOOP_CHR:アイドル
+		PRINTFORML なかなかアイドルデビューできないことに%CALLNAME:LOOP_CHR%は焦りを感じているようだ…
+		CONTINUE
+	ENDIF
+;破滅の一
+;NTR陥落していない、通常空間にいる、妊娠していない、アイドルになれてない、AV女優にまだなってない、確率
+;通常50-(警告出てからの日数)分の1で発動
+;日数を除くと最大100,最小30からのスタート
+;最終的には絶対発動
+	確率=RAND:(MAX(1, (80-(DAY-CFLAG:LOOP_CHR:活動開始日)-TALENT:LOOP_CHR:目立ちたがり*10-TALENT:LOOP_CHR:プライド*10)+TALENT:LOOP_CHR:恋慕*20))
+	IF !TALENT:LOOP_CHR:恋慕 && !TALENT:LOOP_CHR:NTR && CFLAG:LOOP_CHR:現在位置<場所番号最大値+1 && !TALENT:LOOP_CHR:妊娠 && 確率==0 && !TALENT:LOOP_CHR:ＡＶ女優 && !TALENT:LOOP_CHR:アイドル
+		IF NTR_CHK_VISIBLE(CFLAG:LOOP_CHR:現在位置)
+			PRINTFORML %CALLNAME:LOOP_CHR%は事務所に内緒でオーディションを受けている…
+			PRINTFORML いつもの大型スタジオではない小さな会場で、審査員は%CALLNAME:LOOP_CHR%を一目見て出演契約書類を渡してきた
+			PRINTFORML %CALLNAME:LOOP_CHR%は喜びの余り、よく中身も確認せずにサインをしてしまった
+			PRINTFORML 書類を審査員に渡したとたん、男に羽交い絞めにされ薄暗い撮影所へと連れ込まれた…
+		ENDIF
+		他人=人物_AV男優
+		CALL VISITER_TAKINGOUT(LOOP_CHR)
+		CALL NTR_ADD_SURRENDER(LOOP_CHR, 200)
+		他人=人物_訪問者
+		TALENT:LOOP_CHR:ＡＶ女優=1
+		CONTINUE
+	ENDIF
+;新規撮影
+	確率=RAND:(MAX(1, (15-TALENT:LOOP_CHR:目立ちたがり*5-GETBIT(TALENT:LOOP_CHR:NTR, 人物_AV男優-1000)*5)))
+	IF TALENT:LOOP_CHR:ＡＶ女優 && CFLAG:LOOP_CHR:現在位置<場所番号最大値+1 && !TALENT:LOOP_CHR:妊娠 && 確率==0
+		IF NTR_CHK_VISIBLE(CFLAG:LOOP_CHR:現在位置)
+			PRINTFORML %CALLNAME:LOOP_CHR%は以前の契約を楯に再度ＡＶ出演を迫られている・・・
+			IF TALENT:LOOP_CHR:恋慕
+				PRINTFORML せめて%CALLNAME:MASTER%には内緒にしてください、と%CALLNAME:LOOP_CHR%は懇願している
+			ELSEIF GETBIT(TALENT:LOOP_CHR:NTR, 人物_AV男優-1000)
+				PRINTFORML 早く撮りましょう、と%CALLNAME:LOOP_CHR%は乗り気だ…
+			ELSE
+				PRINTFORML %CALLNAME:LOOP_CHR%は青ざめながら頷いた
+			ENDIF
+			他人=人物_AV男優
+			CALL VISITER_TAKINGOUT(LOOP_CHR)
+			CALL NTR_ADD_SURRENDER(LOOP_CHR, 200)
+			他人=人物_訪問者
+		ENDIF
+	ENDIF
+NEXT
+[SKIPEND]
+
+;源氏名自動生成マシーン
+@GENJINA(ARG)
+#FUNCTIONS
+#DIMS FNAME,210
+
+FNAME:	0	=	葵
+FNAME:	1	=	優那
+FNAME:	2	=	優奈
+FNAME:	3	=	凛
+FNAME:	4	=	陽菜
+FNAME:	5	=	愛
+FNAME:	6	=	結衣
+FNAME:	7	=	美咲
+FNAME:	8	=	楓
+FNAME:	9	=	さくら
+FNAME:	10	=	遥
+FNAME:	11	=	美優
+FNAME:	12	=	莉子
+FNAME:	13	=	結菜
+FNAME:	14	=	美月
+FNAME:	15	=	七海
+FNAME:	16	=	真央
+FNAME:	17	=	花音
+FNAME:	18	=	陽子
+FNAME:	19	=	彩
+FNAME:	20	=	舞
+FNAME:	21	=	優衣
+FNAME:	22	=	美羽
+FNAME:	23	=	彩乃
+FNAME:	24	=	未来
+FNAME:	25	=	彩花
+FNAME:	26	=	優
+FNAME:	27	=	智子
+FNAME:	28	=	千尋
+FNAME:	29	=	奈々
+FNAME:	30	=	裕子
+FNAME:	31	=	杏
+FNAME:	32	=	愛美
+FNAME:	33	=	芽衣
+FNAME:	34	=	優菜
+FNAME:	35	=	綾乃
+FNAME:	36	=	杏奈
+FNAME:	37	=	恵
+FNAME:	38	=	琴音
+FNAME:	39	=	桜
+FNAME:	40	=	玲奈
+FNAME:	41	=	美桜
+FNAME:	42	=	優花
+FNAME:	43	=	結
+FNAME:	44	=	茜
+FNAME:	45	=	美穂
+FNAME:	46	=	明日香
+FNAME:	47	=	愛子
+FNAME:	48	=	美緒
+FNAME:	49	=	碧
+FNAME:	50	=	和奏
+FNAME:	51	=	香織
+FNAME:	52	=	愛莉
+FNAME:	53	=	彩音
+FNAME:	54	=	結愛
+FNAME:	55	=	久美子
+FNAME:	56	=	心
+FNAME:	57	=	萌
+FNAME:	58	=	花
+FNAME:	59	=	栞
+FNAME:	60	=	彩香
+FNAME:	61	=	咲希
+FNAME:	62	=	桃花
+FNAME:	63	=	詩織
+FNAME:	64	=	莉央
+FNAME:	65	=	瑠奈
+FNAME:	66	=	菜月
+FNAME:	67	=	唯
+FNAME:	68	=	優子
+FNAME:	69	=	恵美
+FNAME:	70	=	莉緒
+FNAME:	71	=	咲良
+FNAME:	72	=	瑞希
+FNAME:	73	=	ひなた
+FNAME:	74	=	芽依
+FNAME:	75	=	真由美
+FNAME:	76	=	日和
+FNAME:	77	=	綾
+FNAME:	78	=	幸子
+FNAME:	79	=	恵子
+FNAME:	80	=	里奈
+FNAME:	81	=	綾香
+FNAME:	82	=	あかり
+FNAME:	83	=	怜奈
+FNAME:	84	=	優香
+FNAME:	85	=	美香
+FNAME:	86	=	麻衣
+FNAME:	87	=	桃子
+FNAME:	88	=	藍
+FNAME:	89	=	百花
+FNAME:	90	=	心優
+FNAME:	91	=	亜美
+FNAME:	92	=	遥香
+FNAME:	93	=	悠
+FNAME:	94	=	小春
+FNAME:	95	=	直子
+FNAME:	96	=	華
+FNAME:	97	=	璃子
+FNAME:	98	=	菜々子
+FNAME:	99	=	美和
+FNAME:	100	=	彩華
+FNAME:	101	=	優月
+FNAME:	102	=	あおい
+FNAME:	103	=	美紀
+FNAME:	104	=	綾子
+FNAME:	105	=	桜子
+FNAME:	106	=	澪
+FNAME:	107	=	ほのか
+FNAME:	108	=	理恵
+FNAME:	109	=	美空
+FNAME:	110	=	理子
+FNAME:	111	=	薫
+FNAME:	112	=	美結
+FNAME:	113	=	葉月
+FNAME:	114	=	明子
+FNAME:	115	=	奈央
+FNAME:	116	=	梓
+FNAME:	117	=	咲
+FNAME:	118	=	愛梨
+FNAME:	119	=	朱里
+FNAME:	120	=	沙織
+FNAME:	121	=	純子
+FNAME:	122	=	奈緒
+FNAME:	123	=	桃香
+FNAME:	124	=	由美子
+FNAME:	125	=	結奈
+FNAME:	126	=	はるか
+FNAME:	127	=	梨乃
+FNAME:	128	=	恭子
+FNAME:	129	=	優希
+FNAME:	130	=	奏
+FNAME:	131	=	莉奈
+FNAME:	132	=	若菜
+FNAME:	133	=	瞳
+FNAME:	134	=	愛菜
+FNAME:	135	=	綾音
+FNAME:	136	=	こころ
+FNAME:	137	=	真帆
+FNAME:	138	=	和花
+FNAME:	139	=	晴香
+FNAME:	140	=	智美
+FNAME:	141	=	彩葉
+FNAME:	142	=	芽生
+FNAME:	143	=	彩夏
+FNAME:	144	=	愛実
+FNAME:	145	=	めぐみ
+FNAME:	146	=	心愛
+FNAME:	147	=	千夏
+FNAME:	148	=	沙羅
+FNAME:	149	=	紗希
+FNAME:	150	=	裕美
+FNAME:	151	=	真優
+FNAME:	152	=	直美
+FNAME:	153	=	くるみ
+FNAME:	154	=	菜々
+FNAME:	155	=	結花
+FNAME:	156	=	由佳
+FNAME:	157	=	洋子
+FNAME:	158	=	心音
+FNAME:	159	=	光
+FNAME:	160	=	美里
+FNAME:	161	=	すみれ
+FNAME:	162	=	寧々
+FNAME:	163	=	日向
+FNAME:	164	=	心美
+FNAME:	165	=	瑠菜
+FNAME:	166	=	希
+FNAME:	167	=	和
+FNAME:	168	=	真由
+FNAME:	169	=	春香
+FNAME:	170	=	あゆみ
+FNAME:	171	=	貴子
+FNAME:	172	=	春菜
+FNAME:	173	=	朋子
+FNAME:	174	=	鈴
+FNAME:	175	=	真奈
+FNAME:	176	=	美樹
+FNAME:	177	=	加奈
+FNAME:	178	=	真緒
+FNAME:	179	=	はな
+FNAME:	180	=	麻美
+FNAME:	181	=	花梨
+FNAME:	182	=	莉乃
+FNAME:	183	=	紗良
+FNAME:	184	=	沙耶
+FNAME:	185	=	仁美
+FNAME:	186	=	菫
+FNAME:	187	=	蒼
+FNAME:	188	=	ひより
+FNAME:	189	=	愛理
+FNAME:	190	=	京子
+FNAME:	191	=	由奈
+FNAME:	192	=	陽奈
+FNAME:	193	=	佳子
+FNAME:	194	=	和子
+FNAME:	195	=	弥生
+FNAME:	196	=	紀子
+FNAME:	197	=	菜々美
+FNAME:	198	=	典子
+FNAME:	199	=	日菜
+;ここから 名前趣味
+FNAME:	200	=	アリス
+FNAME:	201	=	ジェーン
+FNAME:	202	=	アンナ
+FNAME:	203	=	マリア
+FNAME:	204	=	ジェシカ
+FNAME:	205	=	メイ
+FNAME:	206	=	ケイト
+FNAME:	207	=	ネーナ
+FNAME:	208	=	リーネ
+FNAME:	209	=	ミーシャ
+
+RETURNF FNAME:((NO:ARG+FLAG:共通ランダム数)%210)
+
+@偽名(ARG)
+;偽名(源氏名)を教えてくる
+NAME:ARG=%CSTR:ARG:源氏名%
+CALLNAME:ARG=%CSTR:ARG:源氏名%
+CFLAG:ARG:名前フラグ=2
+SIF GETBIT(FLAG:ＮＴＲパッチ設定,15)
+	NAME:ARG=%CSTR:ARG:フル源氏名%
+
+@CAN_COM998
+;円光時の特殊処理
+RETURN 1
+
+@偽名高度化(ARG)
+#DIM LOOP_CHR
+#DIM TMP
+;ARG 1→高度化 0→通常化
+IF ARG
+	FOR LOOP_CHR,1, CHARANUM
+		$GENJINALOOP_TOP
+		TMP=1+RAND:CSVキャラ数
+		EXISTCSV TMP
+		;ファイルが存在していないor自分自身は抽選しなおし
+		SIF !RESULT || NO:LOOP_CHR == TMP
+			GOTO GENJINALOOP_TOP
+		CSTR:LOOP_CHR:源氏名=%CSVCALLNAME(TMP)%
+		CSTR:LOOP_CHR:フル源氏名=%CSVNAME(TMP)%
+		SIF CFLAG:LOOP_CHR:名前フラグ==2
+			CALL 偽名(LOOP_CHR)
+	NEXT
+ELSE
+	FOR LOOP_CHR,1, CHARANUM
+		CSTR:LOOP_CHR:源氏名=%GENJINA(ARG)%
+		SIF CFLAG:LOOP_CHR:名前フラグ==2
+			CALL 偽名(LOOP_CHR)
+	NEXT
+ENDIF
+RETURN 1
+
+@性経験の改変(奴隷, パターン, 程度=0)
+;パターンは人
+#DIM パターン
+#DIM 奴隷
+#DIM LOOP_N
+#DIM 程度
+SELECTCASE パターン
+	CASE 人物_パパ
+		他人=人物_パパ
+		FOR LOOP_N,0, 20
+			EXP:奴隷:Ｖ性交経験+=RAND:10+1
+			EXP:奴隷:Ａ性交経験+=RAND:10+1
+			EXP:奴隷:自慰経験+=RAND:10+1
+			EXP:奴隷:絶頂経験+=RAND:10+1
+			EXP:奴隷:手淫経験+=RAND:10+1
+			EXP:奴隷:口淫経験+=RAND:10+1
+			EXP:奴隷:パイズリ経験+=RAND:10+1
+			EXP:奴隷:キス経験+=RAND:10+1
+			EXP:奴隷:Ｖ拡張経験+=RAND:2
+			EXP:奴隷:Ａ拡張経験+=RAND:2
+			EXP:奴隷:奉仕快楽経験+=RAND:2
+			EXP:奴隷:援助交際経験+=RAND:3
+			EXP:奴隷:浮気絶頂経験+=RAND:7
+			EXP:奴隷:浮気精液経験+=RAND:7
+			EXP:奴隷:浮気精飲経験+=RAND:7
+			EXP:奴隷:浮気Ｖ性交経験+=RAND:7
+			EXP:奴隷:浮気Ａ性交経験+=RAND:7
+			EXP:奴隷:浮気口淫経験+=RAND:7
+			EXP:奴隷:浮気キス経験+=RAND:7
+			EXP:奴隷:売春経験+=RAND:7
+			EXP:奴隷:被強姦経験+=RAND:2
+			EXP:奴隷:被輪姦経験+=RAND:2
+			CALL 締り具合変動, 奴隷, RAND:20, 1
+			CALL 締り具合変動, 奴隷, RAND:20, 0
+;			CALL NTR_ADD_SURRENDER(奴隷, RAND:200, 1)
+		NEXT
+		CALL NTRPRE堕ち(奴隷, 人物_パパ)
+		;辻褄合わせ
+		EXP:奴隷:異常経験+=RAND:3+1
+		TALENT:奴隷:処女=0
+;		CSTR:奴隷:Ｖ初体験の相手=不明
+;		CSTR:奴隷:Ａ初体験の相手=不明
+;		CSTR:奴隷:Ｍ初体験の相手=不明
+		CALL memorial_dummy_create(奴隷)
+		CALL memorial_dummy_sexmate(奴隷)
+		EXP:奴隷:経験人数=NTR_FickleCountnew(奴隷,10000, 0)
+	CASEELSE
+		;汎用
+		FOR LOOP_N,0, 程度
+			EXP:奴隷:Ｖ性交経験+=RAND:10+1
+			EXP:奴隷:Ａ性交経験+=RAND:10+1
+			EXP:奴隷:自慰経験+=RAND:10+1
+			EXP:奴隷:絶頂経験+=RAND:10+1
+			EXP:奴隷:手淫経験+=RAND:10+1
+			EXP:奴隷:口淫経験+=RAND:10+1
+			EXP:奴隷:パイズリ経験+=RAND:10+1
+			EXP:奴隷:キス経験+=RAND:10+1
+			EXP:奴隷:Ｖ拡張経験+=RAND:2
+			EXP:奴隷:Ａ拡張経験+=RAND:2
+			EXP:奴隷:奉仕快楽経験+=RAND:2
+;			EXP:奴隷:援助交際経験+=RAND:3
+			EXP:奴隷:浮気絶頂経験+=RAND:7
+			EXP:奴隷:浮気精液経験+=RAND:7
+			EXP:奴隷:浮気精飲経験+=RAND:7
+			EXP:奴隷:浮気Ｖ性交経験+=RAND:7
+			EXP:奴隷:浮気Ａ性交経験+=RAND:7
+			EXP:奴隷:浮気口淫経験+=RAND:7
+			EXP:奴隷:浮気キス経験+=RAND:7
+			EXP:奴隷:被強姦経験+=RAND:2
+			EXP:奴隷:被輪姦経験+=RAND:2
+			CALL 締り具合変動, 奴隷, RAND:20, 1
+			CALL 締り具合変動, 奴隷, RAND:20, 0
+;			CALL NTR_ADD_SURRENDER(奴隷, RAND:200, 1)
+		NEXT
+		EXP:奴隷:異常経験+=RAND:3+1
+		TALENT:奴隷:処女=0
+;		CSTR:奴隷:Ｖ初体験の相手=不明
+;		CSTR:奴隷:Ａ初体験の相手=不明
+;		CSTR:奴隷:Ｍ初体験の相手=不明
+		CALL memorial_dummy_create(奴隷)
+		CALL memorial_dummy_sexmate(奴隷)
+		EXP:奴隷:経験人数=NTR_FickleCountnew(奴隷,10000, 0)
+ENDSELECT
+他人=人物_訪問者

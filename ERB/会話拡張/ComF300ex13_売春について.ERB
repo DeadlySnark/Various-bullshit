@@ -1,0 +1,69 @@
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 売春について 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM300_13_ENABLE
+	RESULTS:0 = %"[13]-"+CALLNAME:(TARGET:0)+"の売春について"%
+	IF TCVAR:(TARGET:0):会話不能
+		RETURN 0
+	ELSEIF TALENT:(TARGET:0):公衆便所 == 0 && !CFLAG:(TARGET:0):NTRPREKNOW
+		RETURN 0
+	ELSE
+		RETURN 1
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 売春について話す
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM300_13
+	;売春人数で分岐
+	PRINTFORM %CALLNAME:(TARGET:0)%は今までに
+	SELECTCASE EXP:(TARGET:0):経験人数-1
+		CASE IS <= 5
+			PRINTFORML 片手で数えられるくらいの数の相手と寝たと言った。
+		CASE IS <= 10
+			PRINTFORML 両手で数えられるくらいの数の相手と寝たと言った。
+		CASE IS <= 20
+			PRINTFORML 両手でも数えられないくらいの数の相手と寝たと言った。
+		CASEELSE
+			PRINTFORML 寝た相手の数はもう覚えていないと言った。
+	ENDSELECT
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{CFLAG:(TARGET:0):297}_300_13_01((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_13_01((TARGET:0), (PLAYER:0))
+	ENDFUNC
+	;前回の売春時に寝た人数
+	IF EXP:(TARGET:0):前回経験人数 > 0
+		PRINTL
+;		PRINTFORML この前は{EXP:(TARGET:0):前回経験人数}人と寝たと言った。
+		TRYCALLLIST
+			FUNC KOJO_MESSAGE_COM_K{CFLAG:(TARGET:0):297}_300_13_01_3((TARGET:0), (PLAYER:0))
+			FUNC KOJO_MESSAGE_COM_KU_300_13_01_3((TARGET:0), (PLAYER:0))
+		ENDFUNC
+	ENDIF
+	PRINTL
+	IF TALENT:(TARGET:0):公衆便所
+		
+		;恋慕、鍵の有無で分岐
+		IF TALENT:(TARGET:0):恋慕
+			IF FLAG:貞操帯鍵購入フラグ == TARGET:0
+				PRINTFORML %CALLNAME:(TARGET:0)%は%MSG_LOVER(TARGET:0)%である%CALLNAME:(PLAYER:0)%が自分を買ってくれて嬉しいと言った。
+			ELSE
+				PRINTFORML %CALLNAME:(TARGET:0)%はたとえ%MSG_LOVER(TARGET:0)%でも、鍵を買わないと自分とはセックスできないと言った。
+			ENDIF
+		ELSE
+			IF FLAG:貞操帯鍵購入フラグ == TARGET:0
+				PRINTFORML %CALLNAME:(TARGET:0)%は%CALLNAME:(PLAYER:0)%が自分を買ってくれて嬉しいと言った。
+			ELSE
+				PRINTFORML %CALLNAME:(TARGET:0)%は鍵を買わないと自分とはセックスできないと言った。
+			ENDIF
+		ENDIF
+		TRYCALLLIST
+			FUNC KOJO_MESSAGE_COM_K{CFLAG:(TARGET:0):297}_300_13_02((TARGET:0), (PLAYER:0))
+			FUNC KOJO_MESSAGE_COM_KU_300_13_02((TARGET:0), (PLAYER:0))
+		ENDFUNC
+	ENDIF
+RETURN 1
+;RETURN 0

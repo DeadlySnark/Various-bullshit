@@ -1,0 +1,42 @@
+;妊娠関連まとめ
+
+@INPREGNANT_KXX(奴隷)
+#DIM 奴隷
+#DIM 父親
+;ヒント
+;N_T_R_P(父親)で父親の名前表示
+;父親>=10000で父親不明
+父親 = CFLAG:奴隷:にんっしんっ -1
+	;↓恋慕、父親がMASTER
+IF TALENT:奴隷:恋慕 && 父親 == MASTER
+	;↓恋慕住人、父親がMASTERではない
+ELSEIF TALENT:奴隷:恋慕
+		;↓NTRれかけ
+	IF NTR_CHK_FAVORABLY(奴隷, FAV_寝取られそう)
+		;↓ふつう
+	ELSE
+
+	ENDIF
+;↓NTR
+ELSEIF TALENT:奴隷:NTR
+
+;↓その他
+ELSE
+
+ENDIF
+
+
+@BIRTH_KXX(奴隷)
+#DIM 奴隷
+#DIM 父親
+父親=CFLAG:奴隷:にんっしんっ-1
+SIF 父親 >= 10000
+	父親 -= 10000
+IF TALENT:奴隷:恋慕 && 父親 == MASTER
+ELSEIF TALENT:奴隷:恋慕
+	
+ELSEIF TALENT:奴隷:NTR
+
+ELSE
+
+ENDIF

@@ -1,0 +1,134 @@
+;電話する
+@COM405
+$TEL_TOP
+
+;恋慕相手から一人、待ち受け写真が表示される
+;恋慕人数をTALENT:恋慕の合計で取得
+LOCAL:1 = SUMCARRAY(TALENT:恋慕, 1, CHARANUM)
+
+IF LOCAL:1
+	LOCAL:1 = RAND:(LOCAL:1)
+	FOR LOCAL, 1, CHARANUM
+		SIF !TALENT:LOCAL:恋慕
+			CONTINUE
+		IF LOCAL:1
+			LOCAL:1 --
+		ELSE
+			PRINTFORML 携帯電話には%NAME:LOCAL%の写真が写っている
+			BREAK
+		ENDIF
+	NEXT
+ENDIF
+
+LOCAL:1 = 0
+PRINTFORML さて、誰に電話しようか…？
+FOR LOCAL, 1, CSVキャラ数
+	SIF PHONE:LOCAL == 0
+		CONTINUE
+	;出現抑制中キャラを飛ばす
+	;SIF GETCHARA(LOCAL) == -1 && GETBIT(出現率:LOCAL, 1)
+	;	CONTINUE
+	SIF LOCAL:1 % 4 == 0 && LOCAL:1 != 0
+		PRINTL
+	LOCAL:1 += 1
+	;登録されているかいないかの判断
+	IF GETCHARA(LOCAL) == -1
+	;休眠中
+	;	PRINTFORM [{LOCAL,3}] %CSVNAME(LOCAL)% 
+	PRINTFORML error!報告おねがいします.
+	ELSE
+	;現存
+		SELECTCASE 出現率:LOCAL
+			CASE 0
+				;DO NOTHING
+			CASE 1
+				SETCOLOR 0xffff00
+			CASE 2
+				SETCOLOR 0x666666
+		ENDSELECT
+		PRINTFORMLC [{LOCAL,3}] %NAME:(GETCHARA(LOCAL))%
+		RESETCOLOR
+	ENDIF
+NEXT
+PRINTL
+PRINTL [999] やめる
+INPUT
+SIF RESULT == 999
+	RETURN 0
+LOCAL:1 = RESULT
+LOCAL = GETCHARA(RESULT)
+IF PHONEABLE:(LOCAL:1)
+;謙虚な性格ですね
+	PRINTFORML 一日に何度も電話をかけるのは迷惑だろう…
+	PRINTFORML %CALLNAME:MASTER%は携帯をしまった
+	RETURN 0
+ENDIF
+
+IF CFLAG:LOCAL:ACTIVE < 0
+	PRINTFORML 「おかけになった電話番号は現在使われておりません」
+	PRINTFORMW どうやら電話番号を変えてしまったらしい・・・
+	RETURN 0
+ENDIF
+
+IF LOCAL == -1
+;今登録状態にないキャラ
+;	TFLAG:電話フラグ = 1
+;	CALL ADD_IDOL(LOCAL:1)
+;	TFLAG:電話相手 = CHARA_ACTIVE - 1
+;	TFLAG:電話相手仮存在 = 1
+;	TIME += 3
+	PRINTFORML error!報告おねがいします.
+ELSE
+;登録してあるキャラ
+	;NTR中
+	IF NTR拠点(CFLAG:LOCAL:軟禁者) == CFLAG:LOCAL:現在位置
+		他人 = CFLAG:LOCAL:軟禁者
+		
+
+		;パターン
+		;浮気公認→恋慕→アイドルNTR→その他
+		IF TALENT:LOCAL:浮気公認
+			PRINTFORML 電話口から聞こえてきたのは%CALLNAME:LOCAL%の嬌声だった。
+			PRINTFORML あえぎあえぎ%CALLNAME:LOCAL%は%CALLNAME:MASTER%に今まさに%NTR_NAME_SEX(LOCAL,他人)%との浮気セックス中だと伝えてきた。
+			PRINTFORMW その後ろからは電話に出たとたん締め付けがよくなりやがったとはやし立てる男の声がした。
+		ELSEIF TALENT:LOCAL:恋慕
+			PRINTFORML 電話口から聞こえてきた%CALLNAME:LOCAL%の声はどこか普段と違った。
+			PRINTFORML %CALLNAME:MASTER%が心配したが、ちょっと熱っぽいだけだから大丈夫と言い一方的に電話を切られてしまった。
+			PRINTFORMW ……だが切る前にボソッと言った「ごめんなさい」という言葉は一体何だったのだろうか……
+		ELSEIF TALENT:LOCAL:NTR && 所属(LOCAL) && TALENT:LOCAL:アイドル
+			PRINTFORML 電話に出たのは予想に反して男の野太い声だった。
+			PRINTFORML 携帯の表示でこちらが誰かは判っていたのだろう、男は%CALLNAME:MASTER%のプロデュース手腕を急に褒め始めた。
+			PRINTFORML 「いやあ君の発掘したアイドルはすばらしい！特に%NAME:LOCAL%！」
+			PRINTFORML %CALLNAME:MASTER%が戸惑い返事に困っていると、男はさらにまくし立てた。
+			PRINTFORML 「特に下の具合がなっ！うっ……ふう」
+			PRINTFORML そういうと男は携帯を%CALLNAME:LOCAL%の口元に置いたのだろう、しばらく大きな息遣いだけが聞こえた。
+			PRINTFORML おそるおそる%CALLNAME:MASTER%は何があったんだ、と聞いた。
+			PRINTFORMW %CALLNAME:LOCAL%は今まさに%NTR_NAME_SEX(LOCAL,他人)%に中出しされて一緒にイッたところだ、と荒い息で説明した。
+		ELSE
+			PRINTFORML 電話口から聞こえてきた%CALLNAME:LOCAL%の声はどこか普段と違った。
+			PRINTFORMW %CALLNAME:MASTER%が心配したが、ちょっと熱っぽいだけだから大丈夫と言い一方的に電話を切られてしまった。
+		ENDIF
+		TRYCALLFORM KOJO_CELLPHONE_NTR_K{NO:LOCAL}(LOCAL)
+		他人 = 人物_訪問者
+		RETURN 0
+	;寝てたり、衰弱してたり、普通の場所にいなかったり、凍結処理中だったり
+	ELSEIF CFLAG:LOCAL:睡眠 || CFLAG:LOCAL:衰弱 || CFLAG:LOCAL:現在位置 > 場所番号最大値 || CFLAG:LOCAL:凍結
+		PRINTFORML しばらく呼び出したが出る気配がない
+		PRINTFORML あなたはあきらめて携帯をしまった
+		RETURN 0
+	ENDIF
+	TFLAG:電話フラグ = 1
+	TFLAG:電話相手 = LOCAL
+	TIME += 3
+ENDIF
+
+PHONEABLE:(LOCAL:1) = 1
+SELECTCOM = 300
+NEXTCOM = 300
+TFLAG:3 = 300
+
+;DOTRAIN 300
+;TFLAG:3=300
+;PREVCOM=300
+;CALL TURN_RESET
+RETURN 0

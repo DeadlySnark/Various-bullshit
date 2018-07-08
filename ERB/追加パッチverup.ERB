@@ -1,0 +1,132 @@
+
+@追加パッチVerUP
+IF FLAG:パッチ初期設定フラグ == 0
+	;子供の親をチェック
+	FOR LOCAL, 0, CHARA_ACTIVE
+		IF NO:LOCAL == 501 || NO:LOCAL == 502
+			;親の子供の数を加算
+			;父親が訪問者なら訪問者用の人数フラグ処理
+			IF (CFLAG:LOCAL:73) >= CHARA_ACTIVE
+				FLAG:訪問者の子供の数 ++
+			ELSE
+				CFLAG:(CFLAG:LOCAL:73):85 ++
+			ENDIF
+			CFLAG:(CFLAG:LOCAL:74):85 ++
+			
+			;子供が両親にとっての何人目の子供かを設定
+			IF (CFLAG:LOCAL:73) >= CHARA_ACTIVE
+				CFLAG:LOCAL:父親の子番号 = FLAG:訪問者の子供の数
+			ELSE
+				CFLAG:LOCAL:父親の子番号 = CFLAG:(CFLAG:LOCAL:73):85
+			ENDIF
+			CFLAG:LOCAL:母親の子番号 = CFLAG:(CFLAG:LOCAL:74):85
+			
+			;このパッチをつけるまでに里子に出した子は含まれない
+		ENDIF
+	NEXT
+	FLAG:パッチ初期設定フラグ = 1
+ENDIF
+
+IF FLAG:パッチ初期設定フラグ <= 1
+
+	FOR LOCAL, 0, CHARA_ACTIVE
+		;妊娠してない且つ診療所にいるなら開始位置に戻す
+		IF LOCAL != MASTER && !TALENT:LOCAL:妊娠 && CFLAG:LOCAL:現在位置 == 950
+			CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:311
+		ENDIF
+	NEXT
+	FLAG:パッチ初期設定フラグ = 2
+ENDIF
+
+IF FLAG:パッチ初期設定フラグ <= 2
+	;生理周期ランダム設定
+	FOR LOCAL, 0, CHARA_ACTIVE
+		;男(ふたなり以外)はスキップ
+		SIF TALENT:LOCAL:性別 == 2
+			CONTINUE
+		CFLAG:LOCAL:生理周期 = RAND:10
+	NEXT
+	FLAG:パッチ初期設定フラグ = 3
+ENDIF
+
+IF FLAG:パッチ初期設定フラグ <= 3
+	;子宮内体積設定(男も一応含む)
+	FOR LOCAL, 0, CHARA_ACTIVE
+		CALL 子宮内体積設定(LOCAL)
+	NEXT
+	FLAG:パッチ初期設定フラグ  = 4
+ENDIF
+
+IF FLAG:パッチ初期設定フラグ <= 4
+	;相性０を１００にする
+	FOR LOCAL, 0, CHARA_ACTIVE
+		FOR LOCAL:1, 0, CHARA_ACTIVE
+			SIF RELATION:LOCAL:(LOCAL:1) == 0
+				RELATION:LOCAL:(LOCAL:1) = 100
+		NEXT
+	NEXT
+	;子供の相性再設定
+	FOR LOCAL, 0, CHARA_ACTIVE
+		SIF NO:LOCAL == 501 || NO:LOCAL == 502
+			CALL 子供相性設定, LOCAL
+	NEXT
+	SETCOLOR 200, 200, 0
+	PRINTL -生理～出産まわりパッチ初期処理完了-
+	RESETCOLOR
+	FLAG:パッチ初期設定フラグ  = 5
+ENDIF
+IF FLAG:パッチ初期設定フラグ <= 5
+	CALL 日付初期設定
+	FLAG:パッチ初期設定フラグ  = 6
+ENDIF
+IF FLAG:パッチ初期設定フラグ <= 6
+	CALL 寝間着設定
+	FOR LOCAL, 11, CHARA_ACTIVE
+		IF NO:LOCAL == 148
+			IF CFLAG:LOCAL:成長度 >= 3
+				CFLAG:LOCAL:寝間着 = RAND:8
+			ELSEIF CFLAG:LOCAL:成長度 == 2
+				CFLAG:LOCAL:寝間着 = 5
+			ENDIF
+		ELSE
+			IF CFLAG:LOCAL:成長度 >= 3
+				CFLAG:LOCAL:寝間着 = RAND:11
+			ELSEIF CFLAG:LOCAL:成長度 == 2
+				CFLAG:LOCAL:寝間着 = 5
+			ENDIF
+		ENDIF
+	NEXT
+	FLAG:パッチ初期設定フラグ  = 7
+ENDIF
+IF FLAG:パッチ初期設定フラグ <= 7
+;	CALL 気温耐性取得
+	FLAG:パッチ初期設定フラグ  = 8
+ENDIF
+IF FLAG:パッチ初期設定フラグ <= 8
+	FOR LOCAL,0,CHARA_ACTIVE
+		CALL 体詳細初期設定(LOCAL)
+	NEXT
+;	CALL 体詳細設定１
+	;既に子供がいる場合の処理
+	IF CHARA_ACTIVE > 開始時人数
+		FOR LOCAL, 開始時人数, CHARA_ACTIVE
+			;対象が多生児の場合、既に同じ日に生まれた兄弟の情報を取得していると多生児用の処理へ
+			IF CFLAG:LOCAL:多生児兄弟フラグ && CFLAG:LOCAL:多生児兄弟フラグ == CFLAG:(LOCAL-1):多生児兄弟フラグ
+				CALL 体設定_遺伝(LOCAL, CFLAG:LOCAL:父親, CFLAG:LOCAL:母親, 1, LOCAL-1)
+			ELSE
+				CALL 体設定_遺伝(LOCAL, CFLAG:LOCAL:父親, CFLAG:LOCAL:母親, 0, 0)
+			ENDIF
+			IF CFLAG:LOCAL:成長度
+				CALL 体設定_子供髪変更(LOCAL)
+				CFLAG:LOCAL:髪の長さ = (100 * CFLAG:LOCAL:髪の長さ指定)
+			ENDIF
+		NEXT
+	ENDIF
+	FLAG:パッチ初期設定フラグ  = 9
+ENDIF
+IF FLAG:パッチ初期設定フラグ <= 9
+;	CALL CLOTHES_EX
+	FLAG:パッチ初期設定フラグ = 10
+ENDIF
+
+

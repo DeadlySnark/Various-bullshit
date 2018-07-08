@@ -1,0 +1,130 @@
+@個別イベント_K26(ARG)
+#DIM LOOP_NUM
+#DIM LOOP_CHR
+;とりあえず作成してみるテスト
+;:キャライベント ... -1でイベント終了、1~で進行
+SIF CFLAG:ARG:キャライベント < 0
+	RETURN 0
+
+IF CFLAG:ARG:キャライベント==0
+	;START
+	;事務所に所属している、好感度がある程度ある、ＮＴＲれてない、変な仕事をしていない、普通の場所にいる
+	IF (TALENT:ARG:恋慕 || 所属(ARG) ) && !TALENT:ARG:NTR && CFLAG:ARG:好感度 > 200 && !NTR_CHK_FAVORABLY(ARG, FAV_主人より高い) && !TALENT:ARG:NTRPRE && CFLAG:ARG:現在位置 < 場所番号最大値+1 && CFLAG:MASTER:現在位置 < 場所番号最大値+1
+		;1/7
+		SIF RAND:7
+			RETURN 0
+		;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		PRINTL
+		PRINTFORML %CALLNAME:ARG%は自室で考え込んでいた。%CALLNAME:MASTER%のハンカチの匂いを嗅ぎながら。
+		PRINTFORML 「ハスハス～♪いやー、やっぱり%CALLNAME:MASTER%の匂いは最高ー！」
+		PRINTFORML 「こんないいものをヘンタイあつかいで避けちゃう人たちかわいそう…」
+		PRINTFORMW 「なんとか助けてあげられないかな～」
+		PRINTL 　　　・
+		PRINTL 　　　・
+		PRINTW 　　　・
+		PRINTFORML 「というわけで、この香水散布してきていいかな？」
+		PRINTFORMW ……まったく意味がわからない。%CALLNAME:MASTER%は説明を要求した。
+		PRINTFORML 「えーっとね、簡単に言うと、この香水は惚れ薬と%CALLNAME:MASTER%の匂い成分を混ぜたモノかなー」
+		PRINTFORMW 「これを街にばら撒けばみんな%CALLNAME:MASTER%の匂いにムチュー！%CALLNAME:MASTER%もきっとスカウト楽になって大助かりー…カナ？」
+		PRINTL 
+		PRINTFORML どう考えても碌なことにはならなそうだが……
+		PRINTFORML [0] - 香水を取り上げる
+		PRINTFORML [1] - 好きにさせる
+		INPUT
+		IF RESULT == 0
+			PRINTFORML %CALLNAME:MASTER%は後で自分で撒く、などと適当なことを言って%CALLNAME:ARG%から香水を預かった。
+			PRINTFORMW ……飽きっぽい%CALLNAME:ARG%のことだ、しばらくすれば存在自体を忘れるだろう。
+			;イベント終わり
+			CFLAG:ARG:キャライベント=-1
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%が特に止めないことを確認した%CALLNAME:ARG%は早速街へるんるんと繰り出していった。
+			PRINTL 　　　・
+			PRINTL 　　　・
+			PRINTW 　　　・
+			PRINTFORML %CALLNAME:MASTER%はその日以来、"偶然"街で女の子から声を掛けられ知り合う機会が多くなった……
+			PRINTFORMW どうやら効果はてきめんだったようだ。
+			PRINTFORMW 「にゃははー、実験大成功～！」
+			CFLAG:ARG:キャライベント=1
+			;1/2の確率で志希と好感度が同じに
+			FOR LOOP_CHR,1, CHARA_ACTIVE
+				SIF RAND:2
+					CONTINUE
+				SIF LOOP_CHR==ARG
+					CONTINUE
+				SIF TALENT:LOOP_CHR:ＥＮＥＭＹ
+					CONTINUE
+				;好感度がシキと同じかそれ以上になる
+				CFLAG:LOOP_CHR:好感度=MAX(CFLAG:LOOP_CHR:好感度 , CFLAG:ARG:好感度)
+			NEXT
+		ENDIF
+	ENDIF
+	
+ELSEIF CFLAG:ARG:キャライベント > 0
+	;事務所に所属している、好感度がある程度ある、ＮＴＲれてない、変な仕事をしていない、普通の場所にいる
+	IF (TALENT:ARG:恋慕 || 所属(ARG) ) && !TALENT:ARG:NTR && CFLAG:ARG:好感度 > 200 && !NTR_CHK_FAVORABLY(ARG, FAV_主人より高い) && !TALENT:ARG:NTRPRE && CFLAG:ARG:現在位置 < 場所番号最大値+1 && CFLAG:MASTER:現在位置 < 場所番号最大値+1
+		SIF RAND:4
+			RETURN 0
+		;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		IF (FLAG:共通ランダム数+DAY)%3
+		;再度
+			PRINTFORMW 「にゃははー、再実験～！」
+			PRINTFORMW どうやら%CALLNAME:ARG%はまた香水を街でばら撒こうとしているようだ……
+			PRINTFORML [0] - 香水を取り上げる
+			PRINTFORML [1] - 好きにさせる
+			INPUT
+			IF RESULT == 0
+				PRINTFORML %CALLNAME:MASTER%は後で自分で撒く、などと適当なことを言って%CALLNAME:ARG%から香水を預かった。
+				PRINTFORMW ……飽きっぽい%CALLNAME:ARG%のことだ、しばらくすれば存在自体を忘れるだろう。
+				;イベント終わり
+				CFLAG:ARG:キャライベント=-1
+			ELSE
+				CFLAG:ARG:キャライベント+=1
+				FOR LOOP_CHR,1, CHARA_ACTIVE
+					SIF RAND:2
+						CONTINUE
+					SIF LOOP_CHR==ARG
+						CONTINUE
+					SIF TALENT:LOOP_CHR:ＥＮＥＭＹ
+						CONTINUE
+					;好感度がシキと同じかそれ以上になる
+					CFLAG:LOOP_CHR:好感度=MAX(CFLAG:LOOP_CHR:好感度 , CFLAG:ARG:好感度)
+				NEXT
+			ENDIF
+		ELSE
+		;おしおきされる
+			SIF CFLAG:ARG:キャライベント==1
+				RETURN 0
+			PRINTFORML 「……う、う～ん……あ、あれ？何であたし縛られてるの？」
+			PRINTFORML 気がつくと%CALLNAME:ARG%は自室で椅子に縛られていた。
+			PRINTFORMW （寝てるうちに%CALLNAME:MASTER%にイタズラされたのかな～？きっと扉の外で待っているはず……）
+			PRINTFORML %CALLNAME:ARG%の予想に反して、扉を開けて入ってきたのはイカつい顔をした男とその部下だった。
+			PRINTFORML 「目が覚めたか、嬢ちゃん。ちょっと質問があるんだがよ、最近街で変な香水撒いてんのはてめえか？」
+			PRINTFORMW ドスの効いた脅しに思わずうなずいてしまう%CALLNAME:ARG%。それを確認した男は続けた。
+			PRINTFORML 「俺は女の子に"働いて"もらう店を経営してるんだがよ、最近彼女たちの様子がどうもおかしかったんだよ」
+			PRINTFORML 「なんとなく心ここにあらず、ってな。これじゃ商売あがったりだ。で、理由を探したら嬢ちゃんの香水に行き着いた」
+			PRINTFORML 「匂いの志向性か……、二度とこんなもんが作れないようになってもらうぜ」
+			PRINTFORMW そういうと男は部下に命令して、持ってきたペットボトルの中の黄ばんだ白い液体を香水に注がせ始めた！
+			PRINTFORML 「今のは俺の女たちが集めた不特定多数の男の精液だ。つまりこの香水を浴びればどうなるか……製作者ならわかるな？」
+			PRINTFORML 悲鳴を上げて逃げ出そうとする%CALLNAME:ARG%。しかしその努力もむなしく、精液混じりの香水を頭から注がれてしまった。
+			PRINTFORML 「無事精液の為に男狂いになったら俺が雇ってやらんこともないぜ、まあせいぜい苦しむんだな」
+			PRINTFORMW 縄を解いて男たちが出て行ったあと、%CALLNAME:ARG%は%CALLNAME:MASTER%のハンカチを口元に寄せ、何も感じないことに涙した。
+			SIF !EXP:ARG:浮気Ｖ性交経験
+				PRINTFORMW そしてお腹の奥底から沸いてくる今までにない渇望に恐怖した。
+			PRINTL
+			PRINTFORMW %CALLNAME:ARG%の体質が変化しました。
+			EXP:ARG:精液経験+=50
+			TALENT:ARG:中毒しやすい=1
+			CFLAG:ARG:キャライベント=-1
+			TALENT:ARG:淫乱=1
+			TALENT:ARG:浮気癖=1
+			CFLAG:ARG:(屈服IX+人物_風俗オーナー-人物_訪問者)+=CFLAG:ARG:好感度*3/2
+		ENDIF
+	ENDIF
+ENDIF
+;;;;;;ここら辺まではテンプレ
+;;;;;;CFLAG:奴隷:キャライベントをイベント用にあらかじめ用意
+;;;;;;BIT操作などを駆使してイベントを作成してみてください。

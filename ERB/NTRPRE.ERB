@@ -1,0 +1,850 @@
+;NTRPRE関連
+@PRENTR(ARG, ARG:1, ARG:2 )
+;ARG キャラ番号
+;ARG:1 NTRキャラ番号
+;ARG:2 mode 0:TALENT:NTRPRE 1:CFLAG:NTRPRELOG 2:CFLAG:NTRPREKNOW
+
+#FUNCTION
+#DIM C_NTR
+C_NTR=ARG:1
+;0,1000どっちでも対応可能に
+SIF C_NTR >= 人物_訪問者
+	C_NTR-=人物_訪問者
+SELECTCASE ARG:2
+	CASE NTRPRE_職
+		SIF GETBIT(TALENT:ARG:NTRPRE, C_NTR)
+			RETURNF 1
+	CASE NTRPRE_職履歴
+		SIF GETBIT(CFLAG:ARG:NTRPRELOG, C_NTR)
+			RETURNF 1
+	CASE NTRPRE_職既知
+		SIF GETBIT(CFLAG:ARG:NTRPREKNOW, C_NTR)
+			RETURNF 1
+ENDSELECT
+RETURNF 0
+
+@CHK_NTRPRELOGDISP(ARG)
+;ARG番のキャラのLOGDISPをいじる
+;NTRPRELOGDISPはNTRPREがオフかつNTRPRELOGが恩のときのみon
+#DIM LOOP_NUM
+FOR LOOP_NUM,0,64
+	IF !PRENTR(ARG, LOOP_NUM, NTRPRE_職) && PRENTR(ARG, LOOP_NUM, NTRPRE_職履歴)
+		SETBIT TALENT:ARG:NTRPRELOGDISP, LOOP_NUM
+	ELSE
+		CLEARBIT TALENT:ARG:NTRPRELOGDISP, LOOP_NUM
+	ENDIF
+NEXT
+
+@AV通常処理
+;ターンの終わりに呼ぶ
+#DIM LOOP_CHR
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:凍結
+		CONTINUE
+	SIF !PRENTR(LOOP_CHR, 人物_AV男優, NTRPRE_職)
+		CONTINUE
+	;普通のところにいない=撮影していた
+	SIF CFLAG:LOOP_CHR:現在位置 == 場所_動物小屋 || CFLAG:LOOP_CHR:現在位置 == 場所_薄暗い撮影所
+		EXP:LOOP_CHR:AV女優経験++
+		
+	;脱走していた場合は連れ戻される
+	IF CFLAG:LOOP_CHR:現在位置 < 場所_訪問者宅
+		他人=人物_AV男優
+		CFLAG:LOOP_CHR:現在位置=場所_ダミー
+		CALL VISITER_TAKINGOUT(LOOP_CHR)
+		他人=人物_訪問者
+	ENDIF
+	;10回前はここまで
+	SIF EXP:LOOP_CHR:AV女優経験 < 10
+		CONTINUE
+	CSTR:LOOP_CHR:AVタイトル=%AVタイトル生成(LOOP_CHR)%
+		;獣姦路線は切り替え
+	IF CFLAG:LOOP_CHR:AV路線==1 && CFLAG:LOOP_CHR:現在位置 != 場所_動物小屋
+		他人=人物_犬
+		;天丼して大丈夫かな…？
+		CALL VISITER_TAKINGOUT(LOOP_CHR)
+		CFLAG:LOOP_CHR:他人のムード = 40
+		他人=人物_訪問者
+	ENDIF
+	;いくつかのコースはここで帳尻あわせ
+	SELECTCASE CFLAG:LOOP_CHR:AV路線 
+		;拡張
+		CASE 2
+			EXP:LOOP_CHR:Ｖ拡張経験+=RAND:7
+			EXP:LOOP_CHR:Ａ拡張経験+=RAND:7
+			CALL 締り具合変動, LOOP_CHR, 10, 0
+			CALL 締り具合変動, LOOP_CHR, 10, 1
+		;妊娠
+		CASE 3
+		CFLAG:LOOP_CHR:多生児強度フラグ=MAX(CFLAG:LOOP_CHR:多生児強度フラグ,7)
+		他人=人物_AV男優
+			IF CFLAG:LOOP_CHR:子供の人数==0
+				CFLAG:LOOP_CHR:にんっしんっ=他人+1
+			ENDIF
+			SIF CFLAG:LOOP_CHR:子供の人数 && !RAND:20
+				CFLAG:LOOP_CHR:にんっしんっ=他人+1
+		他人=人物_訪問者
+	ENDSELECT
+NEXT
+
+@ソープ通常処理
+;ターンの終わりに呼ぶ
+#DIM LOOP_CHR
+他人=人物_風俗オーナー
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:凍結
+		CONTINUE
+	SIF !PRENTR(LOOP_CHR, 他人, NTRPRE_職)
+		CONTINUE
+	;脱走していた場合は連れ戻される
+	IF CFLAG:LOOP_CHR:現在位置 < 場所_訪問者宅
+		CFLAG:LOOP_CHR:現在位置=場所_ダミー
+		CALL VISITER_TAKINGOUT(LOOP_CHR)
+	ENDIF
+NEXT
+他人=人物_訪問者
+
+
+
+@NTRPRE堕ち(ARG, ARG:1)
+#DIM C_NTR
+#DIM C_NTRLOG
+;C_NTRは1000番台番号にする
+C_NTR=ARG:1
+SIF C_NTR<人物_訪問者
+	C_NTR+=人物_訪問者
+;既に堕ちている
+SIF PRENTR(ARG, C_NTR, NTRPRE_職)
+	RETURN 0
+C_NTRLOG=他人
+他人=C_NTR
+SELECTCASE 他人
+	CASE 人物_AV男優
+		CFLAG:ARG:現在位置=場所_ダミー
+		CSTR:ARG:AVタイトル=%AVタイトル生成(ARG)%
+		SIF !CFLAG:ARG:AV路線
+			CFLAG:ARG:AV路線=1+(FLAG:共通ランダム数+NO:ARG+MAXBASE:ARG:20)%9
+ENDSELECT
+CALL VISITER_TAKINGOUT(ARG)
+CFLAG:ARG:他人のムード=40
+SIF 他人==人物_パパ
+	CFLAG:ARG:自主性=1
+SETBIT TALENT:ARG:NTRPRE, 他人-人物_訪問者
+SETBIT CFLAG:ARG:NTRPRELOG, 他人-人物_訪問者
+他人=C_NTRLOG
+
+@円光関連(ARG)
+#DIM お値段
+#DIM LOOP_CHR
+;円光関連まとめ
+
+SIF !PRENTR(ARG, 人物_パパ, NTRPRE_職)
+	RETURN 0
+;移動中は発生させない(バグるから)
+SIF NEXTCOM==400
+	RETURN 0
+;念のためこれも確認(移動中フラグ)
+SIF TFLAG:195
+	RETURN 0
+;ラブホ又は裏路地にいない
+SIF CFLAG:ARG:現在位置 != 場所_裏路地 && CFLAG:ARG:現在位置 != 場所_ラブホ
+	RETURN 0
+;1/3 多分高すぎ
+
+SIF RAND:3
+	RETURN 0
+
+;お値段 仮
+;あなたといるときといないときで分岐
+IF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
+;同行しているキャラがいないことを確認しておく
+	FOR LOOP_CHR,1, CHARA_ACTIVE
+		SIF CFLAG:LOOP_CHR:同行
+			RETURN 0
+	NEXT
+		PRINTL
+	;円攻していることをしったよフラグ
+	SETBIT CFLAG:ARG:NTRPREKNOW, 人物_パパ-人物_訪問者
+	;お値段=MIN(MONEY/2 , 500)
+	お値段=(1+RAND:20)*100
+
+	PRINTFORM %CALLNAME:MASTER%に
+	IF CFLAG:ARG:名前フラグ
+		PRINTFORM %CALLNAME:ARG%
+	ELSE
+		PRINTFORM 名も知らぬ
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 娘
+		ELSE
+			PRINTFORM 少年
+		ENDIF
+	ENDIF
+
+	PRINTFORML が近づいてきて、${お値段}で好きにしてイイよ、とラブホテルを指差しながら耳元で囁いてきた…
+	;お金が足りない
+	IF お値段 > MONEY
+		PRINTFORM %CALLNAME:MASTER%が持ち合わせがないことを告げると、
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		PRINTFORML は舌打ちして去っていった…
+		RETURN 0
+	ENDIF
+	$INPUT_ENKOU
+	PRINTL [ 0] - 断る
+	PRINTL [ 1] - 承諾する
+	INPUT
+	IF RESULT != 0 && RESULT != 1
+		GOTO INPUT_ENKOU
+	ELSEIF RESULT == 0
+		PRINTFORM %CALLNAME:MASTER%が断ると、
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		PRINTFORML は舌打ちして去っていった…
+		;繁華街だと見えてしまう可能性があるので公園あたりに退避させてみる...大丈夫か?
+			CFLAG:ARG:現在位置=場所_公園
+	ELSEIF RESULT == 1
+	;買ったよフラグ...残念だけど廃止で。
+
+		PRINTFORM %CALLNAME:MASTER%が承諾すると、
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		PRINTFORML は腕をまるで恋人のように絡ませながら%CALLNAME:MASTER%をラブホテルへと誘った…
+		PRINTL
+		TRYCALLFORM ENKOU_START_K{NO:ARG}(ARG)
+		;会社の金やぞ 
+		MONEY-=お値段
+		;ここから ラブホ処理 位置変えて無理やりうふふモード
+		CALL ラブホ_移動処理(ARG)
+		FLAG:従順一時保存=1+ABL:ARG:従順
+		ABL:ARG:従順=5		
+		EXP:ARG:援助交際経験+=1
+	ENDIF
+ELSE
+;あなたがいないときはパパ
+SIF RAND:2
+	RETURN 0
+;NTR関数の利用
+他人=人物_パパ
+		CALL VISITER_TAKINGOUT(ARG)
+		CFLAG:ARG:自主性=1
+		EXP:ARG:援助交際経験+=1
+他人=人物_訪問者
+ENDIF
+RETURN 1
+
+;
+; ARG:0 対象キャラNo.
+; ARG:1 0=対象キャラからお誘い 1=あなたからお誘い
+; LOCAL:0 発生率
+; LOCAL:1 あなたウフフ中キャラNo.(最大)
+@皆援交判定(ARG, ARG:1 = 0)
+#DIM お値段
+#DIM 従順加算
+#DIM LOOP_CHR
+
+LOCAL:0 = 0
+;あなたうふふ中か確認
+LOCAL:1 = IN_ROOM("MAX", CFLAG:MASTER:現在位置, "CFLAG", GETNUM(CFLAG, "うふふ"), 1)
+
+;あなたは処理対象外
+SIF ARG == MASTER
+	RETURN 0
+;NTR用エネミーの対象外
+SIF TALENT:ARG:ＥＮＥＭＹ
+	RETURN 0
+;皆援交設定がOFFなら何もしない
+SIF GETBIT(FLAG:皆援交設定,1) == 0
+	RETURN 0
+;移動中は発生させない(バグるから)
+SIF NEXTCOM==400
+	RETURN 0
+;念のためこれも確認(移動中フラグ)
+SIF TFLAG:195
+	RETURN 0
+;体力気力がない場合は誘ってこない
+SIF ( BASE:ARG:体力 < 600 || BASE:ARG:体力 <= 0 ) && ARG:1 == 0
+	RETURN 0
+;皆援交設定が[裏路地のみ]の場合、ラブホ又は裏路地にいない場合は何もしない
+SIF GETBIT(FLAG:皆援交設定,2) == 0 && CFLAG:ARG:現在位置 != 場所_裏路地 && CFLAG:ARG:現在位置 != 場所_ラブホ
+	RETURN 0
+;現在援交作業中なら何もしない
+SIF CFLAG:ARG:現在位置 == 場所_ラブホあなた用
+	RETURN 0
+;対象キャラがうふふ中なら何もしない
+SIF CFLAG:ARG:うふふ > 0
+	RETURN 0
+;対象キャラが同行中で同行中キャラからのお誘いOFFの場合はなし
+SIF GETBIT(FLAG:皆援交設定,5) == 0 && CFLAG:ARG:同行
+	RETURN 0
+
+;発生率調整
+LOCAL:0 = RAND(0, 100)
+;対象キャラが同行中で同行中キャラからのお誘いONの場合は+10%
+SIF GETBIT(FLAG:皆援交設定,5) == 1 && CFLAG:ARG:同行
+	LOCAL:0 -= 10
+;物陰でお楽しみ中はコンボ発生率+20%
+SIF CFLAG:MASTER:物陰 == 1 && ( (LOCAL:1 && CFLAG:(LOCAL:1):うふふ) || CFLAG:MASTER:うふふ == 3 )
+	LOCAL:0 -= 20
+;(FLAG:皆援交設定発生率)以上で発生
+SIF (LOCAL:0) > (FLAG:皆援交設定発生率) &&  ARG:1 == 0
+	RETURN 0
+
+;体力600以下は誘えない
+IF BASE:ARG:体力 < 600 && ARG:1 == 1
+		PRINTFORMW 抱きたいと伝えると、ちょっと体力的に無理と断られた…
+	RETURN 0
+ENDIF
+
+IF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
+	;他に同行者がいてもお構いなし?
+	IF GETBIT(FLAG:皆援交設定,4) == 0
+		FOR LOOP_CHR,1, CHARA_ACTIVE
+			;本人は別途判定してるのでスルー
+			SIF LOOP_CHR == ARG
+				CONTINUE
+			;他に同行者あり
+			SIF CFLAG:LOOP_CHR:同行
+				RETURN 0
+		NEXT
+	ENDIF
+	PRINTL
+	お値段=(1+RAND:20)*100
+	
+	SIF ARG:1 == 1
+		PRINTFORM 抱きたいと伝えると
+
+	IF CFLAG:MASTER:物陰 == 1 && ( (LOCAL:1 && CFLAG:(LOCAL:1):うふふ) || CFLAG:MASTER:うふふ == 3 )
+		PRINTFORM 物陰でお楽しみ中の%CALLNAME:MASTER%に気付いた
+	ELSE
+		PRINTFORM %CALLNAME:MASTER%に
+	ENDIF
+	IF CFLAG:ARG:名前フラグ
+		PRINTFORM %CALLNAME:ARG%
+	ELSE
+		PRINTFORM 名も知らぬ
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 娘
+		ELSE
+			PRINTFORM 少年
+		ENDIF
+	ENDIF
+
+	IF CFLAG:ARG:同行
+		PRINT は
+	ELSEIF CFLAG:MASTER:物陰 == 1 && ( (LOCAL:1 && CFLAG:(LOCAL:1):うふふ) || CFLAG:MASTER:うふふ == 3 )
+		PRINT は周囲を伺いながらこちらに近づくと、
+	ELSE
+		PRINT が近づいてきて
+	ENDIF
+	IF GETBIT(FLAG:皆援交設定,3) == 1
+		IF CFLAG:MASTER:物陰 == 1 && ( (LOCAL:1 && CFLAG:(LOCAL:1):うふふ) || CFLAG:MASTER:うふふ == 3 )
+			PRINTFORMW 、${お値段}以上くれるなら『お楽しみ』に加わるよ♪、と小声で誘ってきた…
+		ELSE
+			PRINTFORMW 、${お値段}以上で好きにしてイイよ、と人気の無い場所を指差しながら耳元で囁いてきた…
+		ENDIF
+	ELSEIF GETBIT(FLAG:皆援交設定,2) == 1
+		PRINTFORMW 、${お値段}以上で好きにしてイイよ、とラブホテルの方向を指差しながら耳元で囁いてきた…
+	ELSE
+		PRINTFORMW 、${お値段}以上で好きにしてイイよ、とラブホテルを指差しながら耳元で囁いてきた…
+	ENDIF
+	;お金が足りない
+	IF お値段 > MONEY
+		PRINTFORM %CALLNAME:MASTER%が持ち合わせがないことを告げると、
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		IF GETBIT(FLAG:皆援交設定,2) == 0
+			IF CFLAG:ARG:あなた援交金額合計 > 9999 || CFLAG:ARG:好感度 > 199
+				PRINTFORMW はションボリと去っていった…
+			ELSE
+				PRINTFORMW は舌打ちして去っていった…
+			ENDIF
+		ELSE
+			IF CFLAG:ARG:あなた援交金額合計 > 9999 || CFLAG:ARG:好感度 > 199
+				PRINTFORMW はションボリと元の場所に戻っていった…
+			ELSE
+				PRINTFORMW は舌打ちして元の場所に戻っていった…
+			ENDIF
+		ENDIF
+		RETURN 0
+	ENDIF
+	$INPUT_MIN_ENKOU
+	PRINTFORML 現在の所持金 ${MONEY}
+	PRINTFORML [ 0] - 断る
+	PRINTFORML [ 1] - 承諾する ${お値段*1} [提示額x1]
+	PRINTFORML [ 2] - 承諾する ${お値段*2} [提示額x2] 一時従順ボーナス+1
+	PRINTFORML [ 3] - 承諾する ${お値段*2} [提示額x3] 一時従順ボーナス+2
+	PRINTFORML [ 4] - 承諾する ${お値段*4} [提示額x4] 一時従順ボーナス+3
+	PRINTFORML [ 5] - 承諾する ${お値段*5} [提示額x5] 一時従順ボーナス+4
+	PRINTFORML [ 6] - 承諾する ${お値段*6} [提示額x6] 一時従順ボーナス+5
+	INPUT
+	IF RESULT < 0  && 6 < RESULT
+		GOTO INPUT_MIN_ENKOU
+	ELSEIF RESULT == 0
+		PRINTFORM %CALLNAME:MASTER%が断ると、
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		
+		IF GETBIT(FLAG:皆援交設定,2) == 0
+			IF CFLAG:ARG:あなた援交金額合計 > 9999 || CFLAG:ARG:好感度 > 199
+				PRINTFORMW はションボリと去っていった…
+			ELSE
+				PRINTFORMW は舌打ちして去っていった…
+			ENDIF
+		ELSE
+			IF CFLAG:ARG:あなた援交金額合計 > 9999 || CFLAG:ARG:好感度 > 199
+				PRINTFORMW はションボリと元の場所に戻っていった…
+			ELSE
+				PRINTFORMW は舌打ちして元の場所に戻っていった…
+			ENDIF
+		ENDIF
+		;裏路地なら公園に退避
+		SIF GETBIT(FLAG:皆援交設定,2) == 0
+			CFLAG:ARG:現在位置=場所_公園
+	ELSEIF RESULT > 0
+		SELECTCASE RESULT
+			CASE 1
+				従順加算 = 0
+			CASE 2
+				お値段 = お値段 * 2
+				従順加算 = 1
+			CASE 3
+				お値段 = お値段 * 3
+				従順加算 = 2
+			CASE 4
+				お値段 = お値段 * 4
+				従順加算 = 3
+			CASE 5
+				お値段 = お値段 * 5
+				従順加算 = 4
+			CASE 6
+				お値段 = お値段 * 6
+				従順加算 = 5
+		ENDSELECT
+		;お金が足りない
+		IF お値段 > MONEY
+			PRINTFORM よくよく考えれば%CALLNAME:MASTER%は持ち合わせが足りないことを告げると、
+			IF GETBIT(TALENT:ARG:性別, 0)
+				PRINTFORM 彼女
+			ELSE
+				PRINTFORM 彼
+			ENDIF
+			IF GETBIT(FLAG:皆援交設定,2) == 0
+				IF CFLAG:ARG:あなた援交金額合計 > 9999 || CFLAG:ARG:好感度 > 199
+					PRINTFORMW はションボリと去っていった…
+				ELSE
+					PRINTFORMW は舌打ちして去っていった…
+				ENDIF
+			ELSE
+				IF CFLAG:ARG:あなた援交金額合計 > 9999 || CFLAG:ARG:好感度 > 199
+					PRINTFORMW はションボリと元の場所に戻っていった…
+				ELSE
+					PRINTFORMW は舌打ちして元の場所に戻っていった…
+				ENDIF
+			ENDIF
+			;裏路地なら公園に退避
+			SIF GETBIT(FLAG:皆援交設定,2) == 0
+				CFLAG:ARG:現在位置=場所_公園
+			RETURN 0
+		ENDIF
+
+		;エロス前準備
+		PRINTFORM %CALLNAME:MASTER%が承諾すると、
+		IF GETBIT(TALENT:ARG:性別, 0)
+			PRINTFORM 彼女
+		ELSE
+			PRINTFORM 彼
+		ENDIF
+		IF GETBIT(FLAG:皆援交設定,3) == 0
+			PRINTFORMW は腕をまるで恋人のように絡ませながら%CALLNAME:MASTER%をラブホテルへと誘った…
+			PRINTL
+			;ここから ラブホ処理 位置変えて無理やりうふふモード
+			CALL ラブホ_移動処理(ARG)
+		ELSE
+			IF CFLAG:MASTER:物陰 == 1 && ( (LOCAL:1 && CFLAG:(LOCAL:1):うふふ) || CFLAG:MASTER:うふふ == 3 )
+				PRINTFORMW は淫靡な笑顔を浮かべながら%CALLNAME:MASTER%の『お楽しみ』に加わった…
+				PRINTL
+			ELSE
+				PRINTFORMW は腕をまるで恋人のように絡ませながら%CALLNAME:MASTER%を物陰に誘った…
+				PRINTL
+			ENDIF
+			CFLAG:ARG:うふふ = 1
+			CFLAG:ARG:物陰 = 1
+			CFLAG:MASTER:物陰 = 1
+		ENDIF
+		TRYCALLFORM ENKOU_START_K{NO:ARG}(ARG)
+		MONEY-=お値段
+		CFLAG:ARG:従順一時保存=1+ABL:ARG:従順
+		IF ABL:ARG:従順 < 3
+			ABL:ARG:従順=3+従順加算
+		ELSE
+			ABL:ARG:従順=ABL:ARG:従順+従順加算
+		ENDIF
+		EXP:ARG:援助交際経験+=1
+		CFLAG:ARG:あなた援交金額合計+=お値段
+	ENDIF
+ENDIF
+RETURN 1
+
+
+@AVタイトル生成(ARG)
+;登録番号ARG番のキャラのAVタイトルを返す
+;書いててちのうしすうが下がったきがする・・・
+#FUNCTIONS
+#DIMS タイトル
+#DIMS 獣
+#DIM 変数,2
+;分岐
+タイトル'=""
+タイトル=%AV_名乗り(ARG)%　
+
+SIF TALENT:ARG:恋慕 && !TALENT:ARG:人妻
+	タイトル=%タイトル%想い人がいるのに
+SIF TALENT:ARG:NTR
+	タイトル=%タイトル%裏切りの
+
+;獣用意 基本犬で
+
+獣=%AV_獣(NO:ARG)%
+
+IF EXP:ARG:AV女優経験 > 20
+;ベテラン
+	変数:0=(FLAG:共通ランダム数+3*NO:ARG)%10
+	変数:1=(FLAG:共通ランダム数+NO:ARG*NO:ARG)%7
+	SELECTCASE CFLAG:ARG:AV路線
+		;獣
+		CASE 1
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG*3)%4
+				CASE 0
+					タイトル=%タイトル%%獣%と結婚します%MSG_HEART()%
+				CASE 1
+					タイトル=%獣%のお嫁さん%タイトル%%AV_煽り(変数:0)%%AV_行為(変数:1)%
+				CASE 2
+					タイトル=%タイトル%%AV_煽り(変数:0)%雌%獣%%AV_行為(変数:1)%
+				CASEELSE
+					タイトル=%タイトル%お腹の子の父は%獣%%MSG_HEART()%
+			ENDSELECT
+		;SM（というか拡張）
+		CASE 2
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG*3)%4
+				CASE 0
+					タイトル=%タイトル%%AV_煽り(変数:0)%両手フィスト
+				CASE 1
+					タイトル=%タイトル%%AV_煽り(変数:0)%限界性器拡張
+				CASE 2
+					タイトル=アナル栓なしでは生活不可能な%タイトル%性器拡張の末路
+				CASEELSE
+					タイトル=%タイトル%%AV_煽り(変数:0)%子宮露出
+			ENDSELECT
+		;妊婦
+		CASE 3
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG*3)%4
+				CASE 0
+					タイトル=%タイトル%%AV_煽り(変数:0)%母乳噴出%AV_行為(変数:1)%
+				CASE 1
+					タイトル=%タイトル%%AV_煽り(変数:0)%腹ボテ%AV_行為(変数:1)%
+				CASE 2
+					タイトル=%タイトル%ＡＶで赤ちゃん産んでみた%MSG_HEART()%
+				CASEELSE
+					タイトル=%タイトル%%AV_煽り(変数:0)%出産報告全記録
+			ENDSELECT
+		CASEELSE
+			タイトル=%タイトル%%AV_煽り(変数:0)%%AV_行為(変数:1)%
+			SELECTCASE (FLAG:共通ランダム数+2*NO:ARG)%3
+				CASE 0
+					タイトル=%タイトル%愛蔵版
+				CASE 1
+					タイトル=BESTSELECTION　%タイトル%
+				CASEELSE
+					タイトル=%タイトル%永久保存版
+			ENDSELECT
+	ENDSELECT
+ELSEIF !PRENTR(ARG, 人物_AV男優, NTRPRE_職)
+
+;初心者？最初は路線関係なし，再現性もなくていいのでRANDで
+	IF TALENT:ARG:処女
+		SELECTCASE RAND:4
+			CASE 0
+				タイトル=%タイトル%処女喪失
+			CASE 1
+				タイトル=%タイトル%処女卒業
+			CASE 2
+				タイトル=%タイトル%ヴァージンロスト
+			CASEELSE
+				タイトル=%タイトル%処女膜ブチ破り
+		ENDSELECT
+	ENDIF
+	タイトル=%タイトル%%AV_煽り(RAND:10)%%AV_行為(RAND:7)%
+	SELECTCASE RAND:4
+		CASE 0
+			タイトル=衝撃デビュー！%タイトル%
+		CASE 1
+			タイトル=%タイトル%ＡＶデビュー
+		CASE 2
+			タイトル=逸材発掘%タイトル%
+		CASEELSE
+			タイトル=新人　%タイトル%
+	ENDSELECT
+ELSE
+;中堅?
+	変数:0=(FLAG:共通ランダム数+NO:ARG)%10
+	変数:1=(FLAG:共通ランダム数+NO:ARG)%7
+	SELECTCASE CFLAG:ARG:AV路線
+		;獣
+		CASE 1
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG)%4
+				CASE 0
+					タイトル=%タイトル%%獣%に犯されました
+				CASE 1
+					タイトル=%タイトル%獣躙%AV_行為(変数:1)%　%獣%編
+				CASE 2
+					タイトル=%タイトル%%獣%ちんぽ%AV_行為(変数:1)%
+				CASEELSE
+					タイトル=%獣%に飼われる%タイトル%%AV_煽り(変数:0)%%AV_行為(変数:1)%
+			ENDSELECT
+		;SM（というか拡張）
+		CASE 2
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG)%3
+				CASE 0
+					タイトル=%タイトル%%AV_煽り(変数:0)%両穴フィスト
+				CASE 1
+					タイトル=%タイトル%%AV_煽り(変数:0)%馬並ちんぽ%AV_行為(変数:1)%
+				CASEELSE
+					タイトル=%タイトル%巨大ディルド拡張
+			ENDSELECT
+		;妊婦
+		CASE 3
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG)%4
+				CASE 0
+					タイトル=%タイトル%%AV_煽り(変数:0)%妊娠宣言
+				CASE 1
+					タイトル=私、ママになります。%タイトル%%AV_煽り(変数:0)%%AV_行為(変数:1)%
+				CASE 2
+					タイトル=少子化対策！%タイトル%ＡＶで赤ちゃん作ってみた%MSG_HEART()%
+				CASEELSE
+					タイトル=%タイトル%%AV_煽り(変数:0)%受精報告
+			ENDSELECT
+		CASEELSE
+			タイトル=%タイトル%%AV_煽り(変数:0)%%AV_行為(変数:1)%
+			SELECTCASE (FLAG:共通ランダム数+NO:ARG)%3
+				CASE 0
+					タイトル=%タイトル%
+				CASE 1
+					タイトル=%タイトル%
+				CASEELSE
+					タイトル=%タイトル%
+			ENDSELECT
+	ENDSELECT
+ENDIF
+
+RETURNF タイトル
+
+
+@AV_名乗り(ARG)
+;身分を作って返す,身分に天丼していく
+#FUNCTIONS
+#DIMS 身分
+身分'=""
+;アイドルとして有名か否か
+IF CFLAG:ARG:アイドルランク > 2
+	;激似,そっくり、クリソツ
+	;身分=%CSTR:ARG:フルネーム%
+	SUBSTRINGU CSTR:ARG:フルネーム,1, -1
+	身分=●%RESULTS:0%
+	SELECTCASE (FLAG:共通ランダム数+NO:ARG)%3
+		CASE 0
+		身分=%身分%そっくり！
+		CASE 1
+		身分=%身分%激似！
+		CASEELSE
+		身分=%身分%クリソツ?!
+	ENDSELECT
+ELSEIF TALENT:ARG:アイドル==2
+	身分=%身分%元アイドル
+ENDIF
+;才能
+IF TALENT:ARG:淫乱
+	身分=%身分%淫乱
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:態度==-1
+	身分=%身分%従順
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:応答==1
+	身分=%身分%生意気
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:性的興味==1
+	身分=%身分%エッチに興味津々
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:プライド==1
+	身分=%身分%高飛車
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:感情乏しい
+	身分=%身分%マグロ
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:羞恥心==1
+	身分=%身分%恥じらい
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:献身的
+	身分=%身分%ご奉仕
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:体型 < -1
+	身分=%身分%ロリ
+	GOTO SKIPSAINOU
+ENDIF
+IF TALENT:ARG:バストサイズ > 1
+	身分=%身分%おっぱい
+	GOTO SKIPSAINOU
+ENDIF
+$SKIPSAINOU
+IF TALENT:ARG:令嬢
+	身分=%身分%令嬢
+ENDIF
+IF TALENT:ARG:貧乏
+	身分=%身分%貧乏
+ENDIF
+IF TALENT:ARG:高○生
+	身分=%身分%現役ＪＫ
+ENDIF
+IF TALENT:ARG:中○生
+	身分=%身分%合法ＪＣ
+ENDIF
+IF TALENT:ARG:小○生
+	身分=%身分%合法ＪＳ
+ENDIF
+IF TALENT:ARG:人妻
+	身分=%身分%人妻
+ENDIF
+;からのときの処理
+IF 身分==""
+	;年齢で分岐
+	IF BASE:ARG:9<20
+		身分=%身分%美少女 
+	ELSE
+		身分=%身分%美女 
+	ENDIF
+ENDIF
+身分=%身分%%CSTR:ARG:源氏名% 
+RETURNF 身分
+
+@AV_煽り(指定)
+#FUNCTIONS
+#DIM 指定
+;0-9までの10パターン返す
+;ラブラブがくると笑えるけどまあいいや
+SELECTCASE 指定
+	CASE 0
+		RETURNF "屈辱"
+	CASE 1
+		RETURNF "破滅"
+	CASE 2
+		RETURNF "蹂躙"
+	CASE 3
+		RETURNF "ラブラブ"
+	CASE 4
+		RETURNF "凄惨"
+	CASE 5
+		RETURNF "陰湿"
+	CASE 6
+		RETURNF "無理矢理"
+	CASE 7
+		RETURNF "卑猥"
+	CASE 8
+		RETURNF "強制"
+	CASE 9
+		RETURNF "恥辱"
+ENDSELECT
+
+@AV_行為(指定)
+#FUNCTIONS
+#DIM 指定
+;0-6までの7パターン返す、一応ノーマル？な感じのものを
+SELECTCASE 指定
+	CASE 0
+		RETURNF "レイプ"
+	CASE 1
+		RETURNF "セックス"
+	CASE 2
+		RETURNF "奉仕"
+	CASE 3
+		RETURNF "輪姦"
+	CASE 4
+		RETURNF "調教"
+	CASE 5
+		RETURNF "ハメ取り"
+	CASE 6
+		RETURNF "絶頂"
+ENDSELECT
+
+@AV_獣(ARG)
+#FUNCTIONS
+SELECTCASE (FLAG:共通ランダム数+ARG*7)%10
+	CASE 0
+		RETURNF "馬"
+	CASE 1
+		RETURNF "猿"
+	CASE 2
+		RETURNF "豚"
+	CASE 3
+		RETURNF "牛"
+	CASE 4
+		RETURNF "イルカ"
+	CASE 5
+		RETURNF "虎"
+	CASEELSE
+		RETURNF "犬"
+ENDSELECT
+
+
+
+;;;;;ここから　ソープ関連
+;@ソープ落ち(ARG)
+;ARG番を落とす
+
+;他人=人物_風俗オーナー
+;口上対策
+;CFLAG:ARG:現在位置=場所_ダミー
+
+;CALL VISITER_TAKINGOUT(ARG)
+;CFLAG:ARG:他人のムード=40
+;TALENT:ARG:ソープ嬢=1
+
+;他人=人物_訪問者
+
+
+;@ソープ通常処理
+;ターンの終わりに呼ぶ
+;#DIM LOOP_CHR
+;FOR LOOP_CHR,1, CHARA_ACTIVE
+;	SIF TALENT:LOOP_CHR:ソープ嬢 != 1
+;		CONTINUE
+;
+;	;通常位置にいる場合は連れ戻される
+;	IF CFLAG:LOOP_CHR:現在位置 < 場所_訪問者宅
+;		他人=人物_風俗オーナー
+;		CFLAG:LOOP_CHR:現在位置=場所_ダミー
+;		CALL VISITER_TAKINGOUT(LOOP_CHR)
+;		他人=人物_訪問者
+;	ENDIF
+;NEXT

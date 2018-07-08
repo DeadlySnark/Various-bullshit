@@ -1,0 +1,221 @@
+
+@個別イベント_K146(ARG)
+#DIM LOOP_NUM
+#DIM LOOP_CHR
+#DIM 判定
+;コンセプト：信じて送り出した以下略
+;とりあえず作成してみるテスト
+;:キャライベント ... -999999でイベント終了、~-1で一時停止、1で進行
+SIF CFLAG:ARG:キャライベント == -999999
+	RETURN 0
+
+IF CFLAG:ARG:キャライベント==0
+	;START
+	;事務所に所属している、好感度がある程度ある、ＮＴＲれてない、変な仕事をしていない、普通の場所にいる、妊娠していない
+	IF ( 所属(ARG) )&& TALENT:ARG:アイドル && !TALENT:ARG:NTR && CFLAG:ARG:好感度 > 100 && !NTR_CHK_FAVORABLY(ARG, FAV_主人より高い) && !TALENT:ARG:NTRPRE && CFLAG:ARG:現在位置 < 場所番号最大値+1 && CFLAG:MASTER:現在位置 < 場所番号最大値+1 && !CFLAG:ARG:にんっしんっ
+		;1/7
+		SIF RAND:7
+			RETURN 0
+		;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		PRINTL
+		PRINTFORML %CALLNAME:ARG%が興奮して%CALLNAME:MASTER%のところに駆け込んできた。
+		PRINTFORML 「我が友よ、禁忌により授けられしグリモワールを見よ！
+		PRINTFORMW （%CALLNAME:MASTER%さん、さっき宅配で届いたこの魔術書を見てください！）」
+		PRINTFORML どうやらこの本は%CALLNAME:ARG%がオークションで落札したものらしい。
+		PRINTFORML 書かれていた説明によると、この魔術書を開けば剣と魔法……ではなく
+		PRINTFORMW 歌と踊りが支配する異世界へと行ける、とのことだ。
+		;ぐらんぶるーかな？
+		PRINTFORMW アイドルである%CALLNAME:ARG%にとって実に都合のいい、にわかには信じがたい話である……
+		PRINTFORML しかしながら、確かにこの本は%CALLNAME:MASTER%にすら感じられるほどの強力な、禍々しい何かを発している。
+		PRINTFORMW %CALLNAME:ARG%は向こうの世界で冒険してアイドルとして強くなって帰ってくる、と目を輝かせている……
+		PRINTFORML さて、どうしようか
+		PRINTFORML %CALLNAME:ARG%のVi　Lv.{ABL:ARG:ビジュアル技能}
+		PRINTFORML %CALLNAME:ARG%のVo　Lv.{ABL:ARG:ボーカル技能}
+		PRINTFORML %CALLNAME:ARG%のDa　Lv.{ABL:ARG:ダンス技能}
+		PRINTL [0] - 魔術書とやらを取り上げる
+		PRINTL [1] - 使用を許可する
+		PRINTL [2] - 先送りさせる
+		INPUT
+		IF RESULT==0
+		;取り上げる
+			PRINTFORML もし仮にこれが本物だとしたら、%CALLNAME:ARG%の身に起こることはきっと碌でもないことだろう……
+			PRINTFORMW %CALLNAME:MASTER%は適当に%CALLNAME:ARG%を言いくるめて本を回収し、後日、念のため教会で処分して貰った。
+			CFLAG:ARG:キャライベント = -999999
+		ELSEIF RESULT==1
+		;許可する
+			PRINTFORML 「宴の始まりぞ！いざ扉を開かん！
+			PRINTFORMW （ありがとうございます！早速読んでみますね…）」
+			PRINTFORML %CALLNAME:ARG%が魔術書を開いた瞬間、まばゆい光が本からあふれ出て%CALLNAME:ARG%の姿を包んだ！
+			PRINTFORML %CALLNAME:MASTER%が止める間もなく、%CALLNAME:ARG%は光と共に本の中へとスルスルと吸いこまれるようにして消えた。
+			PRINTFORMW まさか本物の魔術書だったとは……
+			PRINTFORML %CALLNAME:MASTER%も後を追おうとしたが、どれだけ力を込めてもその本を開くことは出来なかった。
+			PRINTFORML どうやら帰ってくることを待つしかないようだ……
+			PRINTFORMW とりあえず%CALLNAME:MASTER%は本を自宅に持ち帰って保管することにした。
+			CALL 凍結処理(ARG)
+			CFLAG:ARG:キャライベント=1
+		ELSE
+		;先送り
+			PRINTFORML もっとアイドルとしての技能を磨くべき、今はまだそのときではない、と%CALLNAME:ARG%に言い聞かせることにしよう。
+			PRINTL 　　・
+			PRINTL 　　・
+			PRINTL 　　・
+			PRINTFORMW どうやら納得してくれたようだ。だが、またしばらくしたら行ってみたい、と言い出すだろう……
+			CFLAG:ARG:キャライベント=-1*DAY
+		ENDIF
+	ENDIF
+ELSEIF CFLAG:ARG:キャライベント < 0
+	;一回やった。
+
+	IF ( 所属(ARG) )&& TALENT:ARG:アイドル && !TALENT:ARG:NTR && CFLAG:ARG:好感度 > 100 && !NTR_CHK_FAVORABLY(ARG, FAV_主人より高い) && !TALENT:ARG:NTRPRE && CFLAG:ARG:現在位置 < 場所番号最大値+1 && CFLAG:MASTER:現在位置 < 場所番号最大値+1 && !CFLAG:ARG:にんっしんっ
+		;1/4
+		SIF RAND:4
+			RETURN 0
+		;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		PRINTL
+		PRINTFORMW %CALLNAME:ARG%がこの前の魔術書を持ちながら、使う許可を欲しそうな目をこちらに向けている……
+		PRINTFORML さて、どうしようか
+		PRINTFORML %CALLNAME:ARG%のVi　Lv.{ABL:ARG:ビジュアル技能}
+		PRINTFORML %CALLNAME:ARG%のVo　Lv.{ABL:ARG:ボーカル技能}
+		PRINTFORML %CALLNAME:ARG%のDa　Lv.{ABL:ARG:ダンス技能}
+		PRINTL [0] - 魔術書とやらを取り上げる
+		PRINTL [1] - 使用を許可する
+		PRINTL [2] - 先送りさせる
+		INPUT
+		IF RESULT==0
+		;取り上げる
+			PRINTFORML もし仮にこれが本物だとしたら、%CALLNAME:ARG%の身に起こることはきっと碌でもないことだろう……
+			PRINTFORMW %CALLNAME:MASTER%は適当に%CALLNAME:ARG%を言いくるめて本を回収し、後日、念のため教会で処分して貰った。
+			CFLAG:ARG:キャライベント = -999999
+		ELSEIF RESULT==1
+		;許可する
+			PRINTFORML 「宴の始まりぞ！いざ扉を開かん！
+			PRINTFORMW （ありがとうございます！早速読んでみますね…）」
+			PRINTFORML %CALLNAME:ARG%が魔術書を開いた瞬間、まばゆい光が本からあふれ出て%CALLNAME:ARG%の姿を包んだ！
+			PRINTFORML %CALLNAME:MASTER%が止める間もなく、%CALLNAME:ARG%は光と共に本の中へとスルスルと吸いこまれるようにして消えた。
+			PRINTFORMW まさか本物の魔術書だったとは……
+			PRINTFORML %CALLNAME:MASTER%も後を追おうとしたが、どれだけ力を込めてもその本を開くことは出来なかった。
+			PRINTFORML どうやら帰ってくることを待つしかないようだ……
+			PRINTFORMW とりあえず%CALLNAME:MASTER%は本を自宅に持ち帰って保管することにした。
+			CALL 凍結処理(ARG)
+			CFLAG:ARG:キャライベント=1
+		ELSE
+		;先送り
+			PRINTFORML もっとアイドルとしての技能を磨くべき、今はまだそのときではない、と%CALLNAME:ARG%に言い聞かせることにしよう。
+			PRINTL 　　・
+			PRINTL 　　・
+			PRINTL 　　・
+			PRINTFORMW どうやら納得してくれたようだ。だが、またしばらくしたら行ってみたい、と言い出すだろう……
+			CFLAG:ARG:キャライベント=-1*DAY
+		ENDIF
+	ENDIF
+ELSEIF CFLAG:ARG:キャライベント==1
+	;結果
+	;5日以降に帰還判定,確率n-1/n
+	SIF RAND:(MAX(1, (DAY-CFLAG:ARG:凍結-4)))==0
+		RETURN 0
+	;判定の作成：シンプルに全部足しで
+	CFLAG:ARG:凍結=0
+	CFLAG:ARG:キャライベント = -999999
+	CFLAG:ARG:現在位置=CFLAG:ARG:開始位置
+	CFLAG:ARG:キャライベント=-1
+	判定=ABL:ARG:ビジュアル技能+ABL:ARG:ボーカル技能+ABL:ARG:ダンス技能
+	PRINTFORMW %CALLNAME:MASTER%がひと段落ついて休もうとした瞬間、預かっていた%CALLNAME:ARG%の魔術書が急に光りだした！
+	IF 判定>12
+		;大体 5 4 4とか、それぐらいをイメージ
+		PRINTFORML 発光が収まるとそこには%CALLNAME:ARG%がふんぞり返って立っていた。
+		PRINTFORMW %CALLNAME:MASTER%の姿を確認して元の世界に返ってこれたことをひとしきり喜んだ後、%CALLNAME:ARG%は異世界での活躍を滔々と語りだした。
+		PRINTL 　　・
+		PRINTL 　　・
+		PRINTW 　　・
+		PRINTFORMW 村を救ったとか、魔王を打ち倒したとやらの話の真偽は兎も角、どうやらアイドルとしての技能を磨くことには成功したようだ。
+		EXP:ARG:ビジュアル経験 += 正規分布(120)
+		EXP:ARG:ボーカル経験 += 正規分布(120)
+		EXP:ARG:ダンス経験 += 正規分布(120)
+	ELSEIF 判定>9
+		;大体 4 3 3
+		PRINTFORML 発光が収まると%CALLNAME:ARG%が怯えた表情をして床に座り込んでいた。
+		PRINTFORMW %CALLNAME:MASTER%を見て元の世界に返ってこれたことを確認した後、緊張の糸が切れたのか%CALLNAME:ARG%は泣き出してしまった。
+		PRINTL 　　・
+		PRINTL 　　・
+		PRINTW 　　・
+		PRINTFORML どうやら%CALLNAME:ARG%は魔物に敗北し、何とか逃げ延びてきたらしい。
+		PRINTFORMW 無事でよかった、と%CALLNAME:MASTER%が伝えると、涙の跡のある顔で彼女ははにかんだ。
+		EXP:ARG:ビジュアル経験 += 正規分布(90)
+		EXP:ARG:ボーカル経験 += 正規分布(90)
+		EXP:ARG:ダンス経験 += 正規分布(90)
+	ELSE
+		;失敗、つまりはそういうことだ
+		PRINTFORML 発光が収まるとそこには%CALLNAME:ARG%が見るも無残な姿で気を失って倒れていた。
+		PRINTFORMW 体中あちこちに傷があり、泥やこびりついた血や腐臭を放つ液体にまみれている……
+		PRINTL 　　・
+		PRINTL 　　・
+		PRINTW 　　・
+		PRINTFORML %CALLNAME:GET_SEC()%を家に呼び、%CALLNAME:ARG%を介抱して貰った。
+		PRINTFORML 不幸中の幸いなことに、跡が残ってしまうような重傷はなかったらしい。
+		PRINTFORMW しかし、一体彼女に何があったのだろうか？
+		PRINTFORML 何かヒントはないかと思い、%CALLNAME:ARG%の魔術書を手に取るとぱらぱらとページが捲れ始めた。
+		PRINTFORMW そして、見開かれた章には彼女に何があったのか書かれていた……
+		PRINTL 　　・
+		PRINTL 　　・
+		PRINTW 　　・
+		
+		PRINTFORM どうやら
+		IF 判定>6
+		;9 8 7
+		;魔物れいぽう
+			PRINTFORMW %AV_獣(NO:ARG)%型の魔物に敗北し、獣欲の赴くままに陵辱されてしまったようだ……
+			SIF CSTR:ARG:Ｖ初体験の相手 == ""
+				CSTR:ARG:Ｖ初体験の相手 = 異世界で魔物に奪われた
+			SIF CSTR:ARG:Ａ初体験の相手 == ""
+				CSTR:ARG:Ａ初体験の相手 = 異世界で魔物に奪われた
+			SIF CSTR:ARG:Ｍ初体験の相手 == ""
+				CSTR:ARG:Ｍ初体験の相手 = 異世界で魔物に奪われた
+			CALL 性経験の改変(ARG, 0, 5)
+			SIF GETBIT(FLAG:雑多設定,5)
+				CFLAG:ARG:にんっしんっ=1+人物_犬+10000
+		;経験数合わせ
+		ELSEIF 判定>3 
+		;6 5 4
+		;盗賊
+			PRINTFORMW 盗賊団討伐で返り討ちに会い、「所有物」として嬲り者にされていたようだ……
+		;経験数合わせ
+			SIF CSTR:ARG:Ｖ初体験の相手 == ""
+				CSTR:ARG:Ｖ初体験の相手 = 異世界で盗賊に奪われた
+			SIF CSTR:ARG:Ａ初体験の相手 == ""
+				CSTR:ARG:Ａ初体験の相手 = 異世界で盗賊に奪われた
+			SIF CSTR:ARG:Ｍ初体験の相手 == ""
+				CSTR:ARG:Ｍ初体験の相手 = 異世界で盗賊に奪われた
+			CALL 性経験の改変(ARG, 0, 100)
+		ELSE
+		;3 2 1 0
+		;村人→償還
+			PRINTFORMW 最初の村で村人たちに騙されて娼館に売り飛ばされ、沢山の客に仕込まれてしまったようだ……
+			SIF CSTR:ARG:Ｖ初体験の相手 == ""
+				CSTR:ARG:Ｖ初体験の相手 = 異世界で娼館の客に奪われた
+			SIF CSTR:ARG:Ａ初体験の相手 == ""
+				CSTR:ARG:Ａ初体験の相手 = 異世界で娼館の客に奪われた
+			SIF CSTR:ARG:Ｍ初体験の相手 == ""
+				CSTR:ARG:Ｍ初体験の相手 = 異世界で娼館の客に奪われた
+			;3回ぐらい呼んでみる
+			CALL 性経験の改変(ARG, 人物_パパ)
+			CALL 性経験の改変(ARG, 人物_パパ)
+			CALL 性経験の改変(ARG, 人物_パパ)
+			CFLAG:ARG:(屈服IX-人物_訪問者+人物_パパ)=CFLAG:ARG:好感度*3/2
+			SIF GETBIT(FLAG:雑多設定,5)
+				CFLAG:ARG:にんっしんっ=1+人物_客+10000
+		;経験数合わせ
+		ENDIF
+		PRINTFORMW %CALLNAME:MASTER%はなぜあの時許可してしまったのだろう、と激しく後悔した……
+		EXP:ARG:ビジュアル経験 += 正規分布(判定*10)
+		EXP:ARG:ボーカル経験 += 正規分布(判定*10)
+		EXP:ARG:ダンス経験 += 正規分布(判定*10)
+	ENDIF
+ENDIF
+RETURN 1
+;;;;;;ここら辺まではテンプレ
+;;;;;;CFLAG:奴隷:キャライベントをイベント用にあらかじめ用意
+;;;;;;BIT操作などを駆使してイベントを作成してみてください。

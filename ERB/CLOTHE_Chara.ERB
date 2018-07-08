@@ -1,0 +1,1161 @@
+;基本服設定処理
+;-------------------------------------------------------------------------------
+@CLOTHE_Chara
+;普段着やパジャマを設定する処理(テスト)
+;着替えのタイミングでキャラフラグから参照するので、それまで反映されない
+;
+;寝間着は情報の足りない子が多いので、とりあえずパジャマにする
+;更新人数を見たいので、着替えさせる対象ごとにローカル変数を足していく
+;-------------------------------------------------------------------------------
+;キュート
+;-------------------------------------------------------------------------------
+LOCAL:1 = 0
+	;島村卯月
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(1):服装パターン = 100
+		CFLAG:GETCHARA(1):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(1):私服_帽子 = 0
+		;ワイシャツ、ブレザー、スカート
+		CFLAG:GETCHARA(1):私服_上半身上着１ = 8
+		CFLAG:GETCHARA(1):私服_上半身上着２ = 4
+		CFLAG:GETCHARA(1):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(1):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(1):私服_スカート = 2
+		CFLAG:GETCHARA(1):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(1):私服_ワンピース = 0
+		CFLAG:GETCHARA(1):私服_着物 = 0
+		CFLAG:GETCHARA(1):私服_レオタード = 0
+		;ブラジャーあり
+		CFLAG:GETCHARA(1):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(1):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(1):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(1):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(1):私服_装飾 = 0
+	;福山舞
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(4):服装パターン = 100
+		CFLAG:GETCHARA(4):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(4):私服_帽子 = 0
+		;ブラウス、ミニスカート
+		CFLAG:GETCHARA(4):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(4):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(4):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(4):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(4):私服_スカート = 1
+		CFLAG:GETCHARA(4):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(4):私服_ワンピース = 0
+		CFLAG:GETCHARA(4):私服_着物 = 0
+		CFLAG:GETCHARA(4):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(4):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(4):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(4):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(4):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(4):私服_装飾 = 0
+	;櫻井桃華
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(15):服装パターン = 100
+		CFLAG:GETCHARA(15):寝間着 = 5
+		;ヘッドドレス
+		CFLAG:GETCHARA(15):私服_帽子 = 2
+		;ワンピース
+		CFLAG:GETCHARA(15):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(15):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(15):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(15):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(15):私服_スカート = 0
+		CFLAG:GETCHARA(15):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(15):私服_ワンピース = 1
+		CFLAG:GETCHARA(15):私服_着物 = 0
+		CFLAG:GETCHARA(15):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(15):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(15):私服_上半身下着２ = 0
+		;ニーソックス
+		CFLAG:GETCHARA(15):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(15):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(15):私服_装飾 = 0
+	;横山千佳
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(18):服装パターン = 100
+		CFLAG:GETCHARA(18):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(18):私服_帽子 = 0
+		;ブラウス、ミニスカート
+		CFLAG:GETCHARA(18):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(18):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(18):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(18):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(18):私服_スカート = 1
+		CFLAG:GETCHARA(18):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(18):私服_ワンピース = 0
+		CFLAG:GETCHARA(18):私服_着物 = 0
+		CFLAG:GETCHARA(18):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(18):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(18):私服_上半身下着２ = 0
+		;ニーソックス
+		CFLAG:GETCHARA(18):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(18):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(18):私服_装飾 = 0
+	;棟方愛海
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(21):服装パターン = 100
+		CFLAG:GETCHARA(21):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(21):私服_帽子 = 0
+		;ブラウス、ミニスカート
+		CFLAG:GETCHARA(21):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(21):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(21):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(21):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(21):私服_スカート = 1
+		CFLAG:GETCHARA(21):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(21):私服_ワンピース = 0
+		CFLAG:GETCHARA(21):私服_着物 = 0
+		CFLAG:GETCHARA(21):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(21):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(21):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(21):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(21):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(21):私服_装飾 = 0
+	;遊佐こずえ
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(24):服装パターン = 100
+		CFLAG:GETCHARA(24):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(24):私服_帽子 = 0
+		;ブラウス、ワンピース
+		CFLAG:GETCHARA(24):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(24):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(24):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(24):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(24):私服_スカート = 0
+		CFLAG:GETCHARA(24):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(24):私服_ワンピース = 1
+		CFLAG:GETCHARA(24):私服_着物 = 0
+		CFLAG:GETCHARA(24):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(24):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(24):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(24):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(24):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(24):私服_装飾 = 0
+	;大沼くるみ
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(25):服装パターン = 100
+		CFLAG:GETCHARA(25):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(25):私服_帽子 = 0
+		;ブラウス、スカート
+		CFLAG:GETCHARA(25):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(25):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(25):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(25):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(25):私服_スカート = 2
+		CFLAG:GETCHARA(25):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(25):私服_ワンピース = 0
+		CFLAG:GETCHARA(25):私服_着物 = 0
+		CFLAG:GETCHARA(25):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(25):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(25):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(25):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(25):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(25):私服_装飾 = 0
+	;前川みく
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(41):服装パターン = 100
+		CFLAG:GETCHARA(41):寝間着 = 5
+		;ねこみみ
+		CFLAG:GETCHARA(41):私服_帽子 = 4
+		;ブラウス、ミニスカート
+		CFLAG:GETCHARA(41):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(41):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(41):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(41):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(41):私服_スカート = 1
+		CFLAG:GETCHARA(41):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(41):私服_ワンピース = 0
+		CFLAG:GETCHARA(41):私服_着物 = 0
+		CFLAG:GETCHARA(41):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(41):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(41):私服_上半身下着２ = 1
+		;ニーソックス
+		CFLAG:GETCHARA(41):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(41):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(41):私服_装飾 = 0
+	;双葉杏
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(48):服装パターン = 100
+		CFLAG:GETCHARA(48):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(48):私服_帽子 = 0
+		;Ｔシャツ、スパッツ
+		CFLAG:GETCHARA(48):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(48):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(48):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(48):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(48):私服_スカート = 0
+		CFLAG:GETCHARA(48):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(48):私服_ワンピース = 0
+		CFLAG:GETCHARA(48):私服_着物 = 0
+		CFLAG:GETCHARA(48):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(48):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(48):私服_上半身下着２ = 0
+		;靴下なし
+		CFLAG:GETCHARA(48):私服_靴下 = 0
+		;靴
+		CFLAG:GETCHARA(48):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(48):私服_装飾 = 0
+	;日下部若葉
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(57):服装パターン = 100
+		CFLAG:GETCHARA(57):寝間着 = 5
+		;カチューシャ
+		CFLAG:GETCHARA(57):私服_帽子 = 8
+		;ブラウス、ワンピース
+		CFLAG:GETCHARA(57):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(57):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(57):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(57):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(57):私服_スカート = 0
+		CFLAG:GETCHARA(57):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(57):私服_ワンピース = 1
+		CFLAG:GETCHARA(57):私服_着物 = 0
+		CFLAG:GETCHARA(57):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(57):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(57):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(57):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(57):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(57):私服_装飾 = 0
+	;輿水幸子
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(59):服装パターン = 100
+		CFLAG:GETCHARA(59):寝間着 = 5
+		;ヘアピン
+		CFLAG:GETCHARA(59):私服_帽子 = 7
+		;ブラウス、ロングスカート
+		CFLAG:GETCHARA(59):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(59):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(59):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(59):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(59):私服_スカート = 3
+		CFLAG:GETCHARA(59):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(59):私服_ワンピース = 0
+		CFLAG:GETCHARA(59):私服_着物 = 0
+		CFLAG:GETCHARA(59):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(59):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(59):私服_上半身下着２ = 1
+		;ニーソックス
+		CFLAG:GETCHARA(59):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(59):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(59):私服_装飾 = 0
+	;安部菜々
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(63):服装パターン = 100
+		CFLAG:GETCHARA(63):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(63):私服_帽子 = 3
+		;ブラウス、ミニスカート
+		CFLAG:GETCHARA(63):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(63):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(63):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(63):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(63):私服_スカート = 1
+		CFLAG:GETCHARA(63):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(63):私服_ワンピース = 0
+		CFLAG:GETCHARA(63):私服_着物 = 0
+		CFLAG:GETCHARA(63):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(63):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(63):私服_上半身下着２ = 1
+		;ハイソックス
+		CFLAG:GETCHARA(63):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(63):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(63):私服_装飾 = 0
+	;古賀小春
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(66):服装パターン = 100
+		CFLAG:GETCHARA(66):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(66):私服_帽子 = 3
+		;ブラウス、上着、ミニスカート
+		CFLAG:GETCHARA(66):私服_上半身上着１ = 1
+		CFLAG:GETCHARA(66):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(66):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(66):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(66):私服_スカート = 1
+		CFLAG:GETCHARA(66):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(66):私服_ワンピース = 0
+		CFLAG:GETCHARA(66):私服_着物 = 0
+		CFLAG:GETCHARA(66):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(66):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(66):私服_上半身下着２ = 0
+		;ハイソックス
+		CFLAG:GETCHARA(66):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(66):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(66):私服_装飾 = 0
+	;佐久間まゆ
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(68):服装パターン = 100
+		CFLAG:GETCHARA(68):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(68):私服_帽子 = 3
+		;ブラウス、ワンピース
+		CFLAG:GETCHARA(68):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(68):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(68):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(68):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(68):私服_スカート = 0
+		CFLAG:GETCHARA(68):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(68):私服_ワンピース = 1
+		CFLAG:GETCHARA(68):私服_着物 = 0
+		CFLAG:GETCHARA(68):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(68):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(68):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(68):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(68):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(68):私服_装飾 = 0
+	;早坂美玲
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(72):服装パターン = 100
+		CFLAG:GETCHARA(72):寝間着 = 5
+		;フード
+		CFLAG:GETCHARA(72):私服_帽子 = 13
+		;Ｔシャツ、パーカー、ミニスカート
+		CFLAG:GETCHARA(72):私服_上半身上着１ = 7
+		CFLAG:GETCHARA(72):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(72):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(72):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(72):私服_スカート = 1
+		CFLAG:GETCHARA(72):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(72):私服_ワンピース = 0
+		CFLAG:GETCHARA(72):私服_着物 = 0
+		CFLAG:GETCHARA(72):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(72):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(72):私服_上半身下着２ = 1
+		;ニーソックス
+		CFLAG:GETCHARA(72):私服_靴下 = 3
+		;ブーツ
+		CFLAG:GETCHARA(72):私服_靴 = 3
+		;眼帯
+		CFLAG:GETCHARA(72):私服_装飾 = 2
+	;池袋秋葉
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(88):服装パターン = 100
+		CFLAG:GETCHARA(88):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(88):私服_帽子 = 3
+		;セーラー服、白衣、スカート
+		CFLAG:GETCHARA(88):私服_上半身上着１ = 10
+		CFLAG:GETCHARA(88):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(88):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(88):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(88):私服_スカート = 2
+		CFLAG:GETCHARA(88):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(88):私服_ワンピース = 0
+		CFLAG:GETCHARA(88):私服_着物 = 0
+		CFLAG:GETCHARA(88):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(88):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(88):私服_上半身下着２ = 0
+		;ハイソックス
+		CFLAG:GETCHARA(88):私服_靴下 = 2
+		;靴
+		CFLAG:GETCHARA(88):私服_靴 = 1
+		;眼鏡
+		CFLAG:GETCHARA(88):私服_装飾 = 1
+
+;-------------------------------------------------------------------------------
+;クール
+;-------------------------------------------------------------------------------
+	;渋谷凛
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(101):服装パターン = 100
+		CFLAG:GETCHARA(101):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(101):私服_帽子 = 0
+		;ワイシャツ、セーター、ミニスカート
+		CFLAG:GETCHARA(101):私服_上半身上着１ = 9
+		CFLAG:GETCHARA(101):私服_上半身上着２ = 4
+		CFLAG:GETCHARA(101):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(101):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(101):私服_スカート = 1
+		CFLAG:GETCHARA(101):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(101):私服_ワンピース = 0
+		CFLAG:GETCHARA(101):私服_着物 = 0
+		CFLAG:GETCHARA(101):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(101):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(101):私服_上半身下着２ = 1
+		;ハイソックス
+		CFLAG:GETCHARA(101):私服_靴下 = 2
+		;靴
+		CFLAG:GETCHARA(101):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(101):私服_装飾 = 0
+	;神谷奈緒
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(108):服装パターン = 100
+		CFLAG:GETCHARA(108):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(108):私服_帽子 = 0
+		;Ｔシャツ、パーカー、ジーンズ
+		CFLAG:GETCHARA(108):私服_上半身上着１ = 7
+		CFLAG:GETCHARA(108):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(108):私服_下半身上着１ = 4
+		CFLAG:GETCHARA(108):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(108):私服_スカート = 0
+		CFLAG:GETCHARA(108):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(108):私服_ワンピース = 0
+		CFLAG:GETCHARA(108):私服_着物 = 0
+		CFLAG:GETCHARA(108):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(108):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(108):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(108):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(108):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(108):私服_装飾 = 0
+	;佐々木千枝
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(114):服装パターン = 100
+		CFLAG:GETCHARA(114):寝間着 = 5
+		;ヘアピン
+		CFLAG:GETCHARA(114):私服_帽子 = 7
+		;ブラウス、ワンピース
+		CFLAG:GETCHARA(114):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(114):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(114):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(114):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(114):私服_スカート = 0
+		CFLAG:GETCHARA(114):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(114):私服_ワンピース = 1
+		CFLAG:GETCHARA(114):私服_着物 = 0
+		CFLAG:GETCHARA(114):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(114):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(114):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(114):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(114):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(114):私服_装飾 = 0
+	;橘ありす
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(121):服装パターン = 100
+		CFLAG:GETCHARA(121):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(121):私服_帽子 = 3
+		;ワンピース
+		CFLAG:GETCHARA(121):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(121):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(121):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(121):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(121):私服_スカート = 0
+		CFLAG:GETCHARA(121):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(121):私服_ワンピース = 1
+		CFLAG:GETCHARA(121):私服_着物 = 0
+		CFLAG:GETCHARA(121):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(121):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(121):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(121):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(121):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(121):私服_装飾 = 0
+	;神崎蘭子
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(146):服装パターン = 100
+		CFLAG:GETCHARA(146):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(146):私服_帽子 = 3
+		;ドレス
+		CFLAG:GETCHARA(146):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(146):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(146):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(146):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(146):私服_スカート = 0
+		CFLAG:GETCHARA(146):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(146):私服_ワンピース = 2
+		CFLAG:GETCHARA(146):私服_着物 = 0
+		CFLAG:GETCHARA(146):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(146):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(146):私服_上半身下着２ = 1
+		;ガーターストッキング
+		CFLAG:GETCHARA(146):私服_靴下 = 6
+		;靴
+		CFLAG:GETCHARA(146):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(146):私服_装飾 = 0
+	;北条加蓮
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(149):服装パターン = 100
+		CFLAG:GETCHARA(149):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(149):私服_帽子 = 0
+		;セーター、ミニスカート
+		CFLAG:GETCHARA(149):私服_上半身上着１ = 9
+		CFLAG:GETCHARA(149):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(149):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(149):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(149):私服_スカート = 1
+		CFLAG:GETCHARA(149):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(149):私服_ワンピース = 2
+		CFLAG:GETCHARA(149):私服_着物 = 0
+		CFLAG:GETCHARA(149):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(149):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(149):私服_上半身下着２ = 1
+		;ハイソックス
+		CFLAG:GETCHARA(149):私服_靴下 = 2
+		;靴
+		CFLAG:GETCHARA(149):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(149):私服_装飾 = 0
+	;佐城雪美
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(153):服装パターン = 100
+		CFLAG:GETCHARA(153):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(153):私服_帽子 = 0
+		;ブラウス、ロングスカート
+		CFLAG:GETCHARA(153):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(153):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(153):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(153):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(153):私服_スカート = 3
+		CFLAG:GETCHARA(153):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(153):私服_ワンピース = 0
+		CFLAG:GETCHARA(153):私服_着物 = 0
+		CFLAG:GETCHARA(153):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(153):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(153):私服_上半身下着２ = 0
+		;ニーソックス
+		CFLAG:GETCHARA(153):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(153):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(153):私服_装飾 = 0
+	;白坂小梅
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(158):服装パターン = 100
+		CFLAG:GETCHARA(158):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(158):私服_帽子 = 0
+		;Ｔシャツ、パーカー、ミニスカート
+		CFLAG:GETCHARA(158):私服_上半身上着１ = 7
+		CFLAG:GETCHARA(158):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(158):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(158):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(158):私服_スカート = 1
+		CFLAG:GETCHARA(158):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(158):私服_ワンピース = 0
+		CFLAG:GETCHARA(158):私服_着物 = 0
+		CFLAG:GETCHARA(158):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(158):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(158):私服_上半身下着２ = 0
+		;ニーソックス
+		CFLAG:GETCHARA(158):私服_靴下 = 3
+		;ブーツ
+		CFLAG:GETCHARA(158):私服_靴 = 3
+		;ピアス
+		CFLAG:GETCHARA(158):私服_装飾 = 4
+	;成瀬由愛
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(162):服装パターン = 100
+		CFLAG:GETCHARA(162):寝間着 = 5
+		;カチューシャ
+		CFLAG:GETCHARA(162):私服_帽子 = 8
+		;Ｙシャツ、上着、スカート
+		CFLAG:GETCHARA(162):私服_上半身上着１ = 1
+		CFLAG:GETCHARA(162):私服_上半身上着２ = 4
+		CFLAG:GETCHARA(162):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(162):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(162):私服_スカート = 2
+		CFLAG:GETCHARA(162):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(162):私服_ワンピース = 0
+		CFLAG:GETCHARA(162):私服_着物 = 0
+		CFLAG:GETCHARA(162):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(162):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(162):私服_上半身下着２ = 0
+		;ストッキング
+		CFLAG:GETCHARA(162):私服_靴下 = 4
+		;靴
+		CFLAG:GETCHARA(162):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(162):私服_装飾 = 0
+	;森久保乃々
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(170):服装パターン = 100
+		CFLAG:GETCHARA(170):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(170):私服_帽子 = 0
+		;ワンピース
+		CFLAG:GETCHARA(170):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(170):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(170):私服_スカート = 0
+		CFLAG:GETCHARA(170):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(170):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(170):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(170):私服_ワンピース = 1
+		CFLAG:GETCHARA(170):私服_着物 = 0
+		CFLAG:GETCHARA(170):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(170):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(170):私服_上半身下着２ = 1
+		;ハイソックス
+		CFLAG:GETCHARA(170):私服_靴下 = 2
+		;靴
+		CFLAG:GETCHARA(170):私服_靴 = 1
+		;ピアス
+		CFLAG:GETCHARA(170):私服_装飾 = 4
+	;結城晴
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(173):服装パターン = 100
+		CFLAG:GETCHARA(173):寝間着 = 5
+		;帽子
+		CFLAG:GETCHARA(173):私服_帽子 = 1
+		;Ｔシャツ、半ズボン
+		CFLAG:GETCHARA(173):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(173):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(173):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(173):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(173):私服_スカート = 0
+		CFLAG:GETCHARA(173):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(173):私服_ワンピース = 0
+		CFLAG:GETCHARA(173):私服_着物 = 0
+		CFLAG:GETCHARA(173):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(173):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(173):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(173):私服_靴下 = 1
+		;スニーカー
+		CFLAG:GETCHARA(173):私服_靴 = 5
+		;装飾なし
+		CFLAG:GETCHARA(173):私服_装飾 = 0
+
+;-------------------------------------------------------------------------------
+;パッション
+;-------------------------------------------------------------------------------
+	;本田未央
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(201):服装パターン = 100
+		CFLAG:GETCHARA(201):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(201):私服_帽子 = 0
+		;ワイシャツ、パーカー、ミニスカート
+		CFLAG:GETCHARA(201):私服_上半身上着１ = 7
+		CFLAG:GETCHARA(201):私服_上半身上着２ = 4
+		CFLAG:GETCHARA(201):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(201):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(201):私服_スカート = 1
+		CFLAG:GETCHARA(201):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(201):私服_ワンピース = 0
+		CFLAG:GETCHARA(201):私服_着物 = 0
+		CFLAG:GETCHARA(201):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(201):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(201):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(201):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(201):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(201):私服_装飾 = 0
+	;龍崎薫
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(204):服装パターン = 100
+		CFLAG:GETCHARA(204):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(204):私服_帽子 = 0
+		;Ｔシャツ、半ズボン
+		CFLAG:GETCHARA(204):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(204):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(204):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(204):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(204):私服_スカート = 0
+		CFLAG:GETCHARA(204):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(204):私服_ワンピース = 0
+		CFLAG:GETCHARA(204):私服_着物 = 0
+		CFLAG:GETCHARA(204):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(204):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(204):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(204):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(204):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(204):私服_装飾 = 0
+	;上田鈴帆
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(216):服装パターン = 100
+		CFLAG:GETCHARA(216):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(216):私服_帽子 = 0
+		;キグルミ
+		CFLAG:GETCHARA(216):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(216):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(216):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(216):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(216):私服_スカート = 0
+		CFLAG:GETCHARA(216):私服_ボディースーツ = 2
+		CFLAG:GETCHARA(216):私服_ワンピース = 0
+		CFLAG:GETCHARA(216):私服_着物 = 0
+		CFLAG:GETCHARA(216):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(216):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(216):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(216):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(216):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(216):私服_装飾 = 0
+	;小関麗奈
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(219):服装パターン = 100
+		CFLAG:GETCHARA(219):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(219):私服_帽子 = 0
+		;Ｙシャツ、ミニスカート
+		CFLAG:GETCHARA(219):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(219):私服_上半身上着２ = 4
+		CFLAG:GETCHARA(219):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(219):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(219):私服_スカート = 1
+		CFLAG:GETCHARA(219):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(219):私服_ワンピース = 0
+		CFLAG:GETCHARA(219):私服_着物 = 0
+		CFLAG:GETCHARA(219):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(219):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(219):私服_上半身下着２ = 1
+		;ニーソックス
+		CFLAG:GETCHARA(219):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(219):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(219):私服_装飾 = 0
+	;星輝子
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(221):服装パターン = 100
+		CFLAG:GETCHARA(221):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(221):私服_帽子 = 0
+		;Ｔシャツ、ミニスカート
+		CFLAG:GETCHARA(221):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(221):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(221):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(221):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(221):私服_スカート = 1
+		CFLAG:GETCHARA(221):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(221):私服_ワンピース = 0
+		CFLAG:GETCHARA(221):私服_着物 = 0
+		CFLAG:GETCHARA(221):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(221):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(221):私服_上半身下着２ = 1
+		;靴下なし
+		CFLAG:GETCHARA(221):私服_靴下 = 0
+		;靴
+		CFLAG:GETCHARA(221):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(221):私服_装飾 = 0
+	;的場梨沙
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(225):服装パターン = 100
+		CFLAG:GETCHARA(225):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(225):私服_帽子 = 3
+		;シャツ、パーカー、ミニスカート
+		CFLAG:GETCHARA(225):私服_上半身上着１ = 7
+		CFLAG:GETCHARA(225):私服_上半身上着２ = 3
+		CFLAG:GETCHARA(225):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(225):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(225):私服_スカート = 1
+		CFLAG:GETCHARA(225):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(225):私服_ワンピース = 0
+		CFLAG:GETCHARA(225):私服_着物 = 0
+		CFLAG:GETCHARA(225):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(225):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(225):私服_上半身下着２ = 0
+		;靴下なし
+		CFLAG:GETCHARA(225):私服_靴下 = 0
+		;サンダル
+		CFLAG:GETCHARA(225):私服_靴 = 7
+		;装飾なし
+		CFLAG:GETCHARA(225):私服_装飾 = 0
+	;諸星きらり
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(249):服装パターン = 100
+		CFLAG:GETCHARA(249):寝間着 = 5
+		;ヘアピン
+		CFLAG:GETCHARA(249):私服_帽子 = 7
+		;ワンピース、上着
+		CFLAG:GETCHARA(249):私服_上半身上着１ = 1
+		CFLAG:GETCHARA(249):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(249):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(249):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(249):私服_スカート = 0
+		CFLAG:GETCHARA(249):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(249):私服_ワンピース = 1
+		CFLAG:GETCHARA(249):私服_着物 = 0
+		CFLAG:GETCHARA(249):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(249):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(249):私服_上半身下着２ = 1
+		;ハイソックス
+		CFLAG:GETCHARA(249):私服_靴下 = 2
+		;靴
+		CFLAG:GETCHARA(249):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(249):私服_装飾 = 0
+	;市原仁奈
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(255):服装パターン = 100
+		CFLAG:GETCHARA(255):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(255):私服_帽子 = 0
+		;キグルミ
+		CFLAG:GETCHARA(255):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(255):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(255):私服_スカート = 0
+		CFLAG:GETCHARA(255):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(255):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(255):私服_ボディースーツ = 2
+		CFLAG:GETCHARA(255):私服_ワンピース = 0
+		CFLAG:GETCHARA(255):私服_着物 = 0
+		CFLAG:GETCHARA(255):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(255):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(255):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(255):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(255):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(255):私服_装飾 = 0
+	;喜多日菜子
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(257):服装パターン = 100
+		CFLAG:GETCHARA(257):寝間着 = 5
+		;帽子
+		CFLAG:GETCHARA(257):私服_帽子 = 1
+		;ワンピース、コート
+		CFLAG:GETCHARA(257):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(257):私服_上半身上着２ = 13
+		CFLAG:GETCHARA(257):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(257):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(257):私服_スカート = 0
+		CFLAG:GETCHARA(257):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(257):私服_ワンピース = 1
+		CFLAG:GETCHARA(257):私服_着物 = 0
+		CFLAG:GETCHARA(257):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(257):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(257):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(257):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(257):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(257):私服_装飾 = 0
+	;メアリー・コクラン
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(259):服装パターン = 100
+		CFLAG:GETCHARA(259):寝間着 = 5
+		;リボン
+		CFLAG:GETCHARA(259):私服_帽子 = 3
+		;シャツ、ミニスカート（タートルネックシャツ＋長袖タンクトップ）
+		CFLAG:GETCHARA(259):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(259):私服_上半身上着２ = 3
+		CFLAG:GETCHARA(259):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(259):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(259):私服_スカート = 1
+		CFLAG:GETCHARA(259):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(259):私服_ワンピース = 0
+		CFLAG:GETCHARA(259):私服_着物 = 0
+		CFLAG:GETCHARA(259):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(259):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(259):私服_上半身下着２ = 0
+		;ニーソックス
+		CFLAG:GETCHARA(259):私服_靴下 = 3
+		;靴
+		CFLAG:GETCHARA(259):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(259):私服_装飾 = 0
+	;三好紗南
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(261):服装パターン = 100
+		CFLAG:GETCHARA(261):寝間着 = 5
+		;ヘアピン
+		CFLAG:GETCHARA(261):私服_帽子 = 7
+		;Ｔシャツ、パーカー、半ズボン
+		CFLAG:GETCHARA(261):私服_上半身上着１ = 7
+		CFLAG:GETCHARA(261):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(261):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(261):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(261):私服_スカート = 1
+		CFLAG:GETCHARA(261):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(261):私服_ワンピース = 0
+		CFLAG:GETCHARA(261):私服_着物 = 0
+		CFLAG:GETCHARA(261):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(261):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(261):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(261):私服_靴下 = 1
+		;スニーカー
+		CFLAG:GETCHARA(261):私服_靴 = 5
+		;装飾なし
+		CFLAG:GETCHARA(261):私服_装飾 = 0
+	;南条光
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(287):服装パターン = 100
+		CFLAG:GETCHARA(287):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(287):私服_帽子 = 0
+		;上着、Ｔシャツ、半ズボン
+		CFLAG:GETCHARA(287):私服_上半身上着１ = 1
+		CFLAG:GETCHARA(287):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(287):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(287):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(287):私服_スカート = 0
+		CFLAG:GETCHARA(287):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(287):私服_ワンピース = 0
+		CFLAG:GETCHARA(287):私服_着物 = 0
+		CFLAG:GETCHARA(287):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(287):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(287):私服_上半身下着２ = 0
+		;靴下
+		CFLAG:GETCHARA(287):私服_靴下 = 1
+		;スニーカー
+		CFLAG:GETCHARA(287):私服_靴 = 5
+		;装飾なし
+		CFLAG:GETCHARA(287):私服_装飾 = 0
+
+;-------------------------------------------------------------------------------
+;７６５
+;-------------------------------------------------------------------------------
+	;天海春香
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(301):服装パターン = 100
+		CFLAG:GETCHARA(301):寝間着 = 5
+		;トレードマークは頭のリボン
+		CFLAG:GETCHARA(307):私服_帽子 = 3
+		;ブラウス、上着、ミニスカート
+		CFLAG:GETCHARA(301):私服_上半身上着１ = 1
+		CFLAG:GETCHARA(301):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(301):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(301):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(301):私服_スカート = 1
+		CFLAG:GETCHARA(301):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(301):私服_ワンピース = 0
+		CFLAG:GETCHARA(301):私服_着物 = 0
+		CFLAG:GETCHARA(301):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(301):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(301):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(301):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(301):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(301):私服_装飾 = 0
+	;如月千早
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(302):服装パターン = 100
+		CFLAG:GETCHARA(302):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(302):私服_帽子 = 0
+		;セーター、ジーンズ
+		CFLAG:GETCHARA(302):私服_上半身上着１ = 9
+		CFLAG:GETCHARA(302):私服_上半身上着２ = 0
+		CFLAG:GETCHARA(302):私服_下半身上着１ = 4
+		CFLAG:GETCHARA(302):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(302):私服_スカート = 0
+		CFLAG:GETCHARA(302):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(302):私服_ワンピース = 0
+		CFLAG:GETCHARA(302):私服_着物 = 0
+		CFLAG:GETCHARA(302):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(302):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(302):私服_上半身下着２ = 1
+		;靴下
+		CFLAG:GETCHARA(302):私服_靴下 = 1
+		;靴
+		CFLAG:GETCHARA(302):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(302):私服_装飾 = 0
+	;菊地真
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(307):服装パターン = 100
+		CFLAG:GETCHARA(307):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(307):私服_帽子 = 0
+		;上着、Ｔシャツ、ズボン
+		CFLAG:GETCHARA(307):私服_上半身上着１ = 1
+		CFLAG:GETCHARA(307):私服_上半身上着２ = 8
+		CFLAG:GETCHARA(307):私服_下半身上着１ = 1
+		CFLAG:GETCHARA(307):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(307):私服_スカート = 0
+		CFLAG:GETCHARA(307):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(307):私服_ワンピース = 0
+		CFLAG:GETCHARA(307):私服_着物 = 0
+		CFLAG:GETCHARA(307):私服_レオタード = 0
+		;スポーツブラ
+		CFLAG:GETCHARA(307):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(307):私服_上半身下着２ = 2
+		;靴下
+		CFLAG:GETCHARA(307):私服_靴下 = 1
+		;スニーカー
+		CFLAG:GETCHARA(307):私服_靴 = 5
+		;装飾なし
+		CFLAG:GETCHARA(307):私服_装飾 = 0
+	;双海亜美
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(309):服装パターン = 100
+		CFLAG:GETCHARA(309):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(309):私服_帽子 = 0
+		;ブラウス、半ズボン
+		CFLAG:GETCHARA(309):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(309):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(309):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(309):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(309):私服_スカート = 0
+		CFLAG:GETCHARA(309):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(309):私服_ワンピース = 0
+		CFLAG:GETCHARA(309):私服_着物 = 0
+		CFLAG:GETCHARA(309):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(309):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(309):私服_上半身下着２ = 0
+		;ハイソックス
+		CFLAG:GETCHARA(309):私服_靴下 = 2
+		;スニーカー
+		CFLAG:GETCHARA(309):私服_靴 = 5
+		;装飾なし
+		CFLAG:GETCHARA(309):私服_装飾 = 0
+	;双海真美
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(310):服装パターン = 100
+		CFLAG:GETCHARA(310):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(310):私服_帽子 = 0
+		;ブラウス、半ズボン
+		CFLAG:GETCHARA(310):私服_上半身上着１ = 0
+		CFLAG:GETCHARA(310):私服_上半身上着２ = 1
+		CFLAG:GETCHARA(310):私服_下半身上着１ = 2
+		CFLAG:GETCHARA(310):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(310):私服_スカート = 0
+		CFLAG:GETCHARA(310):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(310):私服_ワンピース = 0
+		CFLAG:GETCHARA(310):私服_着物 = 0
+		CFLAG:GETCHARA(310):私服_レオタード = 0
+		;ブラジャーなし
+		CFLAG:GETCHARA(310):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(310):私服_上半身下着２ = 0
+		;ハイソックス
+		CFLAG:GETCHARA(310):私服_靴下 = 2
+		;スニーカー
+		CFLAG:GETCHARA(310):私服_靴 = 5
+		;装飾なし
+		CFLAG:GETCHARA(310):私服_装飾 = 0
+
+;-------------------------------------------------------------------------------
+;その他
+;-------------------------------------------------------------------------------
+
+	;千川ちひろ
+	LOCAL:1 += 1
+		CFLAG:GETCHARA(351):服装パターン = 100
+		CFLAG:GETCHARA(351):寝間着 = 5
+		;帽子なし
+		CFLAG:GETCHARA(351):私服_帽子 = 0
+		;ワイシャツ、スーツ、ミニスカート
+		CFLAG:GETCHARA(351):私服_上半身上着１ = 4
+		CFLAG:GETCHARA(351):私服_上半身上着２ = 4
+		CFLAG:GETCHARA(351):私服_下半身上着１ = 0
+		CFLAG:GETCHARA(351):私服_下半身上着２ = 0
+		CFLAG:GETCHARA(351):私服_スカート = 1
+		CFLAG:GETCHARA(351):私服_ボディースーツ = 0
+		CFLAG:GETCHARA(351):私服_ワンピース = 0
+		CFLAG:GETCHARA(351):私服_着物 = 0
+		CFLAG:GETCHARA(351):私服_レオタード = 0
+		;ブラジャー
+		CFLAG:GETCHARA(351):私服_上半身下着１ = 0
+		CFLAG:GETCHARA(351):私服_上半身下着２ = 1
+		;ストッキング
+		CFLAG:GETCHARA(351):私服_靴下 = 4
+		;靴
+		CFLAG:GETCHARA(351):私服_靴 = 1
+		;装飾なし
+		CFLAG:GETCHARA(351):私服_装飾 = 0
+
+;-------------------------------------------------------------------------------
+;服装を設定した後
+;-------------------------------------------------------------------------------
+
+PRINTFORML {LOCAL:1}人の現在の服装を設定しました
+PRINTFORMW 

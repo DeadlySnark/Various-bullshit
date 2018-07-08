@@ -1,0 +1,108 @@
+@ENKOU_START_K309(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「ねぇねぇ兄ちゃん、今日は何して遊ぼっか？ 亜美はセックスしたいなーって思うよー！ %MSG_HEART()%」
+ELSE
+	PRINTFORML 「ねえ、兄ちゃん。兄ちゃんは中学生が好き？　エンコーっていうの、してあげてもいいよ %MSG_HEART()%」
+ENDIF
+
+@ENKOU_FINISH_K309(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「兄ちゃんにたっくさん射精してもらったから、亜美、今日は元気100倍っ！！」
+ELSE
+	PRINTFORML 「兄ちゃん。%CALLNAME:奴隷%はセフレ募集中、セフレ募集中だよ %MSG_HEART()%　はい大事なことだから2回言いました！」
+ENDIF
+@SORP_START_K309(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「んっふっふ～、ビックリしたっしょ。亜美、ここで一番人気なんだよ %MSG_HEART()%」
+	PRINTFORML 「このイキオイで一気にトップアイドルになっちゃうかも？　兄ちゃん、亜美のテクニックに泣いちゃったらダメだかんね %MSG_HEART()%」
+ELSE
+	PRINTFORML 「ねえ、兄ちゃん。兄ちゃんは中学生が好き？　ふぇらちおっていうの、してあげてもいいよ %MSG_HEART()%」
+ENDIF
+@SORP_FINISH_K309(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「兄ちゃんみたいな絶好のセフレ…じゃなくて彼氏は他にはいないよ！　これからもよろよろー %MSG_HEART()%」
+ELSE
+	PRINTFORML 「んっふっふ～、余裕っしょ！　次はもっとすごいコトしてあげるね %MSG_HEART()%」
+ENDIF
+
+
+@KOJO_MESSAGE_COM_K309_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「亜美のケータイ見て見て、兄ちゃん♪　ほら、ハメ取り画像がずらりーん！」
+PRINTFORML 「ほら、兄ちゃんも、今度一緒に取ろうよ %MSG_HEART()%」
+
+@KOJO_MESSAGE_COM_K309_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「亜美のケータイ見て見て、兄ちゃん♪　ほら、ハメ取り画像がずらりーん！」
+PRINTFORML 「ほら、兄ちゃんも、今度一緒に取ろうよ %MSG_HEART()%」
+
+@KOJO_MESSAGE_COM_K309_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「亜美は小さい女の子好きな人向けのキャラじゃなくて、どっちかっていうとセクシー系だから」
+			PRINTFORML 「兄ちゃんたちが亜美の魅力に夢中なのは仕方ないよねー」
+			PRINTFORML 「……じゃあこれからは、兄ちゃんが毎日遊んでくれるんだよね？」
+			PRINTFORML 「んっふっふ～ %MSG_HEART()%　兄ちゃんのアレに『亜美、専用 %MSG_HEART()%』って書くしかないっしょ！」
+		ELSE
+			PRINTFORML 「じゃあ、やめる代わりに、兄ちゃんがもっと亜美と遊んで、遊んで～！」
+		ENDIF
+	CASE 2
+		PRINTFORML 「%CALLNAME:奴隷%は毎日楽しく過ごすのが夢だから、気持ちよく稼げるエンコーをやってるんだ %MSG_HEART()%」
+		PRINTFORML 「だから、いくら兄ちゃんのいうことでも、出来ないことはできないよ！」
+	CASE 3
+		PRINTFORML 「%CALLNAME:奴隷%は毎日楽しく過ごすのが夢だから、気持ちよく稼げるエンコーをやってるんだ %MSG_HEART()%」
+		PRINTFORML 「全国の兄ちゃんのためにも、%CALLNAME:奴隷%やめるなんてできないよ♪」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K309(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORML 「じゃあ今度、3人でヤリまくろうよっ %MSG_HEART()%　前後から突かれたりー、サンドイッチされたりー、同時にふぇらちおするのもいいかも %MSG_HEART()%、それからー♪」
+	PRINTFORMW 「亜美、やってみたいプレイがたっくさんあるんだ %MSG_HEART()%」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「んむっ、んっ　んぐっ！　おぅっ、んん――っ！！」
+	PRINTFORML 「はー %MSG_HEART()%　%NTR_NAME_SEX(奴隷,他人)%兄ちゃんとなら、亜美、いつまでもセックスしてられる気がするよ %MSG_HEART()%」
+	PRINTFORML 「%CALLNAME:MASTER%兄ちゃんは、最近亜美と遊んでくれないしー！」
+	PRINTFORMW 亜美は喉奥で射精された精液を飲み終えると、%NTR_NAME_SEX(奴隷,他人)%に向けて濡れきった秘所を広げながら、怪しく腰を揺らした。、
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「亜美、最近、ヤルことがすごい上手になったってウワサなんだよね♪」
+	PRINTFORMW 「ところで、もう一回セックスしていい？　亜美がしっかり搾り取ってあげるから %MSG_HEART()%」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K309(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「兄ちゃん！？　なんでもないって、大丈夫だから！！」
+ELSE
+	PRINTFORML 「んっ、にぃちゃん……きょうのあみには……きたいしていいよ？ %MSG_HEART()%」
+	PRINTFORML そういってひたすらオナニーを続ける%CALLNAME:奴隷%の目は虚ろだ。
+ENDIF

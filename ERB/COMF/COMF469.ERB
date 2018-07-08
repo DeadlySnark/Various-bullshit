@@ -1,0 +1,15 @@
+@COM469
+#DIM LOOP_CHR
+;街に戻る
+;円光少女以外は街に帰す
+LOCAL=場所_ラブホ
+SIF CFLAG:MASTER:現在位置==場所_ソープあなた用
+	LOCAL=場所_ソープ待合室
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:現在位置==CFLAG:MASTER:現在位置 && !FLAG:従順一時保存
+		CFLAG:LOOP_CHR:現在位置=LOCAL
+NEXT
+CFLAG:MASTER:現在位置=LOCAL
+TIME+=10
+RETURN 1
+

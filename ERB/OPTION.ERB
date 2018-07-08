@@ -1,0 +1,467 @@
+;オプション設定処理
+@OPTION
+PRINTL 設定項目を選択してください
+PRINTL [0] - テキスト設定
+PRINTL [1] - コマンドフィルタ
+PRINT [2] - 消耗品の自動購入 
+	PRINTFORML \@ FLAG:1001 ? ON # OFF \@
+PRINTFORML [3] - 妊娠：\@ GETBIT(FLAG:雑多設定,5) ?ON#OFF\@
+PRINTFORML [10] - 寝取られパッチオプション
+PRINTFORML [13] - 素質変更について：\@ GETBIT(FLAG:素質変動onoff,0) ?ON#OFF\@
+PRINTL
+PRINTFORML [15] - 下着を透視しない：\@ GETBIT(FLAG:雑多設定,1) ?ON#OFF\@
+PRINTFORML [16] - 能力によるパンツの変更：\@ GETBIT(FLAG:雑多設定,2) ?ON#OFF\@
+PRINTFORML [20] - 住人同士の相性変動：\@ GETBIT(FLAG:住人同士イベント設定,0) ?ON#OFF\@
+PRINTFORML [22] - 口上持ちキャラの優先配置：\@ GETBIT(FLAG:雑多設定,6) ?ON#OFF\@
+PRINTFORML [25] - アイドル出現確率の操作：\@ 出現率:0 ?ON#OFF\@
+PRINTFORML [26] - 名前替わりに素質表示：\@ GETBIT(FLAG:雑多設定,7) ?ON#OFF\@
+
+;PRINTFORML [11] - ぅなパッチオプション
+;PRINTFORML [12] - キャラクターリセット
+;PRINTFORML [14] - アイドルの加齢：\@ GETBIT(FLAG:雑多設定,4) ?ON#OFF\@
+;PRINTFORML [17] - 服越しに汚れがわからなくなるようになる：\@ GETBIT(FLAG:汚れ非表示設定,0) ?ON#OFF\@
+;PRINTFORML [21] - 住人が服を毎日交換しなくなる：\@ GETBIT(FLAG:匂いフェチ,1) ?ON#OFF\@
+;PRINTFORML [27] - キャラクター別イベント：\@ GETBIT(FLAG:雑多設定,10) ?ON#OFF\@
+;	----- アイドルユニット化パッチ 設定項目 -----
+PRINTFORML [30] - アイドルユニット設定を有効にする：\@ GETBIT(FLAG:雑多設定,13) ?ON#OFF\@
+;	----------
+PRINTFORM [31] - 皆援交設定
+IF GETBIT(FLAG:皆援交設定,1)
+	PRINTL  ----- [設定ON]
+	PRINTFORML 　　　　　├ 発生場所　　　　 : \@ GETBIT(FLAG:皆援交設定,2) ?[どこでも]#[裏路地のみ] \@
+	PRINTFORML 　　　　　├ うふふ移動先　　 : \@ GETBIT(FLAG:皆援交設定,3) ?[近くの物陰へ]#[ホテルに移動] \@
+	PRINTFORML 　　　　　├ 他の同行者の場合 : \@ GETBIT(FLAG:皆援交設定,4) ?[他の同行者いてもＯＫ]#[他の同行者いたらダメ] \@
+	PRINTFORML 　　　　　├ 本人同行中の場合 : \@ GETBIT(FLAG:皆援交設定,5) ?[同行中本人からお誘いあり]#[同行中本人からお誘いはなし] \@
+	PRINTFORML 　　　　　├ 本名明かさない？ : \@ GETBIT(FLAG:皆援交設定,6) ?[援交中は偽名だよ]#[皆素直だよ] \@
+;	PRINTFORML 　　　　　└ 援交中好感度？　 : \@ GETBIT(FLAG:皆援交設定,7) ?[援交中の好感度は一時的だよ]#[普通に＋だよ] \@
+	PRINTFORML 　　　　　└ 皆援交発生率　　 : {FLAG:皆援交設定発生率}％
+PRINTFORM [32] - うふふ途中脱落設定：\@ GETBIT(FLAG:雑多設定,15) ?ON#OFF\@
+ELSE
+	PRINT [設定OFF]
+ENDIF
+
+PRINTL
+PRINTL [100]-戻る
+$INPUT_LOOP
+INPUT
+IF RESULT == 0
+	CALL OPTION_TEXT_SETTING
+ELSEIF RESULT == 1
+	CALL OPTION_COMMAND_FILTER
+ELSEIF RESULT == 2
+	FLAG:1001 = !FLAG:1001
+ELSEIF RESULT == 3
+	CALL 妊娠の有無
+ELSEIF RESULT == 10
+	CALL NTR_OPTION
+ELSEIF RESULT == 12
+	CALL CHARA_RESET
+	CALL 体詳細設定１
+ELSEIF RESULT == 13
+	CALL Ability_OPTION	
+ELSEIF RESULT == 14
+	CALL Age_option
+ELSEIF RESULT == 15
+	CALL 下着不可視コンフィグ
+ELSEIF RESULT == 16
+	CALL 下着の解放コンフィグ
+ELSEIF RESULT == 20
+	CALL INHABITANT_SETTINGS
+ELSEIF RESULT == 22
+	CALL 口上優遇オプション
+ELSEIF RESULT == 25
+	CALL アイドル出現確率オプション
+ELSEIF RESULT == 26
+	CALL タレント表示オプション
+ELSEIF RESULT == 27
+	CALL キャラ別イベント発生オプション
+ELSEIF RESULT == 100
+	RETURN 0
+;ELSEIF RESULT == 11
+;	CALL LUNA_OPTION
+;ELSEIF RESULT == 17
+;	CALL 汚れ非表示コンフィグ
+;ELSEIF RESULT == 21
+;	CALL 匂いフェチコンフィグ
+;	----- アイドルユニット化パッチ 設定項目 -----
+ELSEIF RESULT == 30
+	TRYCALL ユニット化コンフィグ
+;	----------
+ELSEIF RESULT == 31
+	TRYCALL 皆援交コンフィグ
+ELSEIF RESULT == 32
+	TRYCALL うふふ途中脱落設定
+ELSE
+	GOTO INPUT_LOOP
+ENDIF
+RESTART
+;テキスト関連
+@OPTION_TEXT_SETTING
+PRINTL テキストの設定をしてください
+PRINT 現在の設定：
+IF FLAG:情景テキスト設定 == 1 && FLAG:口上テキスト設定 == 2
+	PRINTL 【口上テキスト（常に表示）＋情景テキスト】
+ELSEIF FLAG:情景テキスト設定 == 1 && FLAG:口上テキスト設定 == -1
+	PRINTL 【情景テキストのみ】
+ELSEIF FLAG:情景テキスト設定 == 0 && FLAG:口上テキスト設定 == -1
+	PRINTL 【テキストを表示しない】
+ENDIF
+PRINTL 　
+PRINTL [0] - 口上テキスト＋情景テキスト
+PRINTL [1] - 情景テキストのみ
+PRINTL [2] - テキストを表示しない
+PRINTL [100]-戻る
+$INPUT_LOOP
+INPUT
+IF RESULT == 100
+	RETURN 0
+ELSEIF RESULT == 0
+	PRINTL 【口上テキスト＋情景テキスト】に設定しました
+	FLAG:情景テキスト設定 = 1
+	FLAG:口上テキスト設定 = 2
+ELSEIF RESULT == 1
+	PRINTL 【情景テキストのみ】に設定しました
+	FLAG:情景テキスト設定 = 1
+	FLAG:口上テキスト設定 = -1
+ELSEIF RESULT == 2
+	PRINTL 【テキストを表示しない】に設定しました
+	FLAG:情景テキスト設定 = 0
+	FLAG:口上テキスト設定 = -1
+ELSE
+	GOTO INPUT_LOOP
+ENDIF
+
+RESTART
+
+;文字列変数に保存してみた
+@OPTION_COMMAND_FILTER
+VARSET LOCAL
+FOR COUNT,0,650
+	LOCALS = /{COUNT}/
+	SIF STRCOUNT(SAVESTR:0,LOCALS)
+		LOCAL:COUNT = 1
+NEXT
+SIF SAVESTR:0 == ""
+	SAVESTR:0 = /
+DRAWLINE
+TFLAG:100 = 1
+FOR COUNT,0,650
+	LOCALS = /{COUNT}/
+	SIF STRCOUNT(SAVESTR:0,LOCALS)
+		SETCOLOR 色設定_テキスト_備考
+	SIF STRLENS(TRAINNAME:COUNT)
+		PRINTFORMC %TRAINNAME:COUNT%[{COUNT,3}]
+	RESETCOLOR
+NEXT
+TFLAG:100 = 0
+PRINTL 
+DRAWLINE
+PRINTL [1000] - 決定 [1001] - リセット
+PRINTL [1002] - コマンドフィルタの保存 [1003] - コマンドフィルタのロード
+PRINTL [1010] - SMフィルタ [1011] - Ｖフィルタ
+INPUT
+IF RESULT == 1000
+	RETURN 0
+ELSEIF RESULT == 1001
+	SAVESTR:0 = 
+	RESTART
+ELSEIF RESULT == 1002
+	$INPUT_LOOP_SAVE
+	LOADGLOBAL
+	FOR LOCAL,0,3
+		PRINTFORM [{LOCAL}] - 
+		IF STRLENS(GLOBALS:(LOCAL * 2 + 1))
+			PRINTFORML [%GLOBALS:(LOCAL * 2 + 1)%]
+		ELSE
+			PRINTL ----------
+		ENDIF
+	NEXT
+	PRINTL [100] - 戻る
+	INPUT
+	LOCAL = RESULT
+	IF RESULT == 100
+		RESTART
+	ELSEIF RESULT < 0 || RESULT > 2
+		GOTO INPUT_LOOP_SAVE
+	ENDIF
+	SIF STRLENS(GLOBALS:(RESULT * 2 + 1))
+		PRINTFORML 【%GLOBALS:(RESULT * 2 + 1)%】 このデータに上書きします
+	PRINTL コマンドフィルタの名前を登録してください
+	INPUTS
+	GLOBALS:(LOCAL * 2 + 1) = %RESULTS%
+	GLOBALS:(LOCAL * 2) = %SAVESTR:0%
+	PRINTFORMW コマンドフィルタ【%GLOBALS:(LOCAL * 2 + 1)%】を登録しました
+	SAVEGLOBAL
+	RESTART
+ELSEIF RESULT == 1003
+	$INPUT_LOOP_LOAD
+	LOADGLOBAL
+	FOR LOCAL,0,3
+		PRINTFORM [{LOCAL}] - 
+		IF STRLENS(GLOBALS:(LOCAL * 2 + 1))
+			PRINTFORML [%GLOBALS:(LOCAL * 2 + 1)%]
+		ELSE
+			PRINTL ----------
+		ENDIF
+	NEXT
+	PRINTL [100] - 戻る
+	INPUT
+	IF RESULT == 100
+		RESTART
+	ELSEIF RESULT < 0 || RESULT > 2
+		GOTO INPUT_LOOP_LOAD
+	ENDIF
+	PRINTFORMW コマンドフィルタ【%GLOBALS:(RESULT * 2 + 1)%】を読み込みました
+	SAVESTR:0 = %GLOBALS:(RESULT * 2)%
+	RESTART
+;各種フィルタ
+ELSEIF RESULT == 1010 || RESULT == 1011
+	FOR COUNT,0,650
+		;SM
+		IF RESULT == 1010
+			SIF (COUNT >= 100 && COUNT < 120) || (COUNT >= 140 && COUNT < 160)
+				LOCAL:COUNT = 1
+		;V
+		ELSEIF RESULT == 1011
+			SIF COUNT == 3 || COUNT == 44 || COUNT == 60 || COUNT == 61 || COUNT == 65 || COUNT == 67 || COUNT == 68 || COUNT == 71 
+				LOCAL:COUNT = 1
+			SIF COUNT == 122|| COUNT == 141 || COUNT == 143 || COUNT == 185 || COUNT == 603 || COUNT == 644
+				LOCAL:COUNT = 1
+		ENDIF
+	NEXT
+ELSEIF STRLENS(TRAINNAME:RESULT)
+	LOCAL:RESULT = !LOCAL:RESULT
+ELSE
+	RESTART
+ENDIF
+SAVESTR:0 = /
+FOR COUNT,0,650
+	SIF !LOCAL:COUNT
+		CONTINUE
+	LOCALS = /{COUNT}/
+	SIF !STRCOUNT(SAVESTR:0,LOCALS)
+		SAVESTR:0 = %SAVESTR:0%{COUNT}/
+NEXT
+RESTART
+
+@OPTION_HOUSE_INFO
+PRINTL ゴミの山を見なかった事にできます
+PRINTL [0] 情報表示ON [1] - OFF
+INPUT
+IF RESULT == 0
+	FLAG:1002 = 0
+ELSE
+	FLAG:1002 = 1
+ENDIF
+
+
+@Ability_OPTION
+PRINTL 経験により素質が変化するようにしますか？
+PRINTL [0] はい [1] いいえ
+INPUT
+IF RESULT == 0
+	FLAG:56 = 1
+	PRINTL 素質が変化するようになりました
+ELSE
+	FLAG:56 = 0
+	PRINTL 素質が変化しないようになりました
+ENDIF
+@Age_option
+PRINTL サザ○さん時空にしますか？
+PRINTL [0] ｳｻﾐﾝ [1] いいえ
+INPUT
+IF RESULT == 0
+	CLEARBIT FLAG:雑多設定,4
+	PRINTL アイドルの年齢は固定です
+ELSE
+	SETBIT FLAG:雑多設定,4
+	PRINTL 誕生日が来ると、アイドルが歳を取るようになりました
+ENDIF
+PRINTL
+;PRINTLW
+
+@下着不可視コンフィグ
+IF GETBIT(FLAG:雑多設定,1)
+	CLEARBIT FLAG:雑多設定,1
+ELSE
+	SETBIT FLAG:雑多設定,1
+ENDIF
+
+@下着の解放コンフィグ
+IF GETBIT(FLAG:雑多設定,2)
+	CLEARBIT FLAG:雑多設定,2
+	PRINTFORMW 普通のパンツになりました
+ELSE
+	SETBIT FLAG:雑多設定,2
+	PRINTFORMW 欲情や露出癖でパンツが変わります
+ENDIF
+
+@汚れ非表示コンフィグ
+IF GETBIT(FLAG:汚れ非表示設定,0)
+	CLEARBIT FLAG:汚れ非表示設定,0
+ELSE
+	SETBIT FLAG:汚れ非表示設定,0
+ENDIF
+
+@匂いフェチコンフィグ
+IF GETBIT(FLAG:匂いフェチ,1)
+	CLEARBIT FLAG:匂いフェチ,1
+ELSE
+	SETBIT FLAG:匂いフェチ,1
+ENDIF
+
+@妊娠の有無
+IF GETBIT(FLAG:雑多設定,5)
+	CLEARBIT FLAG:雑多設定,5
+ELSE
+	SETBIT FLAG:雑多設定,5
+ENDIF
+
+@口上優遇オプション
+IF GETBIT(FLAG:雑多設定,6)
+	CLEARBIT FLAG:雑多設定,6
+ELSE
+	SETBIT FLAG:雑多設定,6
+ENDIF
+
+@タレント表示オプション
+IF GETBIT(FLAG:雑多設定,7)
+	CLEARBIT FLAG:雑多設定,7
+	PRINTFORMW 表示しません
+ELSE
+	SETBIT FLAG:雑多設定,7
+	PRINTFORMW 名前の判明していないキャラの素質を表示します。
+ENDIF
+
+@キャラ別イベント発生オプション
+IF GETBIT(FLAG:雑多設定,10)
+	CLEARBIT FLAG:雑多設定,10
+	PRINTFORMW 発生させません
+ELSE
+	SETBIT FLAG:雑多設定,10
+	PRINTFORMW キャラ別のイベントを発生させます
+ENDIF
+;	----- アイドルユニット化パッチ 設定項目 -----
+@ユニット化コンフィグ
+	SIF GETBIT(FLAG:雑多設定,13) == 1
+		PRINTFORMW アイドルユニットの設定変更権限を失いました。
+	SIF GETBIT(FLAG:雑多設定,13) != 1
+		PRINTFORMW アイドルユニットの設定変更権限を取得しました。
+	INVERTBIT FLAG:雑多設定,13
+;	----------
+
+@皆援交コンフィグ
+	$INPUT_LOOP
+	PRINTFORML [ 0] - 設定　　　　　　 : \@ GETBIT(FLAG:皆援交設定,1) ?ON#OFF \@
+	PRINTFORML [ 1] - 発生場所　　　　 : \@ GETBIT(FLAG:皆援交設定,2) ?[どこでも]#[裏路地のみ] \@
+	PRINTFORML [ 2] - うふふ移動先　　 : \@ GETBIT(FLAG:皆援交設定,3) ?[近くの物陰へ]#[ホテルに移動] \@
+	PRINTFORML [ 3] - 他の同行者の場合 : \@ GETBIT(FLAG:皆援交設定,4) ?[他の同行者いてもＯＫ]#[他の同行者いたらダメ] \@
+	PRINTFORML [ 4] - 本人同行中の場合 : \@ GETBIT(FLAG:皆援交設定,5) ?[同行中本人からお誘いあり]#[同行中本人からお誘いはなし] \@
+	PRINTFORML [ 5] - 本名明かさない？ : \@ GETBIT(FLAG:皆援交設定,6) ?[援交中は偽名だよ]#[皆素直だよ] \@
+;	PRINTFORML [ 6] - 援交中好感度？　 : \@ GETBIT(FLAG:皆援交設定,7) ?[援交中の好感度は一時的だよ]#[普通に＋だよ] \@
+	PRINTFORML [90] - 皆援交発生率　　 : {FLAG:皆援交設定発生率}％
+	PRINTL [99] - 戻る
+	INPUT
+	IF RESULT == 0
+		INVERTBIT FLAG:皆援交設定, 1
+		IF GETBIT(FLAG:皆援交設定,1) == 1
+			PRINTL 皆援交設定を[設定ON]に変更しました。
+			PRINTW NTR状態に関係なくプレイヤーに対する援交イベントが発生するようになります。
+		ELSE
+			PRINTL 皆援交設定を[設定OFF]に変更しました。
+			PRINTW NTR状態に関係のないプレイヤーに対する援交イベントは発生しません。
+		ENDIF
+		PRINTL
+		GOTO INPUT_LOOP
+	ELSEIF RESULT == 1
+		INVERTBIT FLAG:皆援交設定, 2
+		IF GETBIT(FLAG:皆援交設定,2) == 1
+			PRINTL 発生場所を[どこでも]に変更しました。
+		ELSE
+			PRINTL 皆援交設定を[裏路地のみ]に変更しました。
+		ENDIF
+		PRINTL
+		GOTO INPUT_LOOP
+	ELSEIF RESULT == 2
+		INVERTBIT FLAG:皆援交設定, 3
+		IF GETBIT(FLAG:皆援交設定,3) == 1
+			PRINTL うふふ移動先を[物陰]に変更しました。
+			PRINTW 場所移動せず近くの物陰で致します。(誰かに見つかるリスクがあります)
+		ELSE
+			PRINTL うふふ移動先を[ホテル]に変更しました。
+			PRINTW 速やかにホテルに直行します。
+		ENDIF
+		PRINTL
+		GOTO INPUT_LOOP
+	ELSEIF RESULT == 3
+		INVERTBIT FLAG:皆援交設定, 4
+		IF GETBIT(FLAG:皆援交設定,4) == 1
+			PRINTL [他に同行者がいてもＯＫ]に変更しました。
+			PRINTW 同行中のキャラがいる場合でも同行していないキャラからお誘いされます。
+		ELSE
+			PRINTL [他に同行者がいたらダメ]に変更しました。
+			PRINTW 同行中のキャラがいる場合には同行していないキャラからのお誘いはありません。
+		ENDIF
+		PRINTL
+		GOTO INPUT_LOOP
+	ELSEIF RESULT == 4
+		INVERTBIT FLAG:皆援交設定, 5
+		IF GETBIT(FLAG:皆援交設定,5) == 1
+			PRINTL [同行中本人からお誘いあり]に変更しました。
+			PRINTW 同行中のキャラからお誘いされます。
+		ELSE
+			PRINTL [同行中本人からお誘いはなし]に変更しました。
+			PRINTW 同行中のキャラからはお誘いされません。
+		ENDIF
+		PRINTL
+		GOTO INPUT_LOOP
+	ELSEIF RESULT == 5
+		INVERTBIT FLAG:皆援交設定, 6
+		IF GETBIT(FLAG:皆援交設定,6) == 1
+			PRINTL [援交中は偽名だよ]に変更しました。
+			PRINTW ある程度お金を捧げないで信頼を勝ち取らないと本名教えてくれません。
+		ELSE
+			PRINTL [皆素直だよ]に変更しました。
+			PRINTW 通常通り好感度次第で本名教えてくれます。
+		ENDIF
+		PRINTL
+		GOTO INPUT_LOOP
+;準備中
+;	ELSEIF RESULT == 6
+;		INVERTBIT FLAG:皆援交設定, 7
+;		IF GETBIT(FLAG:皆援交設定,7) == 1
+;			PRINTL [援交中の好感度は一時的だよ]に変更しました。
+;			PRINTW 援交中イベント中の好感度は一時的なものとなります。(イベント終了時に1/10が上昇)
+;		ELSE
+;			PRINTL [普通に＋だよ]に変更しました。
+;			PRINTW 通常通り好感度が上昇します。
+;		ENDIF
+;		PRINTL
+;		GOTO INPUT_LOOP
+	ELSEIF RESULT == 90
+		PRINTL 皆援交発生率を設定します。(1～99)
+		INPUT
+		IF RESULT < 1
+			FLAG:皆援交設定発生率 = 1
+		ELSEIF RESULT > 100
+			FLAG:皆援交設定発生率 = 99
+		ELSE
+			FLAG:皆援交設定発生率 = RESULT
+		ENDIF
+		GOTO INPUT_LOOP
+	ELSEIF RESULT == 99
+		RETURN 0
+	ELSE
+		PRINTL
+		GOTO INPUT_LOOP
+	ENDIF
+
+@うふふ途中脱落設定
+	INVERTBIT FLAG:雑多設定, 15
+	IF GETBIT(FLAG:雑多設定, 15) == 1
+		PRINTL うふふ途中脱落設定を[ON]に変更しました。
+		PRINTW 集団うふふ中に体力が限界を迎えたキャラはうふふから抜けますがうふふ自体は継続します。
+	ELSE
+		PRINTL うふふ途中脱落設定を[OFF]に変更しました。
+		PRINTW 集団うふふ中に誰かが体力の限界を迎えた場合はうふふを終了します。
+	ENDIF

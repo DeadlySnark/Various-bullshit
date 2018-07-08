@@ -1,0 +1,36 @@
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 通常会話 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM300_03_ENABLE
+	RESULTS:0 = %"[ 3]-"+CALLNAME:(TARGET:0)+"の現在地の確認"%
+	IF TCVAR:(TARGET:0):会話不能
+		RETURN 0
+	ELSEIF TFLAG:電話相手==0
+		RETURN 0
+	ELSE
+		RETURN 1
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 通常会話
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM300_03
+	PRINTFORML %CALLNAME:TARGET%に今どこにいるのか聞いてみた。
+	;とりあえず3パターン、同じ場所、町のなか、どこか遠く
+	IF CFLAG:MASTER:現在位置==CFLAG:TARGET:現在位置
+		PRINTFORML %CALLNAME:TARGET%は%GETPLACENAME(CFLAG:TARGET:現在位置)%にいるらしい
+		PRINTFORML ……確かに目の前にいた
+		PRINTW
+	ELSEIF CFLAG:TARGET:現在位置 < 場所番号最大値 && CFLAG:TARGET:ACTIVE>0
+		PRINTFORML %CALLNAME:TARGET%は%GETPLACENAME(CFLAG:TARGET:現在位置)%にいるらしい
+		PRINTW
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の聞きなれない地名を言った
+		PRINTFORML どうやらこの近くにはいないようだ……
+		PRINTW
+	ENDIF
+RETURN 1
+RETURN 0

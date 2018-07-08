@@ -1,0 +1,47 @@
+@COM354
+;邪魔しない
+;%NTR_NAME(他人)%と住人１人同席、かつ主人が空気の時の時間進行用コマンド
+;会話
+IF FLAG:25 == 0
+	IF TALENT:NTR
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%を無視して%NTR_NAME(他人)%との会話を楽しんでいる
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%に話しかけようとしたが%NTR_NAME(他人)%に気おされて言葉が出てこない
+	ENDIF
+;キス
+ELSEIF FLAG:25 == 1
+	IF TALENT:NTR
+		PRINTFORML 愕然している%CALLNAME:MASTER%の反応を楽しみながら
+		PRINTFORML %NTR_NAME(他人)%とキスをしている%CALLNAME:TARGET%を呆然と眺めている
+	ELSE
+		PRINTFORML キスしている%CALLNAME:TARGET%を止めようとするが%NTR_NAME(他人)%に気おされて体が動かない
+	ENDIF
+;愛撫 or 胸愛撫
+ELSEIF FLAG:25 == 2 || FLAG:25 == 3
+	IF TALENT:NTR
+		PRINTFORML %CALLNAME:MASTER%を無視して%NTR_NAME(他人)%の愛撫を受け入れている%CALLNAME:TARGET%を呆然と眺めている
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%に愛撫しているを%NTR_NAME(他人)%を止めようとするが気おされて体が動かない
+	ENDIF
+;フェラ or 69
+ELSEIF FLAG:25 == 4 || FLAG:25 == 5 || FLAG:25 == 6
+	IF TALENT:NTR
+		PRINTFORML %CALLNAME:MASTER%を無視して%NTR_NAME(他人)%に奉仕する%CALLNAME:TARGET%を呆然と眺めている
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%にペニスを押し付けている%NTR_NAME(他人)%を止めようとするが気おされて体が動かない
+	ENDIF
+;セーックス！おああなる
+ELSE
+	IF TALENT:NTR
+		PRINTFORML %CALLNAME:MASTER%は見せ付けるかの様にまぐわっている二人を呆然と眺めている
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%と%NTR_NAME(他人)%の情事にショックを受けて言葉が出てこない	
+	ENDIF
+ENDIF
+
+LOSEBASE:気力 += 100
+DOWNBASE:MASTER:気力 += 100
+
+TIME += 5
+RETURN 1
+

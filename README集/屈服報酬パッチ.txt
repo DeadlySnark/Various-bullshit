@@ -1,0 +1,18 @@
+スポンサーさまとアイドルがイチャイチャするとおかねがもらえるよ！
+
+改変箇所
+\CSV\FLAG.CSV 
+	13,屈服度上昇の累積値
+
+\ERB\COMF466.ERB
+46	FLAG:屈服度上昇の累積値 += 10
+	
+\ERB\EVENTTURNEND.ERB
+460	PRINTFORML 屈服度上昇ボーナス {FLAG:屈服度上昇の累積値 * 5}$
+
+\ERB\EVENTTURNEND.ERB
+462	LOCAL:2 += LOCAL:1 +  LOCAL:2 + ( FLAG:好感度上昇の累積値 + FLAG:屈服度上昇の累積値 ) * 5
+464 	FLAG:屈服度上昇の累積値 = 0
+
+\ERB\NTR.ERB
+3913 	FLAG:屈服度上昇の累積値 += 加算値 + ( ABL:70 + ABL:71 + ABL:72) / 3

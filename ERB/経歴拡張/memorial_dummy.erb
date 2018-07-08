@@ -1,0 +1,209 @@
+;適当に初体験のテキストを埋める
+@memorial_dummy_create(ARG)
+#DIMS 日時
+#DIMS 場所
+#DIMS 相手
+#DIMS 内容
+#DIM 輪姦
+#DIM 判断
+#DIM TMP
+#DIM NUM
+;CSTR:ARG:Ｖ初体験の相手
+;CSTR:ARG:Ａ初体験の相手
+;CSTR:ARG:Ｍ初体験の相手
+;輪姦のときは上記3つを共通にする。
+輪姦=(FLAG:共通ランダム数+NO:ARG)%5
+;1/5で輪姦
+IF 輪姦
+	;輪姦ではない
+	FOR NUM,0, 3
+		判断=(FLAG:共通ランダム数+NO:ARG*(NUM+NO:ARG))
+		TMP=判断%11
+		日時=%memorial_dummy_create_when(TMP)%
+		TMP=判断%14
+		場所=%memorial_dummy_create_where(TMP)%
+		TMP=判断%19
+		相手=%memorial_dummy_create_who(TMP)%
+		TMP=判断%6
+		内容=%memorial_dummy_create_how(TMP)%
+		SELECTCASE NUM
+			CASE 0
+			SIF CSTR:ARG:Ｖ初体験の相手 == ""
+				CSTR:ARG:Ｖ初体験の相手=%日時%%場所%で%相手%に%内容%
+			CASE 1
+			SIF CSTR:ARG:Ａ初体験の相手 == ""
+				CSTR:ARG:Ａ初体験の相手=%日時%%場所%で%相手%に%内容%
+			CASE 2
+			SIF CSTR:ARG:Ｍ初体験の相手 == ""
+				CSTR:ARG:Ｍ初体験の相手=%日時%%場所%で%相手%に%内容%
+		ENDSELECT
+	NEXT
+ELSE
+	;輪姦
+		判断=(FLAG:共通ランダム数+NO:ARG*(NO:ARG))
+		TMP=判断%11
+		日時=%memorial_dummy_create_when(TMP)%
+		TMP=判断%14
+		場所=%memorial_dummy_create_where(TMP)%
+		TMP=判断%10
+		相手=%memorial_dummy_create_who(TMP)%
+		TMP=判断%4
+		内容=%memorial_dummy_create_how_gb(TMP)%
+		SIF CSTR:ARG:Ｖ初体験の相手 == ""
+			CSTR:ARG:Ｖ初体験の相手=%日時%に%場所%で%相手%達に%内容%
+		SIF CSTR:ARG:Ａ初体験の相手 == ""
+			CSTR:ARG:Ａ初体験の相手=%日時%に%場所%で%相手%達に%内容%
+		SIF CSTR:ARG:Ｍ初体験の相手 == ""
+			CSTR:ARG:Ｍ初体験の相手=%日時%に%場所%で%相手%達に%内容%
+ENDIF
+
+RETURN 1
+
+@memorial_dummy_create_who(誰)
+#FUNCTIONS
+#DIM 誰
+;奪った人を数字に合わせて返す、20程度を想定
+;ただしアレな感じのを10に集める
+SELECTCASE 誰
+	CASE 0
+		RETURNF "家庭教師"
+	CASE 1
+		RETURNF "暴力体育教師"
+	CASE 2
+		RETURNF "浮浪者"
+	CASE 3
+		RETURNF "醜い中年"
+	CASE 4
+		RETURNF "不良"
+	CASE 5
+		RETURNF "脂ぎったおっさん"
+	CASE 6
+		RETURNF "狒々爺"
+	CASE 7
+		RETURNF "義父"
+	CASE 8
+		RETURNF "叔父"
+	CASE 9
+		RETURNF "伯父"
+	CASE 10
+		RETURNF "同級生"
+	CASE 11
+		RETURNF "憧れの先輩"
+	CASE 12
+		RETURNF "隣家のお兄さん"
+	CASE 13
+		RETURNF "甥"
+	CASE 14
+		RETURNF "彼氏"
+	CASEELSE
+		RETURNF "名前も知らない人"
+ENDSELECT
+
+@memorial_dummy_create_when(いつ)
+#FUNCTIONS
+#DIM いつ
+;時間作成 11程度？
+SELECTCASE いつ
+	CASE 0
+		RETURNF "ある春の日"
+	CASE 1
+		RETURNF "ある夏の日"
+	CASE 2
+		RETURNF "ある秋の日"
+	CASE 3
+		RETURNF "ある冬の日"
+	CASE 4
+		RETURNF "ある大雨の日"
+	CASE 5
+		RETURNF "ある風の強い日"
+	CASE 6
+		RETURNF "クリスマスイブ"
+	CASE 7
+		RETURNF "つい最近"
+	CASEELSE
+		RETURNF "その昔"
+ENDSELECT
+
+@memorial_dummy_create_where(どこ)
+#FUNCTIONS
+#DIM どこ
+;時間作成 14程度
+;学生時代を想定しています
+SELECTCASE どこ
+	CASE 0
+		RETURNF "教室"
+	CASE 1
+		RETURNF "体育倉庫"
+	CASE 2
+		RETURNF "自宅への帰り道"
+	CASE 3
+		RETURNF "夜の公園"
+	CASE 4
+		RETURNF "公園のトイレ"
+	CASE 5
+		RETURNF "ラブホテル"
+	CASE 6
+		RETURNF "カラオケボックス内"
+	CASE 7
+		RETURNF "廃墟"
+	CASE 8
+		RETURNF "近所の空き地"
+	CASEELSE
+		RETURNF "自宅"
+ENDSELECT
+
+@memorial_dummy_create_how(どう)
+#FUNCTIONS
+#DIM どう
+;しちゅ作成 6程度？
+SELECTCASE どう
+	CASE 0
+		RETURNF "捧げた"
+	CASE 1
+		RETURNF "許した"
+	CASE 2
+		RETURNF "奪ってもらった"
+	CASEELSE
+		RETURNF "奪われた"
+ENDSELECT
+
+@memorial_dummy_create_how_gb(どう)
+#FUNCTIONS
+#DIM どう
+;しちゅ作成（輪姦） 4程度？
+SELECTCASE どう
+	CASE 0
+		RETURNF "マワされた"
+	CASE 1
+		RETURNF "輪姦された"
+	CASE 2
+		RETURNF "かわるがわる犯された"
+	CASEELSE
+		RETURNF "共有された"
+ENDSELECT
+
+@memorial_dummy_sexmate(ARG)
+;ARG版のキャラのCSTR:奴隷:セックスした相手を作成
+#DIM 人数
+#DIMS 相手文字列
+#DIM LOOP_N
+#DIMS チェック
+人数=正規分布(MAX(EXP:ARG:Ｖ性交経験, EXP:ARG:Ａ性交経験)/3)
+SIF 人数==0
+	RETURN 1
+SIF CSTR:ARG:セックスした相手 == ""
+	CSTR:ARG:セックスした相手 = /
+FOR LOOP_N,0,人数
+	;絶対存在しない数字(10000番台)を作成
+	相手文字列=%TOSTR(10000+LOOP_N)%
+	チェック=%"/"+相手文字列+"/"%
+	IF STRCOUNT(CSTR:ARG:セックスした相手, チェック)
+		;すでに記録済
+		;ちょっと危険だけど…人数+
+		人数+=1
+	ELSE
+		CSTR:ARG:セックスした相手 = %CSTR:ARG:セックスした相手+相手文字列+"/"%
+	ENDIF
+	
+NEXT
+RETURN 1

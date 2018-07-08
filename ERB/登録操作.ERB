@@ -1,0 +1,386 @@
+@SWAP_IDOL(ARG, ARG:1)
+;登録番号ARGとARG:1のキャラを入れ替え
+;SWAPCHARAでなんともならん部分(主に妊娠処理に使ってる変数TA等)をここで処理
+#DIM てんぽ
+#DIM LOOP_CHR
+#DIM LOOP_COUNT
+SWAPCHARA ARG , ARG:1
+;SIF CFLAG:ARG:ACTIVE==1 && CFLAG:(ARG:1):ACTIVE==1
+;	PRINTFORML error {ARG} {ARG:1}
+FOR LOOP_CHR,0 ,1100
+		てんぽ=DA:(ARG):LOOP_CHR
+		DA:(ARG):LOOP_CHR=DA:(ARG:1):LOOP_CHR
+		DA:(ARG:1):LOOP_CHR=てんぽ
+		FOR LOOP_COUNT,0, 5
+			てんぽ=TA:(ARG):LOOP_CHR:LOOP_COUNT
+			TA:(ARG):LOOP_CHR:LOOP_COUNT=TA:(ARG:1):LOOP_CHR:LOOP_COUNT
+			TA:(ARG:1):LOOP_CHR:LOOP_COUNT=てんぽ
+			てんぽ=TB:(ARG):LOOP_CHR:LOOP_COUNT
+			TB:(ARG):LOOP_CHR:LOOP_COUNT=TB:(ARG:1):LOOP_CHR:LOOP_COUNT
+			TB:(ARG:1):LOOP_CHR:LOOP_COUNT=てんぽ
+		NEXT
+NEXT
+
+@ADD_IDOL(ARG, ARG:1=0)
+;NO=ARGのアイドルをACTIVEに
+;うまくいかないときは0,成功したときは1を返す
+;ARG:1!=0でおっさんモード(強制的に登録)
+#DIM 登録番号
+#DIM LOOP_CHR
+登録番号=-1
+FOR LOOP_CHR,0, CHARANUM
+	SIF ARG==NO:LOOP_CHR
+		登録番号=LOOP_CHR
+NEXT
+SIF ARG:1==1
+	登録番号=ARG
+;エラー回避
+SIF 登録番号==-1
+	RETURN 0
+SIF ARG < 0
+	RETURN 0
+
+;出現抑制キャラは3/4でキャンセル
+LOCAL:0 = RAND:4
+;PRINTFORML ARG=%CSVNAME(ARG)% 出現率:ARG={出現率:ARG} 乱数={LOCAL:0}
+IF 出現率:0 == 1 && 出現率:ARG == 2 && LOCAL:0 != 0
+	;PRINTL キャンセル
+	RETURN 0
+ENDIF
+;PRINTL 出現
+
+;既に退場しているキャラ
+SIF CFLAG:(登録番号):ACTIVE<0 && ARG:1==0
+	RETURN 0
+;既にアクティブ
+SIF 登録番号<CHARA_ACTIVE && ARG:1==0
+	RETURN 0
+;CHARA_ACTIVEの最後尾に追加する→SWAPでその場所にもっていく]
+CFLAG:登録番号:ACTIVE=1
+CFLAG:登録番号:現在位置=場所_ダミー
+CALL SWAP_IDOL(CHARA_ACTIVE, 登録番号)
+CHARA_ACTIVE+=1
+;PRINTFORML {CHARA_ACTIVE}
+RETURN 1
+
+@DEL_IDOL(ARG)
+;こちらは登録番号ARGを容赦なくACTIVE帯から消すので、何か判断を使用する前にするべし
+#DIM LOOP_NUM
+SIF CFLAG:ARG:ACTIVE==1
+	CFLAG:ARG:ACTIVE=0
+CFLAG:ARG:現在位置=場所_ダミー
+;A,B,C,D→B,C,D,Aと並び替える(もっといい方法ありそうだけど…)
+FOR LOOP_NUM, ARG, CHARA_ACTIVE
+	CALL SWAP_IDOL(LOOP_NUM, LOOP_NUM+1)
+NEXT
+
+CHARA_ACTIVE-=1
+RETURN 1
+
+@HAVE_KOJO()
+#DIM LOOP_CHR
+#DIM C_HAVE, CSVキャラ数
+#DIM C_COUNT
+C_COUNT=0
+FOR LOOP_CHR, 1, CSVキャラ数
+	RESULT=0
+	TRYCALLFORM KOJO_K{LOOP_CHR}(1)
+	SIF !RESULT
+		CONTINUE
+	;ある場合
+	C_HAVE:C_COUNT=LOOP_CHR
+	C_COUNT++
+;	PRINTFORML てすと 口上あり %CSVNAME(LOOP_CHR)%
+NEXT
+;PRINTFORML ここまで{C_COUNT}
+;この時点で0~C_COUNT-1までのC_COUNT人を確保
+SIF C_COUNT == 0
+	RETURN -1
+
+;ランダムで口上を持つキャラの番号を返す
+RETURN C_HAVE:(RAND:C_COUNT)
+
+@REMOVE_IDOL
+;アイドルの退場設定
+#DIM BYE
+#DIM LOOP_REM
+#DIM NUM
+;30人より少ないときは退場させない
+SIF CHARA_ACTIVE < 30
+	RETURN 0
+;周回回数
+NUM=MAX(1, CHARA_ACTIVE-30)
+FOR LOOP_REM,0, NUM
+	;適当に一人チョイス
+	BYE=RAND:CHARA_ACTIVE
+	;PRINTFORM BYE={BYE}
+	;あなたのときはダメ
+	SIF BYE==MASTER
+		CONTINUE
+	;事務員はダメ
+	SIF TALENT:BYE:事務員
+		CONTINUE
+	;ENEMYはダメ
+	SIF TALENT:BYE:ＥＮＥＭＹ
+		CONTINUE
+	;現役アイドルはダメ
+	SIF CFLAG:BYE:開始位置 <= 場所番号最大値
+		CONTINUE
+	;まだ60日も活動していないキャラはダメ
+	SIF DAY-CFLAG:BYE:活動開始日 < 60
+		CONTINUE
+
+	;恋慕キャラ or あなたに好感度30以上ダメ //ただし屈服値の最大が高感度の20倍以上は例外とする
+	SIF MAX屈服(BYE) > 20*CFLAG:BYE:好感度
+		GOTO JUMP_REM1
+	SIF (TALENT:BYE:恋慕 || CFLAG:BYE:好感度 >= 30)
+		CONTINUE
+	$JUMP_REM1
+	;公衆便所はダメ
+;	SIF TALENT:BYE:公衆便所
+;		CONTINUE
+	;浮気癖はダメ(おそらくそういうプレイ中のはず)
+	SIF TALENT:BYE:浮気癖
+		CONTINUE
+		
+	;ここで残っているのは在野でほぼあなたに相手にされてないキャラ
+;	退場:(NO:BYE)=CFLAG:BYE:名前フラグ+1
+	CFLAG:BYE:ACTIVE=-1
+	;PRINTFORMW DELETE %CSTR:BYE:フルネーム%
+	CALL DEL_IDOL(BYE)
+NEXT
+
+@削除チェック(ARG)
+;ARG番のキャラが削除して問題ないか確認
+#FUNCTION
+;所属している人はスキップ
+SIF 所属(ARG)
+	RETURNF 0
+;陥落または好感度1000以上ならスキップ
+SIF TALENT:ARG:NTR || TALENT:ARG:恋慕 || CFLAG:ARG:好感度 >= 1000
+	RETURNF 0
+;円光系はスキップ
+SIF TALENT:ARG:NTRPRE
+	RETURNF 0
+;(元)アイドルとAV女優はスキップ
+SIF TALENT:ARG:アイドル
+	RETURNF 0
+;凍結中はスキップ
+SIF CFLAG:ARG:凍結
+	RETURNF 0
+;0340 仮実装
+;処女などに変化があった場合はスキップ
+;訪問者と組み合わせるとキャラが非常に増えてしまう可能性あり
+SIF CSTR:ARG:Ｍ初体験の相手 != "" || CSTR:ARG:Ｖ初体験の相手 != "" || CSTR:ARG:Ａ初体験の相手 != ""
+	RETURNF 0
+RETURNF 1
+
+@登録キャラ調整
+#DIM 登録数
+#DIM 登録キャラ
+#DIM LOOP_CHR
+;ターンエンド時に登録キャラを足したり消したりする。
+;あんまり頻繁だとゲームとしてしんどいので4ターンに1回程度の頻度で
+SIF RAND:4
+;	RETURN 0
+DEBUGPRINT キャラの変更
+;交換対象の確認
+;LOCALにつめる
+;PRINTFORML {COUNT:3}回目
+	COUNT:1=0
+;まずENEMYの削除 念のため全体を処理
+FOR LOOP_CHR, CHARANUM-1,-1, -1
+	IF TALENT:LOOP_CHR:ＥＮＥＭＹ && NO:LOOP_CHR==0
+		DELCHARA LOOP_CHR
+		CHARA_ACTIVE--
+	ENDIF
+NEXT
+
+FOR COUNT,0, CHARA_ACTIVE
+	IF 削除チェック(COUNT)
+		LOCAL:(COUNT:1)=COUNT
+		;CHK
+;		PRINTFORML %CSTR:COUNT:フルネーム%
+		COUNT:1+=1
+	ENDIF
+NEXT
+
+;これでLOCAL:0~LOCAL:(COUNT:1-1)までのCOUNT:1名の削除候補ができる
+;登録番号変更対策のため後ろから削除
+FOR COUNT, -1+COUNT:1, -1, -1
+	;30人以下...1/2
+	;以上は削除可能なキャラはすべて削除(重くなってしまうから)
+	;	SIF RAND:2 || 30 < CHARA_ACTIVE
+	;fadeout機能をつけたからいらんでしょ
+	SIF RAND:2
+			CALL DEL_IDOL(LOCAL:COUNT)
+NEXT
+
+;ないと思うけど、一応アイドル上限200人まで
+SIF CHARA_ACTIVE > 200
+	GOTO ADD_NTRCHARA
+
+;ここから足す
+;何人足すべきか…とりあえずFLAGで管理しておく,あとで操作可能にするために
+;バグ避け
+SIF FLAG:徘徊数==0
+	FLAG:徘徊数=7
+登録数=MAX(1, (RAND:5-2)+FLAG:徘徊数)
+
+LOCAL:0 = 0
+LOCAL:1 = 0
+LOCAL:2 = 0
+LOCAL:3 = 0
+LOCAL:4 = 0
+;出現率上昇キャラの追加
+IF 出現率:0
+	;出現率上昇未登場キャラ数え
+	FOR LOCAL:1, 1, CSVキャラ数
+		IF 出現率:(LOCAL:1) == 1
+			FOR LOCAL:2, 0, CHARA_ACTIVE
+				;PRINTFORML %CSVNAME(LOCAL:1)% %CSVNAME(NO:(LOCAL:2))%
+				SIF LOCAL:1 == NO:(LOCAL:2)
+					BREAK
+			NEXT
+			LOCAL:2 -= 1
+			;PRINTFORML %CSVNAME(LOCAL:1)% %CSVNAME(NO:(LOCAL:2))%
+			IF LOCAL:1 != NO:(LOCAL:2)
+				LOCAL:0 += 1
+			ENDIF
+		ENDIF
+	NEXT
+	;PRINTFORML LOCAL:0 = {LOCAL:0}	
+	;出現率上昇未登場キャラが居た場合登録数の1/3まで追加
+	IF LOCAL:0 > 0
+		FOR LOCAL:1, 0, MAX(登録数 / 3 , 1)
+			LOCAL:4 = RAND(LOCAL:0)
+			FOR LOCAL:2, 1, CSVキャラ数
+				IF 出現率:(LOCAL:2) == 1
+					FOR LOCAL:3, 0, CHARA_ACTIVE
+						;PRINTFORML %CSVNAME(LOCAL:2)% %CSVNAME(NO:(LOCAL:3))%
+						SIF LOCAL:2 == NO:(LOCAL:3)
+							BREAK
+					NEXT
+					LOCAL:3 -= 1
+					SIF LOCAL:2 == NO:(LOCAL:3)
+						CONTINUE
+					LOCAL:4 -= 1
+				ENDIF
+				SIF LOCAL:4 < 0
+					BREAK
+			NEXT
+			LOCAL:2 -= 1
+			;PRINTFORML %CSVNAME(LOCAL:2)%
+			CALL ADD_IDOL(LOCAL:2)
+			LOCAL:0 -= 1
+			登録数 -= 1
+			SIF LOCAL:0 == 0
+				BREAK
+		NEXT
+	ENDIF
+ENDIF
+
+;ここも一応、無限ループの可能性があるので回避策を
+LOCAL = 0
+FOR COUNT,0, 登録数
+	登録キャラ=RAND:CSVキャラ数
+	IF GETBIT(FLAG:雑多設定,6) && !RAND:5
+	;口上優先しているとき
+	;全部ここにくるといろいろ苦しいので1/5ぐらいにしておく
+		CALL HAVE_KOJO()
+		登録キャラ=RESULT
+	ENDIF
+	CALL ADD_IDOL(登録キャラ)
+	SIF RESULT == 0
+		COUNT -= 1
+;	IF RESULT == 1 && FLAG:ふたなりモード && !(FLAG:共通ランダム数+登録キャラ)%3
+;		TALENT:(CHARA_ACTIVE-1):性別 = 3
+;		MAXBASE:(CHARA_ACTIVE-1):勃起 = 1500
+;	ENDIF
+	LOCAL += 1
+	SIF LOCAL > 3000
+		BREAK
+NEXT
+
+
+$ADD_NTRCHARA
+
+;0時を回ってない段階でキャラが追加された時は時間を0時にする
+SIF TIME < 1440
+	TIME = 1440
+;-------------------------------------------------------------------------------
+;ここからNTR
+
+;以下はＮＴＲ関係の処理なのでオプションつけてなきゃ飛ばす
+SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+	RETURN 1
+
+IF ＮＴＲ追加処理:1 == 0
+	ＮＴＲ追加処理:1 = ＮＴＲ追加処理
+ELSEIF ＮＴＲ追加処理 > 0 && GETBIT(FLAG:ＮＴＲパッチ設定,10)
+	ＮＴＲ追加処理:1 += 1
+ENDIF
+
+;理論上青天井に追加される可能性があったので、最大10人までに
+LOCAL = 0
+FOR COUNT, 0, CHARANUM
+	SIF TALENT:COUNT:ＥＮＥＭＹ
+		LOCAL += 1
+NEXT
+SIF LOCAL > 10
+	RETURN 1
+	
+;とりあえず4/5程度の出現率
+DEBUGPRINTL NTR相手追加
+IF RAND:5
+	;あなたの肉体を使用
+	ADDCHARA 0
+	TALENT:(CHARANUM-1):ＥＮＥＭＹ=人物_パパ
+	CALL 素質の変換(CHARANUM-1)
+	CALL 子宮内体積設定(CHARANUM-1)
+	CALL 真名隠蔽(CHARANUM-1)
+	CFLAG:(CHARANUM-1):開始位置=場所_間男長屋
+	MAXBASE:(CHARANUM-1):5 = 1500
+	CALL ADD_IDOL(CHARANUM-1, 1)
+ENDIF
+IF RAND:5
+	;あなたの肉体を使用
+	ADDCHARA 0
+	TALENT:(CHARANUM-1):ＥＮＥＭＹ=人物_AV男優
+	CALL 素質の変換(CHARANUM-1)
+	CALL 子宮内体積設定(CHARANUM-1)
+	CALL 真名隠蔽(CHARANUM-1)
+	CFLAG:(CHARANUM-1):開始位置=場所_間男長屋
+	MAXBASE:(CHARANUM-1):5 = 1500
+	CALL ADD_IDOL(CHARANUM-1, 1)
+ENDIF
+IF RAND:5
+	;あなたの肉体を使用
+	ADDCHARA 0
+	TALENT:(CHARANUM-1):ＥＮＥＭＹ=人物_風俗オーナー
+	CALL 素質の変換(CHARANUM-1)
+	CALL 子宮内体積設定(CHARANUM-1)
+	CALL 真名隠蔽(CHARANUM-1)
+	CFLAG:(CHARANUM-1):開始位置=場所_間男長屋
+	MAXBASE:(CHARANUM-1):5 = 1500
+	CALL ADD_IDOL(CHARANUM-1, 1)
+ENDIF
+;強化されてる場合:3/4でさらに追加
+SIF GETBIT(FLAG:ＮＴＲパッチ設定,10) && RAND:4
+	GOTO ADD_NTRCHARA
+
+;DEBUGPRINTFORML 間男が{(ENEMY数:0 + ENEMY数:1 + ENEMY数:2)}人になりました
+
+RETURN 1
+;-------------------------------------------------------------------------------
+;ここまでNTR
+
+@凍結処理(ARG)
+;ARGキャラを一時除外扱いにするための処理
+;念のため0回避
+	CFLAG:ARG:凍結=MAX(1, DAY)
+	CFLAG:ARG:現在位置=場所_凍結用
+;同行中を回避
+	CFLAG:ARG:同行=0
+	
+RETURN 1

@@ -1,0 +1,105 @@
+@ENKOU_START_K310(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「兄ちゃんに真美のホンキのテクニック、見せちゃおっかな～♪」
+ELSE
+	PRINTFORML 「ねぇねぇ、何して遊ぼっか？ え、もうホテルに行っちゃう？　じゃあ、いっしょにセックスしよっか～♪」
+ENDIF
+
+@ENKOU_FINISH_K310(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「ぷはー、ひと汗かいた後のジュースはうまいね、兄ちゃん！」
+	PRINTFORML 「あ、……たれて来ちゃった、もう中に射精しすぎだよ♪」
+ELSE
+	PRINTFORML 「んっふっふ～。んじゃ、また遊びたくなったら電話してね♪」
+ENDIF
+@SORP_START_K310(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「んっふっふ～♪　兄ちゃんなら、真美に何してももいいよ？ スペシャルサービスだかんね！」
+ELSE
+	PRINTFORML 「%CALLNAME:奴隷%お仕事ガンバルから、兄ちゃんは、しっかり射精していってね～♪」
+ENDIF
+@SORP_FINISH_K310(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「んっふっふ～！　真美と兄ちゃんの勝負は引き分けだね!　 自信あったんだけどなー！」
+ELSE
+	PRINTFORML 「うんうん、兄ちゃんは、ミドコロがありますな～」
+ENDIF
+
+
+@KOJO_MESSAGE_COM_K310_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「%CALLNAME:奴隷%は今メッチャ成長期だから、毎日いろんな兄ちゃんから引っ張りだこってカンジなんだ♪」
+PRINTFORML 「ってことで、%CALLNAME:奴隷%と一緒にいる競争率高いんだから、%CALLNAME:奴隷%のことよろよろーっ！」
+
+@KOJO_MESSAGE_COM_K310_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「%CALLNAME:奴隷%は今メッチャ成長期だから、毎日いろんな兄ちゃんから引っ張りだこってカンジなんだ♪」
+PRINTFORML 「ってことで、%CALLNAME:奴隷%と一緒にいる競争率高いんだから、%CALLNAME:奴隷%のことよろよろーっ！」
+
+@KOJO_MESSAGE_COM_K310_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「真美、こんなにせくちーなアイドルになっちゃったよ。まだまだ、もっとボバーン！んっふっふ～♪」
+			PRINTFORML 「――ん、真美は兄ちゃんの頼みなら、そこそこ聞くよ。真美に他の人と遊んで欲しくないんだよね」
+			PRINTFORML 「いいよー。兄ちゃんの本気のお願いなら、真美も本気で聞いてあげるよ」
+			PRINTFORML 「じゃあ、これからは兄ちゃんは真美だけの兄ちゃんだかんね♪」
+
+		ELSE
+			PRINTFORML 「じゃあ、代わりに兄ちゃんが%CALLNAME:奴隷%と遊んでね～」
+		ENDIF
+	CASE 2
+		PRINTFORML 「みんな%CALLNAME:奴隷%にクギヅケで、ほおっておいてくれないからムリムリ！」
+	CASE 3
+		PRINTFORML 「んっふっふ～、絶好調だよー！　みんな%CALLNAME:奴隷%にクギヅケで、ほおっておいてくれないからムリかな～」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K310(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORML 「%NTR_NAME_SEX(奴隷,他人)%兄ちゃんとセックスすること考えると胸がモヤモヤするよー。真美、大人になったのかな？」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「%NTR_NAME_SEX(奴隷,他人)%兄ちゃんの教えてくれたテクニックで、全国の中学生あたりと%CALLNAME:MASTER%兄ちゃんの視線は、真美にクギヅケっだよね♪」
+	PRINTFORML 「真美のスイーツバディと相性ピッタリだよー！ えへへ、ありがと！　…んっんん――っ！ %MSG_HEART()%」
+	PRINTFORMW 真美は騙されているとも知らず、教えられたとおりに%NTR_NAME_SEX(奴隷,他人)%の逸物をその小さな喉奥まで飲み込んで激しく吸い上げていった。
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「%NTR_NAME_SEX(奴隷,他人)%兄ちゃんが物知りだから、真美いろいろ勉強できちゃった！」
+	PRINTFORMW 「アイドルってセックスするのも大事なお仕事なんだね♪」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K310(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「少しだけ！　ちゃっとだけしかやってないから！！　許してよー兄ちゃん！」
+ELSE
+	PRINTFORML 「%CALLNAME:奴隷%は……、げんき…やるき、えのきー……だよ」
+	PRINTFORML そういって部屋の隅に座り込んでいる%CALLNAME:奴隷%の目は虚ろだ。
+ENDIF

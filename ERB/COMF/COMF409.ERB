@@ -1,0 +1,33 @@
+;見世物小屋
+@COM409
+;キャラの抽選
+;RANDで拾えるか？重くなるのではないか？
+;期待値は1/500だが…
+#DIM LOOP_CHR
+#DIM 対象
+対象=-1
+WHILE 1
+	FOR LOOP_CHR,1, CHARANUM
+		SIF CFLAG:LOOP_CHR:ACTIVE < 0 && !RAND:25
+			対象=LOOP_CHR
+	NEXT
+	SIF 対象 >0
+	BREAK
+WEND
+
+
+PRINTFORML ・・・恐ろしいものを見てしまう気がする
+PRINTFORML どうしようか？
+PRINTL [0] - 退却する
+PRINTL [1] - それでも進む
+INPUT
+IF RESULT
+	CALL 見世物小屋口上(NO:対象, CFLAG:対象:名前フラグ+1 )
+	TIME += 30
+	FLAG:退場フラグ=DAY
+	RETURN 1
+ELSE
+	PRINTFORML %CALLNAME:MASTER%はなんとなく嫌な予感がして公園を引き返した。
+	FLAG:退場フラグ=DAY
+	RETURN 0
+ENDIF

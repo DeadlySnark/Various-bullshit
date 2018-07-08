@@ -1,0 +1,18 @@
+@RANKING
+#DIM LOOP_CHR
+;使用するかどうかはともかく作ってみるテスト
+;とりあえず経験人数ランキングとか
+
+;まず現在の位置をCFLAG:ランキング用に保存
+FOR LOOP_CHR,0, CHARANUM
+	CFLAG:LOOP_CHR:ランキングソート=LOOP_CHR
+NEXT
+
+SORTCHARA EXP:経験人数, BACK
+
+FOR LOOP_CHR,1, 11
+	PRINTFORML {LOOP_CHR}位 %CSTR:LOOP_CHR:フルネーム% {EXP:LOOP_CHR:経験人数}人
+NEXT
+;終わる前にランキングソートを使って戻す
+SORTCHARA CFLAG:ランキングソート
+RETURN 0

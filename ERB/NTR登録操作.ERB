@@ -1,0 +1,120 @@
+
+@登録時ＮＴＲ処理
+#DIM 登録キャラ, 5
+#DIM ENEMY数, 5
+#DIM 偽名リスト, 1000
+#DIM 偽名人数
+
+;真名を聞いてない人だけ対象に
+偽名人数 = 0
+VARSET ENEMY数, 0
+FOR COUNT,1, CHARA_ACTIVE
+	SIF CFLAG:COUNT:名前フラグ == 1
+		CONTINUE
+	SELECTCASE TALENT:COUNT:ＥＮＥＭＹ
+		CASE 人物_パパ
+			ENEMY数:0 += 1
+		CASE 人物_AV男優
+			ENEMY数:1 += 1
+		CASE 人物_風俗オーナー
+			ENEMY数:2 += 1
+		CASEELSE
+			偽名リスト:偽名人数 = COUNT
+			偽名人数 += 1
+	ENDSELECT
+NEXT
+DEBUGPRINTFORML 今回のターゲットは{偽名人数}人です
+DEBUGPRINTFORML 今回の間男は{(ENEMY数:0 + ENEMY数:1 + ENEMY数:2)}人です
+
+;全員本名知ってたらみんな無事、ヨカッタネ
+SIF 偽名人数 == 0
+	RETURN 0
+;間男を全部逮捕しててもみんな無事（ただし判定直前に湧く場合もある）
+;沸かない場合もあるので、猶予なしの場合は問答無用で
+SIF (ENEMY数:0 + ENEMY数:1 + ENEMY数:2 == 0) && !ＮＴＲ追加処理
+	RETURN 0
+
+;どらっぐ
+SIF !GETBIT(FLAG:ＮＴＲパッチ設定,12)
+	GOTO SKIP_DRAG
+;誰もいないときに薬物中毒者を発生させる
+FOR COUNT,0, CHARA_ACTIVE
+	SIF MAXBASE:COUNT:薬物
+		GOTO SKIP_DRAG
+NEXT
+REPEAT 5+RAND:2
+	登録キャラ=偽名リスト:(RAND:偽名人数)
+	MAXBASE:登録キャラ:薬物=500+RAND:500
+	DEBUGPRINTFORML %CSTR:登録キャラ:フルネーム%がヤクに溺れました
+REND
+
+$SKIP_DRAG
+
+;0310 仮設置　円光処理
+;円攻しているキャラが一人もいない場合無理やりさせる(酷い
+SIF !ENEMY数:0 && !ＮＴＲ追加処理
+	GOTO SKIP_AV
+FOR COUNT,0, CHARA_ACTIVE
+	;まれに既に居ても増えるように 確率 (1/10)^(n人)
+	SIF PRENTR(COUNT, 人物_パパ, NTRPRE_職) && RAND:10
+		GOTO SKIP_AV
+NEXT
+
+REPEAT RAND:2+1
+	登録キャラ=偽名リスト:(RAND:偽名人数)
+	IF GETBIT(FLAG:雑多設定,6)
+		;口上があるキャラを優先する
+		SKIPDISP 1
+		FOR COUNT:1, 0, 偽名人数
+			LOCAL = 偽名リスト:(COUNT:1)
+			TRYCCALLFORM ENKOU_START_K{NO:LOCAL}(LOCAL)
+			;口上がある場合1/3でそのキャラに
+			SIF !RAND:3
+				登録キャラ=LOCAL
+			CATCH
+				CONTINUE
+			ENDCATCH
+		NEXT
+		SKIPDISP 0
+	ENDIF
+	CALL 性経験の改変(登録キャラ, 人物_パパ)
+	EXP:登録キャラ:NTR陥落経験+=RAND:4
+	IF FINDCHARA(TALENT:繁殖母体,2)==-1
+	;v630 死に設定のスキルを追加してみる
+		TALENT:登録キャラ:繁殖母体=2
+		CFLAG:登録キャラ:多生児強度フラグ=10
+		TALENT:登録キャラ:多産体質=1
+		DEBUGPRINTFORML %CSTR:登録キャラ:フルネーム%の子宮が進化しました
+	ENDIF
+	DEBUGPRINTFORML %CSTR:登録キャラ:フルネーム%がパパにNTRれました
+REND
+$SKIP_AV
+
+SIF !ENEMY数:1 && !ＮＴＲ追加処理
+	GOTO SKIP_SORP
+FOR COUNT,0, CHARA_ACTIVE
+	;まれに既に居ても増えるように 確率 (1/10)^(n人)
+	SIF PRENTR(COUNT, 人物_AV男優, NTRPRE_職) && RAND:10
+		GOTO SKIP_SORP
+NEXT
+REPEAT RAND:2+1
+	登録キャラ=偽名リスト:(RAND:偽名人数)
+	CALL NTRPRE堕ち(登録キャラ, 人物_AV男優)
+	DEBUGPRINTFORML %CSTR:登録キャラ:フルネーム%がAV男優にNTRれました
+REND
+$SKIP_SORP
+
+SIF !ENEMY数:2 && !ＮＴＲ追加処理
+	RETURN 1
+FOR COUNT,0, CHARA_ACTIVE
+	;まれに既に居ても増えるように 確率 (1/10)^(n人)
+	SIF PRENTR(COUNT, 人物_風俗オーナー, NTRPRE_職) && RAND:10
+		RETURN 1
+NEXT
+REPEAT RAND:2+1
+	登録キャラ=偽名リスト:(RAND:偽名人数)
+	CALL NTRPRE堕ち(登録キャラ, 人物_風俗オーナー)
+	DEBUGPRINTFORML %CSTR:登録キャラ:フルネーム%が風俗オーナーにNTRれました
+REND
+
+RETURN 1

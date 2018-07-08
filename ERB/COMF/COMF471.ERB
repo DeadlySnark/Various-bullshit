@@ -1,0 +1,2777 @@
+;	---------------------------------------------------------------------------
+;	ファイル名：			COMF471.ERB
+;	導入対象バリアント：	eraIm@s_cgpro ver0.650-
+;
+;	文責：					不眠症の旅人
+;	作成時の改行数：		80にて改行
+;	作成時のTAB幅：			4で設定
+;	---------------------------------------------------------------------------
+;	このファイルの目的：
+;	アイドルユニット化計画にて作成したERBファイルを、cgproのコマンド群に登録す
+;	るためのファイルです。
+;	また、実処理ファイルと名称ランダム選択ファイルもこちらに合流させ、一つの
+;	COMFファイルとして整理しました。
+;	---------------------------------------------------------------------------
+;	【私的備忘録】
+;	ゲーム内コマンドとして登録するために、CSVフォルダ内のTrain.csvも修正する必
+;	要あり。
+;	---------------------------------------------------------------------------
+
+;	COMF471：事務所オフィスにて「ユニット管理」を行う
+;	-----COM_ABLE471 - 実行可否判定
+;	RETURN 0 - コマンドの実行不可
+;	RETURN 1 - コマンドの実行可能
+@COM_ABLE471
+	;移動実行判定
+	SIF !TFLAG:100
+		RETURN 0
+	;一括管理
+	SIF GLOBAL_COMABLE(480)
+		RETURN RESULT
+	;	オフィスのみ実行可能
+	SIF CFLAG:MASTER:現在位置 != 場所_事務所オフィス
+		RETURN 0
+	;気力0
+	SIF BASE:MASTER:気力 <= 0
+		RETURN 0
+	SIF CFLAG:うふふ == 2
+		RETURN 0
+	SIF TARGET < 1
+		RETURN 0
+	RETURN 1
+
+;	-----COM471 - 実呼び出し
+@COM471
+	;	使用変数定義
+	#DIM 分割人数					;	ページ分割時の頁単位の人数保持
+	#DIM 分割ユニット数				;	ページ分割時の頁単位のユニット数保持
+	#DIM 最大人数					;	ページ分割時の最大対象者人数保持
+	#DIM 最大頁数					;	ページ分割時の最大ページ数保持
+	#DIM 現頁数						;	ページ分割時の現在のページ数保持
+	#DIM SKIP数						;	ページ分割時のスキップカウント用
+	#DIM 通過数						;	ページ分割時の通過対象カウント用
+	#DIM 改行数						;	改行制御時の改行数カウント
+	#DIM ユニットナンバー			;	対象ユニット番号保持
+	#DIM ユニット＋50				;	対象ユニット名称用番号保持
+	#DIMS ユニットネーム			;	対象ユニット名文字列保持
+	#DIM 開始対象番号				;	ボタン判定使用
+	#DIM 終了対象番号				;	ボタン判定使用
+	#DIM CAP存在					;	キャプテン存在確認
+	#DIM メンバーIN					;	ユニットメンバー存在確認
+	#DIM 作業開始時間				;	作業時間測定の基準値
+	#DIM 色設定_退避				;	文字色を退避・確保するために使用
+	#DIM 汎,20						;	汎用変数/20要素まで用意
+	
+	;	ユニット化有効/無効フラグチェック
+	SELECTCASE GETBIT(FLAG:雑多設定,13)
+		;	無効の場合はメッセージを表示して終了
+		CASE 0
+			DRAWLINE
+			PRINTFORML %CALLNAME:GET_SEC()%「えーと……」
+			PRINTFORML %CALLNAME:GET_SEC()%「アイドルユニットの管理に関してですが、プロデューサーさんの権限がない状態ですね」
+			PRINTFORML %CALLNAME:GET_SEC()%「起床画面のOPTION項目から、ユニット設定の権限取得申請をしてみてください」
+			PRINTFORMW %CALLNAME:GET_SEC()%「手数を取らせてしまって申し訳ありません」
+			RETURN 0
+	ENDSELECT
+
+	;	大前提：所属アイドルが1人は存在すること
+	LOCAL = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		SIF TALENT:COUNT:アイドル == 0
+			CONTINUE
+		LOCAL += 1
+	NEXT
+	;	もしまだアイドルが1人も所属していなかったら・・・サヨウナラ
+	SELECTCASE LOCAL
+		CASE 0
+			PRINTFORML %CALLNAME:GET_SEC()%「アイドルさんがいなかったら、ユニット管理なんてできませんよ」
+			PRINTFORMW %CALLNAME:GET_SEC()%「早く素敵な方をスカウトしてきてくださいね」
+			RETURN 0
+	ENDSELECT
+	
+	;作業開始時間の取得
+	作業開始時間 = TIME
+	
+;	-----ユニット選択前処理
+$ユニット選択
+	
+	;	使用変数初期化
+	現頁数 = 0
+	
+;	-----ユニット選択処理本体
+$UNIT_TOP
+	
+	;	繰り返し使用する変数の初期化
+	SKIP数 = 0
+	通過数 = 0
+
+	;	1ページに表示するユニット数
+	分割ユニット数 = 10
+	
+	;	導入表示部
+	DRAWLINE
+	PRINTFORML %CALLNAME:GET_SEC()%「アイドルユニットの結成、メンバー変更、解散などの管理を行います」
+	PRINTFORML %CALLNAME:GET_SEC()%「確か、最大で30ユニットまで管理できるんでしたよね」
+	DRAWLINE
+	
+	;	固定表示4行のため、改行数初期値確保
+	改行数 = 4
+	
+	;	ページ分割初期処理
+	最大頁数 = 29 / 分割ユニット数
+	
+	;	対象ユニット表示
+	FOR LOCAL,0,30
+		;	ページ分割スキップ処理部
+		SKIP数 += 1
+		SIF 現頁数 > 0 && (現頁数 * 分割ユニット数) >= SKIP数
+			CONTINUE
+		通過数 += 1
+
+		;	ユニット名の有無でユニット存在を判定
+		;	CSTRの値 LOCAL+50 = 50～79 をユニット名として確保・利用
+		ユニット＋50 = LOCAL + 50
+		SELECTCASE CSTR:MASTER:ユニット＋50
+			CASE ""
+				PRINTFORML [{LOCAL,2,RIGHT}] - （登録なし）
+			CASEELSE
+				PRINTFORML [{LOCAL,2,RIGHT}] - ユニット名：%CSTR:MASTER:ユニット＋50%
+		ENDSELECT
+		改行数 += 1
+		
+		;	表示数が分割ユニット数に達した場合、ループ脱出
+		SIF 通過数 == 分割ユニット数
+			BREAK
+	NEXT
+	
+	;	ページ分割の際の頭揃え
+	IF 通過数 < 分割ユニット数
+		FOR COUNT,改行数,分割ユニット数
+			PRINTL
+			改行数 += 1
+		NEXT
+	ENDIF
+
+	;	ページめくり部の表示
+	DRAWLINE
+	SIF 現頁数 < 0
+		現頁数 = 0
+	SIF 現頁数 > 最大頁数
+		現頁数 = 最大頁数
+	SELECTCASE 現頁数
+		CASE 0
+			SETCOLOR 0x404040
+			PRINTFORM %"[-3] - 1ページ戻る",23,LEFT%
+			RESETCOLOR
+			PRINTL [-5] - 1ページ進む
+		CASE 最大頁数
+			PRINTFORM %"[-3] - 1ページ戻る",23,LEFT%
+			SETCOLOR 0x404040
+			PRINTL [-5] - 1ページ進む
+			RESETCOLOR
+		CASEELSE
+			PRINTFORM %"[-3] - 1ページ戻る",23,LEFT%
+			PRINTL [-5] - 1ページ進む
+	ENDSELECT
+	
+	;	関数処理脱出表示部
+	DRAWLINE
+	PRINTL [99] - ユニット処理を終わる
+	DRAWLINE
+	改行数 += 5
+
+	;	入力情報判定処理
+	$INPUT_LOOP1
+	INPUT
+	改行数 += 1
+	SELECTCASE RESULT
+		CASE 99
+			CLEARLINE 改行数
+			SELECTCASE TIME
+				;	現時刻と作業開始時間とのすり合わせ
+				;	差異がない(何もしていない)と判断し 汎:0 に判定代入
+				CASE 作業開始時間
+					汎 = -1
+				;	少しでも差異があれば、作業後と判断し 汎:0 に判定代入
+				CASEELSE
+					汎 = 0
+			ENDSELECT
+			;	終了処理へ
+			GOTO 終端処理
+		CASE -3,-5
+			;	ページめくり処理
+			SIF 現頁数 > 0 && RESULT == -3
+				現頁数 -= 1
+			SIF 現頁数 < 最大頁数 && RESULT == -5
+				現頁数 += 1
+		CASE (現頁数 * 分割ユニット数) TO ((現頁数 * 分割ユニット数) + 通過数 - 1)
+			;	ユニット単位の処理に移行
+			CLEARLINE 改行数
+			GOTO ユニットメンバー表示
+		CASEELSE
+			改行数 -= 1
+			CLEARLINE 1
+			GOTO INPUT_LOOP1
+	ENDSELECT
+	
+	;	改行削除処理を行い、トップへジャンプ
+	CLEARLINE 改行数
+	GOTO UNIT_TOP
+
+
+;	-----ユニット管理前処理
+$ユニットメンバー表示
+	
+	;	選択結果を各変数に代入
+	ユニットナンバー = RESULT
+	ユニット＋50 = RESULT + 50
+	
+	;	処理開始前変数初期化
+	現頁数 = 0
+
+;	-----ユニット管理処理本体
+$メンバー表示
+
+	;	1ページに表示する人数の設定
+	分割人数 = 8
+
+	;	使用変数初期化
+	最大人数 = 0
+	CAP存在 = 0
+	
+	;	所属アイドルの総数を把握
+	;	「0」はMASTER、「1」はちひろさん固定なので「2」からスタート
+	;	同時に、キャプテン(含む予定者)が存在するかも並行して判定
+	FOR LOCAL, 2, CHARA_ACTIVE
+		SIF TALENT:LOCAL:アイドル != 1
+			CONTINUE
+		最大人数 += 1
+		SIF GETBIT(CFLAG:LOCAL:チームキャプテン,1)
+			CAP存在 = 1
+	NEXT
+	
+	;	分割ページの最大数を算出
+	最大頁数 = (最大人数 - 1) / 分割人数
+	
+	;	現在の選択ユニットに名前があれば、代入
+	ユニットネーム = %CSTR:MASTER:ユニット＋50%
+	
+	;	使用変数初期化
+	SKIP数 = 0
+	通過数 = 0
+	開始対象番号 = 0
+	終了対象番号 = 0
+	
+	;	使用LOCAL変数初期化処理
+	FOR COUNT,1,分割人数
+		LOCAL:COUNT = 0
+	NEXT
+	
+	;	冒頭表示
+	RESETCOLOR
+	DRAWLINE
+	SELECTCASE ユニットネーム
+		CASE ""
+			PRINTFORM %CALLNAME:GET_SEC()%「【未登録ユニット】
+		CASEELSE
+			PRINTFORM %CALLNAME:GET_SEC()%「【%ユニットネーム%】
+	ENDSELECT
+	PRINTL の結成・変更・解散の処理を行いますね」
+	DRAWLINE
+	;	改行数固定値 3 行表示
+	改行数 = 3
+	PRINTFORML %CALLNAME:GET_SEC()%「現在のメンバー状況はこうなっています」
+	改行数 += 1
+
+	;	凡例表示/非表示選択肢
+	SELECTCASE GETBIT(FLAG:雑多設定,14)
+		CASE 0
+			PRINTL TC - チームキャプテン  (全体で1名のみ、選択必須)
+			PRINTL UL - ユニットリーダー  (ユニットで1名、選択必須)
+			PRINTL CM - センターメンバー  (ユニットで1名、選択必須)
+			PRINTL Vi - アピールポイント：ビジュアル
+			PRINTL Vo - アピールポイント：ボーカル
+			PRINTL Da - アピールポイント：ダンス
+			PRINTL (アピールポイントは一つは選択必須、複数選択可)
+			PRINTFORML %CALLNAME:GET_SEC()%「表が崩れて表示される方は、Emueraの ヘルプ→設定→表示タグ→
+			PRINTL 　　　　　　表示インターフェース→TextRenderer (GDI) にしてみることをお勧めします」
+			PRINTL
+			PRINTBUTTON "【凡例を隠す】",-50
+			PRINTL
+			改行数 += 11
+		CASE 1
+			PRINTBUTTON "【凡例を表示】",-50
+			PRINTL
+			改行数 += 1
+	ENDSELECT
+	
+	;	選択一覧表示本体
+	;	変な色指定があってもデフォルト文字色で罫線を描画 : PRINT"D"
+	PRINTSDL "┌────────────┬─┬─┬─┬─┬─┬─┐"
+	PRINTSDL "│所 属 ア イ ド ル 氏 名 │TC│UL│CM│Vi│Vo│Da│"
+	PRINTSDL "├────────────┼─┼─┼─┼─┼─┼─┤"
+	改行数 += 3
+	
+	;	所属アイドルを呼び出し
+	FOR LOCAL, 2, CHARA_ACTIVE
+		;	アイドル以外は除外
+		SIF TALENT:LOCAL:アイドル != 1
+			CONTINUE
+		
+		;	ページ分割スキップ処理
+		SKIP数 += 1
+		SIF 現頁数 > 0 && (現頁数 * 分割人数) >= SKIP数
+			CONTINUE
+		
+		;	表示対象の確定で変数初期化および通過カウント加算
+		メンバーIN = 0
+		通過数 += 1
+		
+		;	初回通過時のみ、開始対象番号に LOCAL:0 の値を代入
+		SIF 開始対象番号 == 0
+			開始対象番号 = LOCAL
+		
+		;	LOCAL:(通過数) に対象の番号(LOCAL:0)を代入しておく
+		LOCAL:通過数 = LOCAL
+		
+		;	必ずデフォルト文字色で描画・記述
+		PRINTPLAIN │
+		PRINTFORM [{LOCAL,3,RIGHT}] - 
+		
+		;	ユニットメンバーか否かを色分けして表示
+		;	デフォルト文字色を退避させる
+		GETCOLOR
+		色設定_退避 = RESULT
+		;	対象がユニットメンバーか？
+		SELECTCASE GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,0)
+			;	ユニットメンバーじゃない
+			CASE 0
+				;	表示はグレー表示
+				SETCOLOR 0x606060
+				;	ついでに退避色もグレーに変更
+				色設定_退避 = 0x606060
+			
+			;	ユニットメンバーなのです
+			CASE 1
+				;	表示はオレンジ表示
+				SETCOLORBYNAME Orange
+				;	私はユニットメンバーフラグON
+				メンバーIN = 1
+		ENDSELECT
+		
+		;	もし半角16文字(全角8文字)以上の対象がいる場合の対処
+		;	全角8文字目で無理やり以後略とする
+		SUBSTRING NAME:LOCAL,0,16
+		PRINTFORM %RESULTS,16,LEFT%
+		
+		;	ここで一度文字色リセット
+		RESETCOLOR
+		PRINTPLAIN │
+		
+		;	チームキャプテン表示：確認しよう
+		SELECTCASE GETBIT(CFLAG:LOCAL:チームキャプテン,0)
+			;	キャプテンじゃない
+			CASE 0
+				;	色設定
+				SETCOLOR 色設定_退避
+				SELECTCASE GETBIT(CFLAG:LOCAL:チームキャプテン,1)
+					;	次期キャプテン予定者でもない
+					CASE 0
+						PRINTS "　"
+					;	次期キャプテンです
+					CASE 1
+						PRINTS "継"
+				ENDSELECT
+			;	私がキャプテン
+			CASE 1
+				;	色設定
+				SETCOLOR 色設定_退避
+				SELECTCASE GETBIT(CFLAG:LOCAL:チームキャプテン,1)
+					;	キャプテン予定者がいるので、CAP引退予定です
+					CASE 0
+						PRINTS "退"
+					;	ずっとキャプテンです
+					CASE 1
+						PRINTS "○"
+				ENDSELECT
+		ENDSELECT
+		
+		;	ここで一度文字色リセット
+		RESETCOLOR
+		PRINTPLAIN │
+		
+		;	ユニットリーダー表示：確認しよう
+		SELECTCASE GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,1)
+			;	いつかはリーダー
+			CASE 0
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	ユニットメンバー？
+				SELECTCASE メンバーIN
+					;	ちなうんです
+					CASE 0
+						PRINTS "－"
+					;	そうなのぢゃ
+					CASE 1
+						;	選択ボタン設置(対象者が12番目なら12001に)
+						PRINTBUTTON "－",(LOCAL * 1000 + 1)
+				ENDSELECT
+			
+			;	実はリーダーやってます
+			CASE 1
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	ユニット外でリーダーはないので確定処理
+				;	選択ボタン設置(対象者が12番目なら12001に)
+				PRINTBUTTON "○",(LOCAL * 1000 + 1)
+		ENDSELECT
+		
+		;	ここで一度文字色リセット
+		RESETCOLOR
+		PRINTPLAIN │
+		
+		;	センターメンバー表示：確認しよう
+		SELECTCASE GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,2)
+			;	残念ながら・・・
+			CASE 0
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	ユニットメンバー？
+				SELECTCASE メンバーIN
+					;	否定
+					CASE 0
+						PRINTS "－"
+					;	肯定
+					CASE 1
+						;	選択ボタン設置(対象者が12番目なら12002に)
+						PRINTBUTTON "－",(LOCAL * 1000 + 2)
+				ENDSELECT
+			
+			;	真ん中は私！
+			CASE 1
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	選択ボタン設置(対象者が12番目なら12002に)
+				PRINTBUTTON "○",(LOCAL * 1000 + 2)
+		ENDSELECT
+		
+		;	ここで一度文字色リセット
+		RESETCOLOR
+		PRINTPLAIN │
+		
+		;	アピール・ビジュアル表示：確認しよう
+		SELECTCASE GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,3)
+			;	あまり見ないで・・・
+			CASE 0
+				;	色設定
+				SETCOLOR 色設定_退避
+				SELECTCASE メンバーIN
+					;	NO
+					CASE 0
+						PRINTS "－"
+					;	YES
+					CASE 1
+						;	選択ボタン設置(対象者が12番目なら12003に)
+						PRINTBUTTON "－",(LOCAL * 1000 + 3)
+				ENDSELECT
+			
+			;	私を見てみてっ！
+			CASE 1
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	選択ボタン設置(対象者が12番目なら12003に)
+				PRINTBUTTON "○",(LOCAL * 1000 + 3)
+		ENDSELECT
+		
+		;	ここで一度文字色リセット
+		RESETCOLOR
+		PRINTPLAIN │
+		
+		;	アピール・ボーカル表示：確認しよう
+		SELECTCASE GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,4)
+			;	歌はちょっと・・・
+			CASE 0
+				;	色設定
+				SETCOLOR 色設定_退避
+				SELECTCASE メンバーIN
+					;	ちゃうねん
+					CASE 0
+						PRINTS "－"
+					;	せやせや
+					CASE 1
+						;	選択ボタン設置(対象者が12番目なら12004に)
+						PRINTBUTTON "－",(LOCAL * 1000 + 4)
+				ENDSELECT
+			
+			;	私の歌を聴けぇっ！
+			CASE 1
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	選択ボタン設置(対象者が12番目なら12004に)
+				PRINTBUTTON "○",(LOCAL * 1000 + 4)
+		ENDSELECT
+		
+		;	ここで一度文字色リセット
+		RESETCOLOR
+		PRINTPLAIN │
+		
+		;	アピール・ダンス：確認しよう
+		SELECTCASE GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,5)
+			;	一日一回転びます
+			CASE 0
+				;	色設定
+				SETCOLOR 色設定_退避
+				SELECTCASE メンバーIN
+					;	Nein
+					CASE 0
+						PRINTS "－"
+					;	Ja
+					CASE 1
+						;	選択ボタン設置(対象者が12番目なら12005に)
+						PRINTBUTTON "－",(LOCAL * 1000 + 5)
+				ENDSELECT
+			
+			;	自分、完璧さぁ！
+			CASE 1
+				;	色設定
+				SETCOLOR 色設定_退避
+				;	選択ボタン設置(対象者が12番目なら12005に)
+				PRINTBUTTON "○",(LOCAL * 1000 + 5)
+		ENDSELECT
+		
+		;	ここで文字色リセットし、改行
+		RESETCOLOR
+		PRINTPLAIN │
+		PRINTL
+		改行数 += 1
+		
+		;	1ページの表示上限に達した場合、ループ脱出処理を行う
+		IF 通過数 == 分割人数
+			PRINTL 
+			改行数 += 1
+			終了対象番号 = LOCAL
+			BREAK
+		ENDIF
+		
+		;	脱出処理が行われなかった場合
+		PRINTSDL "├────────────┼─┼─┼─┼─┼─┼─┤"
+		改行数 += 1
+
+		;	対象者が最後の場合もあるので、その対象処理
+		;	対象終端でなくても、随時上書きされていく
+		終了対象番号 = LOCAL
+	NEXT
+
+	;	頭揃え表示部
+	IF 通過数 < 分割人数
+		FOR COUNT ,通過数 ,分割人数
+			PRINTSDL "│                        │　│　│　│　│　│　│"
+			PRINTSDL "├────────────┼─┼─┼─┼─┼─┼─┤"
+			改行数 += 2
+		NEXT
+	ENDIF
+	
+	;	最終行の製表で選択表示終了
+	CLEARLINE 1
+	PRINTSDL "└────────────┴─┴─┴─┴─┴─┴─┘　表の中の〔－〕記号はボタンになっています。"
+	
+	;	ページめくり部の表示
+	DRAWLINE
+	SIF 現頁数 < 0
+		現頁数 = 0
+	SIF 現頁数 > 最大頁数
+		現頁数 = 最大頁数
+	SELECTCASE 現頁数
+		CASE 0
+			SELECTCASE 最大頁数
+				CASE 0
+					PRINTL
+				CASEELSE
+					PRINTPLAINFORM 　%"",21,LEFT%
+					PRINTL [-30] - 1ページ進む
+			ENDSELECT
+		CASE 最大頁数
+			PRINTL 　[-40] - 1ページ戻る
+		CASEELSE
+			PRINTFORM 　%"[-40] - 1ページ戻る",21,LEFT%
+			PRINTL [-30] - 1ページ進む
+	ENDSELECT
+	改行数 += 2
+
+	;	選択項目表示部
+	DRAWLINE
+	;	選択しているユニットの名前が空白？
+	SELECTCASE CSTR:MASTER:ユニット＋50
+		;	無字留師良品
+		CASE ""
+			PRINTFORM 　[800] - %"ユニット名作成",16,LEFT%
+		;	有檻侍り
+		CASEELSE
+			PRINTFORM 　[800] - %"ユニット名変更",16,LEFT%
+	ENDSELECT
+	PRINTFORM [801] - %"全員参加にする",16,LEFT%
+	PRINTL [802] - 一時的に全員を外す
+	PRINTPLAIN 　        　　　　　　　　
+	;	キャプテンをまだ選んでいない？
+	SELECTCASE CAP存在
+		;	誰かいい人いないかなぁ
+		CASE 0
+			PRINTFORM [850] - %"キャプテン選出",16,LEFT%
+		;	私はここに居ます
+		CASEELSE
+			PRINTFORM [850] - %"キャプテン交代",16,LEFT%
+	ENDSELECT
+	PRINTL [851] - ユニット解散
+	PRINTFORM 　[900] - %"ユニット選択へ",16,LEFT%
+	PRINTL [999] - ユニット管理終了
+	DRAWLINE
+	改行数 += 5
+	
+	;	入力部
+	$INPUT_LOOP2
+	INPUT
+	改行数 += 1
+	
+	;	入力結果処理部
+	;	簡単な処理から行っていく
+	SELECTCASE RESULT
+		CASE -50,-40,-30,800,801,802,850,851,900,999
+			CLEARLINE 改行数
+			SIF RESULT == 800
+				GOTO ユニット名確定処理
+			SIF RESULT == 801
+				GOTO 全員選択処理
+			SIF RESULT == 802
+				GOTO 全員解除処理
+			SIF RESULT == 850
+				GOTO キャプテン処理
+			SIF RESULT == 851
+				GOTO ユニット解散処理
+			IF RESULT == 999
+				汎 = 0
+				GOTO 終了チェック
+			ENDIF
+			IF RESULT == 900
+				汎 = 1
+				GOTO 終了チェック
+			ENDIF
+			IF 現頁数 != 0 && RESULT == -40
+				現頁数 -= 1
+				GOTO メンバー表示
+			ENDIF
+			IF 現頁数 < 最大頁数 && RESULT == -30
+				現頁数 += 1
+				GOTO メンバー表示
+			ENDIF
+			IF RESULT == -50
+				INVERTBIT FLAG:雑多設定,14
+				GOTO メンバー表示
+			ENDIF
+	ENDSELECT
+	
+	;	特殊な判定
+	;	RESULTとLOCAL:(通過数)とのすり合わせ
+	
+	;	当処理以降、文字表示部で %NAMEPLUS(******,0)% のような処理が多用されて
+	;	いますが、これは共通関数で「○○さん」「○○ちゃん」と敬称添付の自動処
+	;	理を行い、表示するものです。
+	;	主にちひろさん発言文などで効果が見られると思います。
+	;	第2引数を 0または省略 するとCALLNAME処理：”美波ちゃん”と表示、
+	;	第2引数を 1 にすることでNAME処理：”新田美波ちゃん”と表示されます。
+	
+	;	ループの +1 は、ちひろさんに関する数値ずれ対策
+	FOR COUNT, 1, (通過数 + 1)
+		;	LOCAL:(通過数)の値が 0(未通過) なら除外
+		;	キャラ番号0(MASTER) が呼び出される可能性があるため除外処理
+		SIF LOCAL:COUNT == 0
+			CONTINUE
+
+		;	RESULTとLOCAL:(通過数)の値が一致した場合
+		IF RESULT == LOCAL:COUNT
+			;	ユニットメンバーか否かの確認
+			SELECTCASE GETBIT(CDFLAG:RESULT:ユニットナンバー:0,0)
+			;	否ならユニットメンバーに登録
+				CASE 0
+					PRINTFORML %CALLNAME:GET_SEC()%「%NAMEPLUS(RESULT,1)%にユニット加入の連絡を入れておきます」
+					PRINTFORM %CALLNAME:GET_SEC()%「そうそう、必ず
+					SETCOLORBYNAME Orange
+					PRINT アピールポイント設定
+					RESETCOLOR
+					PRINTL を行ってくださいね」
+					改行数 += 2
+					SETBIT CDFLAG:RESULT:ユニットナンバー:0,0
+				
+				;	応ならユニットメンバーから除外
+				CASE 1
+					PRINTFORML %CALLNAME:GET_SEC()%「%NAMEPLUS(RESULT,1)%にユニットとは別の仕事が入ったので、そちらに回ってもらいますね」
+					SETCOLORBYNAME Orange
+					PRINTW ※ユニットに関する全ての情報がクリアされました
+					RESETCOLOR
+					改行数 += 2
+					FOR COUNT,0,5
+						CLEARBIT CDFLAG:RESULT:ユニットナンバー:0,COUNT
+					NEXT
+			ENDSELECT
+			TIME += 1
+			CLEARLINE 改行数
+			GOTO メンバー表示
+		ENDIF
+	NEXT
+	
+	;	個々の設定ボタン判定
+	
+	;	LOCAL:0に開始対象番号の値を代入し、検索対象として利用
+	LOCAL = 開始対象番号
+	
+	;	使用(現時点で未使用一部含む)変数 汎:1～汎:10 の値をクリア処理
+	FOR COUNT,1,10
+		汎:COUNT = 0
+	NEXT
+	
+	;	選択肢による必要情報の取得
+	FOR COUNT,2,CHARA_ACTIVE
+		;	アイドルじゃない = じゃあの
+		SIF TALENT:COUNT:アイドル == 0
+			CONTINUE
+
+		;	ユニットリーダー(候補)は誰？ = 該当者がいるなら汎:1に代入
+		SIF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,1) == 1
+			汎:1 = COUNT
+
+		;	センターメンバーは誰？ = 該当者がいるなら汎:2に代入
+		SIF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,2) == 1
+			汎:2 = COUNT
+	NEXT
+	
+	;	(終了対象番号 + 1) - 開始対象番号 の値の回数分、ループすり合わせを行う
+	;	上の +1 は、ちひろさんが必ず キャラ番号1 で、ずれてしまうための処理
+	FOR COUNT:1, 開始対象番号, (終了対象番号 + 1)
+		;	検索対象がユニットメンバーだった場合
+		IF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,0) == 1
+			;	入力結果 RESULT とのすり合わせ
+			SELECTCASE RESULT
+				;	入力結果が「検索対象の値*1000+1(UL選択ボタン)」と一致
+				CASE (LOCAL * 1000 + 1)
+					;	ユニットリーダーは設定済み？
+					SELECTCASE 汎:1
+						;	誰もいない場合
+						CASE 0
+							SELECTCASE ユニットネーム
+								CASE ""
+									PRINTFORML %CALLNAME:GET_SEC()%「この、名前がまだ決まっていないユニットのリーダー指名ですか？」
+								CASEELSE
+									PRINTFORML %CALLNAME:GET_SEC()%「【%ユニットネーム%】のリーダー指名ですか？」
+							ENDSELECT
+							PRINTFORML %CALLNAME:GET_SEC()%「わかりました、%NAMEPLUS(LOCAL,1)%にリーダーを任せちゃいます」
+							PRINTFORMW %CALLNAME:GET_SEC()%「このユニットがどのようになっていくか、これからが楽しみですね」
+							SETBIT CDFLAG:LOCAL:ユニットナンバー:0,1
+							TIME += 3
+							CLEARLINE 改行数 + 3
+							GOTO メンバー表示
+						
+						;	誰かがすでにリーダーの場合
+						CASEELSE
+							PRINTFORML %CALLNAME:GET_SEC()%「現在、このユニットのリーダーは%NAMEPLUS(汎:1,1)%が勤めています」
+							PRINTFORML リーダーを彼女から%NAMEPLUS(LOCAL,1)%に変更してもよろしいでしょうか？」
+							DRAWLINE
+							PRINTBUTTON "[他] - いいえ",0
+							PRINTPLAIN 　　　　　　　　　
+							PRINTL [09] - はい
+							DRAWLINE
+							改行数 += 5
+							INPUT
+							改行数 += 1
+							SELECTCASE RESULT
+								;	変更決定
+								CASE 9
+									PRINTFORML %CALLNAME:GET_SEC()%「わかりました、次のリーダーは%NAMEPLUS(汎:1,0)%から%NAMEPLUS(LOCAL,0)%にするのですね」
+									PRINTFORMW %CALLNAME:GET_SEC()%「二人に至急連絡をとって、この件を伝えておきます」
+									CLEARBIT CDFLAG:(汎:1):ユニットナンバー:0,1
+									SETBIT CDFLAG:LOCAL:ユニットナンバー:0,1
+									TIME += 3
+									CLEARLINE 改行数 + 2
+									GOTO メンバー表示
+								
+								;変更中止
+								CASEELSE
+									PRINTFORMW %CALLNAME:GET_SEC()%「変更をとりやめますね」
+									TIME += 1
+									CLEARLINE 改行数 + 1
+									GOTO メンバー表示
+							ENDSELECT
+					ENDSELECT
+				
+				;	入力結果が「検索対象の値*1000+2(CM選択ボタン)」と一致
+				CASE (LOCAL * 1000 + 2)
+					;	センターメンバーは設定済み？
+					SELECTCASE 汎:2
+						;	誰もいない場合
+						CASE 0
+							SELECTCASE ユニットネーム
+								CASE ""
+									PRINTFORML %CALLNAME:GET_SEC()%「この、名前がまだ決まっていないユニットのセンター選出の件ですね？」
+								CASEELSE
+									PRINTFORML %CALLNAME:GET_SEC()%「【%ユニットネーム%】のセンターメンバーに心当たりがあるのですね？」
+							ENDSELECT
+							PRINTFORML %CALLNAME:GET_SEC()%「わかりました、%NAMEPLUS(LOCAL,1)%にリーダーを任せちゃいます」
+							PRINTFORMW %CALLNAME:GET_SEC()%「このユニットがさらに映えるといいですね」
+							SETBIT CDFLAG:LOCAL:ユニットナンバー:0,2
+							TIME += 3
+							CLEARLINE 改行数 + 3
+							GOTO メンバー表示
+						
+						;	誰かがすでにリーダーの場合
+						CASEELSE
+							PRINTFORML %CALLNAME:GET_SEC()%「現在、このユニットのセンターメンバーは%NAMEPLUS(汎:2,1)%が勤めています」
+							PRINTFORML センターを彼女から%NAMEPLUS(LOCAL,1)%に変更してもよろしいでしょうか？」
+							DRAWLINE
+							PRINTBUTTON "[他] - いいえ",0
+							PRINTPLAIN 　　　　　　　　　
+							PRINTL [09] - はい
+							DRAWLINE
+							改行数 += 5
+							INPUT
+							改行数 += 1
+							SELECTCASE RESULT
+								;	是
+								CASE 9
+									PRINTFORML %CALLNAME:GET_SEC()%「わかりました、次のセンターは%NAMEPLUS(汎:2,0)%から%NAMEPLUS(LOCAL,0)%にするのですね」
+									PRINTFORMW %CALLNAME:GET_SEC()%「二人に至急連絡をとって、この件を伝えておきます」
+									CLEARBIT CDFLAG:(汎:2):ユニットナンバー:0,2
+									SETBIT CDFLAG:LOCAL:ユニットナンバー:0,2
+									TIME += 3
+									CLEARLINE 改行数 + 2
+									GOTO メンバー表示
+								
+								;	非
+								CASEELSE
+									PRINTFORMW %CALLNAME:GET_SEC()%「変更をとりやめますね」
+									TIME += 1
+									CLEARLINE 改行数 + 1
+									GOTO メンバー表示
+							ENDSELECT
+					ENDSELECT
+				
+				;	入力結果が「検索対象の値*1000+3(Vi選択ボタン)」と一致
+				CASE (LOCAL * 1000 + 3)
+					;	アピール：ＶｉがフラグOFF
+					SIF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,3) == 0
+						PRINTFORMW %CALLNAME:GET_SEC()%「%NAMEPLUS(LOCAL,1)%の【ビジュアル】が見どころだと、宣材資料に記載しておきますね」
+					;	アピール：ＶｉがフラグON
+					SIF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,3) != 0
+						PRINTFORMW %CALLNAME:GET_SEC()%「%NAMEPLUS(LOCAL,1)%の宣材資料から【ビジュアル】的な内容を削除しておきますね」
+					;	フラグを入れ替え
+					INVERTBIT CDFLAG:LOCAL:ユニットナンバー:0,3
+					TIME += 2
+					CLEARLINE 改行数 + 1
+					GOTO メンバー表示
+				
+				;	入力結果が「検索対象の値*1000+4(Vo選択ボタン)」と一致
+				CASE (LOCAL * 1000 + 4)
+					;	アピール：ＶｏがフラグOFF
+					SIF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,4) == 0
+						PRINTFORMW %CALLNAME:GET_SEC()%「%NAMEPLUS(LOCAL,1)%の【ボーカル】が美しいと、宣材資料に記載しておきますね」
+					;	アピール：ＶｏがフラグON
+					SIF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,4) != 0
+						PRINTFORMW %CALLNAME:GET_SEC()%「%NAMEPLUS(LOCAL,1)%の宣材資料から【ボーカル】内容を削除しておきます」
+					;	フラグを入れ替え
+					INVERTBIT CDFLAG:LOCAL:ユニットナンバー:0,4
+					TIME += 2
+					CLEARLINE 改行数 + 1
+					GOTO メンバー表示
+				
+				;	入力結果が「検索対象の値*1000+5(Da選択ボタン)」と一致
+				CASE (LOCAL * 1000 + 5)
+					;	アピール：ＤａがフラグOFF
+					SIF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,5) == 0
+						PRINTFORMW %CALLNAME:GET_SEC()%「%NAMEPLUS(LOCAL,1)%の【ダンス】が見事だと、宣材資料に記載しておきます」
+					;	アピール：ＤａがフラグON
+					SIF GETBIT(CDFLAG:LOCAL:ユニットナンバー:0,5) != 0
+						PRINTFORMW %CALLNAME:GET_SEC()%「%NAMEPLUS(LOCAL,1)%の宣材資料から【ダンス】アピールを削除しておきます」
+					;	フラグを入れ替え
+					INVERTBIT CDFLAG:LOCAL:ユニットナンバー:0,5
+					TIME += 2
+					CLEARLINE 改行数 + 1
+					GOTO メンバー表示
+			ENDSELECT
+		ENDIF
+
+		;	ループ終端
+		;	ここまでRESULT値がヒットしなければ、LOCALに1加算し次の対象者と比較
+		LOCAL += 1
+	NEXT
+	
+	;対象外番号入力、不正な入力、すでにUL/CMなのに選択入力された場合
+	改行数 -= 1
+	CLEARLINE 1
+	GOTO INPUT_LOOP2
+
+;	-----チームキャプテンの管理前処理
+$キャプテン処理
+
+	;	ページ分割処理初期化
+	現頁数 = 0
+	
+;	-----チームキャプテンの管理処理本体
+$CAP_TOP
+
+	;	1ページに表示する人数を設定
+	分割人数 = 10
+	
+	;	該当者の最大人数を把握
+	最大人数 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		SIF TALENT:COUNT:アイドル == 0
+			CONTINUE
+		最大人数 += 1
+	NEXT
+	
+	;	最大頁数を算出
+	最大頁数 = (最大人数 - 1) / 分割人数
+	
+	;	使用変数初期化
+	SKIP数 = 0
+	通過数 = 0
+
+	DRAWLINE
+	PRINTFORML %CALLNAME:GET_SEC()%「当社に所属しているアイドルさんたちをまとめ上げる、【チームキャプテン】の管理ですね」
+	改行数 = 2
+
+;	;	現段階で実装未確定状態のため、コメントアウト(実装できたらいいなぁ)
+;	PRINTFORML %CALLNAME:GET_SEC()%「チームキャプテンとして活動すると、オーディション選考の際に良い印象を与えられるでしょう」
+;	PRINTFORML %CALLNAME:GET_SEC()%「また、他の人よりちょっぴり成長も感じられるかと思います」
+;	PRINTFORML %CALLNAME:GET_SEC()%「ただ、アイドル活動で人知れず疲れがたまってしまうかもしれません」
+;	改行数 += 3
+	PRINTL
+	改行数 += 1
+
+	;キャプテンの現状把握
+	汎:11 = 0
+	汎:12 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		;	現行CAPがいる場合、 汎:11 にキャラ番号を代入
+		SIF GETBIT(CFLAG:COUNT:チームキャプテン,0)
+			汎:11 = COUNT
+
+		;	現行CAPまたは次期CAP予定者がいる場合、 汎:12 にキャラ番号を代入
+		SIF GETBIT(CFLAG:COUNT:チームキャプテン,1)
+			汎:12 = COUNT
+	NEXT
+	;	両方ともいない場合
+	IF 汎:11 == 0 && 汎:12 == 0
+		CAP存在 = 0
+	;	CAP引継ぎ予定の場合
+	ELSEIF 汎:11 == 0 && 汎:12 > 0
+		CAP存在 = 1
+	;	両方ともいる場合
+	ELSEIF 汎:11 > 0 && 汎:12 > 0
+		;	違う人がそれぞれフラグ持ち(CAP引継ぎ予定)
+		SIF 汎:11 != 汎:12
+			CAP存在 = 2
+		;	両フラグとも同一人物(現行CAP)
+		SIF 汎:11 == 汎:12
+			CAP存在 = 3
+	ENDIF
+	
+	;	キャプテンが存在しているか否か
+	SELECTCASE CAP存在
+		;	否
+		CASE 0
+			PRINTFORML %CALLNAME:GET_SEC()%「アラいけない、チームキャプテンが決まっていませんでした」
+			PRINTFORML %CALLNAME:GET_SEC()%「アイドルさんたちの中から1人、選んでおいてくださいね」
+			改行数 += 2
+		
+		;	次期キャプテン候補のみいる
+		CASE 1
+			PRINTFORML %CALLNAME:GET_SEC()%「現在、%NAMEPLUS(汎:12,1)%がチームキャプテンに就任予定です」
+			改行数 += 1
+		
+		;	引継ぎが行われている
+		CASE 2
+			PRINTFORML %CALLNAME:GET_SEC()%「%NAMEPLUS(汎:11,1)%から%NAMEPLUS(汎:12,1)%へキャプテン引継ぎの真っ最中です」
+			改行数 += 1
+		
+		;	現行キャプテンがいる
+		CASE 3
+			PRINTFORML %CALLNAME:GET_SEC()%「現在、%NAMEPLUS(汎:11,1)%がチームキャプテンとして頑張っていますよ」
+			改行数 += 1
+	ENDSELECT
+	PRINTL
+	PRINTL チームキャプテンの人事を行いますか？
+	DRAWLINE
+	改行数 += 3
+	
+	;	対象一覧表示部
+	FOR LOCAL,2,CHARA_ACTIVE
+		;	アイドル以外は除外
+		SIF TALENT:LOCAL:アイドル == 0
+			CONTINUE
+		;	ページ分割スキップ処理
+		SKIP数 += 1
+		SIF 現頁数 > 0 && (現頁数 * 分割人数) >= SKIP数
+			CONTINUE
+		通過数 += 1
+		
+		;	表示色をデフォルトに
+		RESETCOLOR
+		PRINTFORM [{LOCAL,3,RIGHT}] - 
+		;	現行のキャプテンの場合
+		IF 汎:11 == LOCAL && 汎:12 == LOCAL
+			SETCOLOR 0xFF8000
+			PRINTFORM %NAME:LOCAL,21,LEFT%[現行キャプテン]
+		;	交代指示があった際の次期キャプテンの場合
+		ELSEIF 汎:11 != LOCAL && 汎:12 == LOCAL
+			SETCOLOR 0x80FF00
+			PRINTFORM %NAME:LOCAL,21,LEFT%[次期キャプテン予定]
+		;	交代指示があった際の引退予定キャプテンの場合
+		ELSEIF 汎:11 == LOCAL && 汎:12 != LOCAL
+			SETCOLOR 0x0080FF
+			PRINTFORM %NAME:LOCAL,21,LEFT%[キャプテン引退予定]
+		ELSE
+			PRINTFORM %NAME:LOCAL,21,LEFT%
+		ENDIF
+		PRINTL
+		改行数 += 1
+		SIF 通過数 == 分割人数
+			BREAK
+	NEXT
+	
+	;	頭揃え
+	SELECTCASE 通過数
+		CASE IS < 分割人数
+			FOR COUNT,通過数,分割人数
+				PRINTL
+				改行数 += 1
+			NEXT
+	ENDSELECT
+	
+	;	ページめくり表示
+	DRAWLINE
+	SIF 現頁数 < 0
+		現頁数 = 0
+	SIF 現頁数 > 最大頁数
+		現頁数 = 最大頁数
+	SELECTCASE 現頁数
+		CASE 0
+			PRINTPLAINFORM %"",23,LEFT%
+			PRINTL [-10] - 1ページ進む
+		CASE 最大頁数
+			PRINTL [-20] - 1ページ戻る
+		CASEELSE
+			PRINTFORM %"[-20] - 1ページ戻る",23,LEFT%
+			PRINTL [-10] - 1ページ進む
+	ENDSELECT
+	DRAWLINE
+
+	;	いつもの
+	PRINTFORM %"[900] - ユニット選択へ",23,LEFT%
+	PRINTL [999] - ユニット管理終了
+	DRAWLINE
+	改行数 += 5
+
+	;	入力部
+	$INPUT_LOOP3
+	INPUT
+	改行数 += 1
+
+	;	入力結果の処理
+	SELECTCASE RESULT
+		;	戻り処理の場合
+		CASE 900,999
+			CLEARLINE 改行数
+			SIF RESULT == 999
+				汎 = 0
+			SIF RESULT == 900
+				汎 = 1
+			GOTO 終了チェック
+		;	ページめくり
+		CASE -20,-10
+			CLEARLINE 改行数
+			SIF 現頁数 > 0 && RESULT == -20
+				現頁数 -= 1
+			SIF 現頁数 < 最大頁数 && RESULT == -10
+				現頁数 += 1
+			GOTO CAP_TOP
+
+		;	キャプテン処理は二つの値の比較で管理
+		;	汎:11と一致  ／汎:12と一致   = 現行キャプテン
+		;	汎:11と不一致／汎:12と一致   = 次期キャプテン予定
+		;	汎:11と一致  ／汎:12と不一致 = キャプテン引退予定
+		;	汎:11と不一致／汎:12と不一致 = 無印アイドル
+
+		;	該当者にヒットする入力だった場合
+		CASE (現頁数 * 分割人数 + 2) TO (現頁数 * 分割人数) + 通過数 + 1
+			;	入力結果をLOCAL:0に代入
+			LOCAL = RESULT
+			
+			;	万が一LOCALとキャプテンもしくは次期予定者が同一の場合
+			IF LOCAL == 汎:12
+				改行数 -= 1
+				CLEARLINE 1
+				GOTO INPUT_LOOP3
+			ENDIF
+			
+			;	該当者がキャプテンマークをつけている？
+			SELECTCASE 汎:11
+				;	違うよ
+				CASE IS != LOCAL
+					;	誰かキャプテンをやっていた/やる予定ある？
+					SELECTCASE 汎:12
+						;	まだ誰もやってないみたい
+						CASE 0
+							PRINTFORMW %CALLNAME:GET_SEC()%「プロデューサー、%NAMEPLUS(LOCAL,1)%が到着したので、応接室に通しておきました」
+							PRINTL ………………
+							PRINTL …………
+							PRINTW ……
+							PRINTFORML %CALLNAME:LOCAL%にチームキャプテン就任を打診し、承諾をもらいました。
+							PRINTFORMW %CALLNAME:GET_SEC()%「他のアイドルさんたちには、伝達ボードで明日お知らせしておきますね」
+							SETBIT CFLAG:LOCAL:チームキャプテン,1
+							TIME += 60
+							CLEARLINE 改行数 + 6
+							GOTO メンバー表示
+						
+						;	誰かがやってます
+						;	その人は次期CAP予定です
+						CASE IS != 汎:11
+							PRINTFORML %CALLNAME:GET_SEC()%「えーと、%NAMEPLUS(汎:12,1)%に後任キャプテン打診の連絡が行っていますが……」
+							PRINTFORML %CALLNAME:GET_SEC()%「ええっ！　伝達ミスの可能性があるので精査中なんですか！？」
+							PRINTL
+							PRINTFORML 次期キャプテン候補を%CALLNAME:(汎:12)%から%NAME:LOCAL%に置き換えますか？
+							DRAWLINE
+							PRINTBUTTON "[他] - いいえ",0
+							PRINTPLAIN 　　　　　
+							PRINTL [9] - はい
+							DRAWLINE
+							INPUT
+							改行数 += 8
+							SELECTCASE RESULT
+								CASE 9
+									PRINTFORML 精査した結果、伝達ミスが判明し%CALLNAME:LOCAL%への内容が%CALLNAME:(汎:12)%に伝わったことが判明しました。
+									PRINTFORML 慌てて%CALLNAME:GET_SEC()%と関係者に経緯の説明と謝罪を行い、事なきを得ました。
+									PRINTFORML 次期キャプテンは%NAME:LOCAL%が予定者となりました。
+									PRINTL
+									PRINTFORML %CALLNAME:GET_SEC()%「いやぁ、一時はどうなるかと思いましたよ」
+									PRINTFORMW %CALLNAME:GET_SEC()%「それにしても、今回の件は明日にはアイドルさんたちに伝わっているんでしょうね……」
+									CLEARBIT CFLAG:(汎:12):チームキャプテン,1
+									SETBIT CFLAG:LOCAL:チームキャプテン,1
+									TIME += 120
+									CLEARLINE 改行数 + 6
+									GOTO メンバー表示
+								CASEELSE
+									PRINTFORMW %CALLNAME:GET_SEC()%「よかった、伝達ミスはなかったのですね」
+									TIME += 20
+									CLEARLINE 改行数 + 1
+									GOTO メンバー表示
+							ENDSELECT
+								
+						;	現行のキャプテンさんです
+						CASEELSE
+							PRINTFORML %CALLNAME:GET_SEC()%「はい？　現在のチームキャプテンは%NAMEPLUS(汎:11,1)%ですけど」
+							PRINTFORML %CALLNAME:GET_SEC()%「えっ、上から『%NAMEPLUS(LOCAL,1)%をキャプテンにしてみては？』って打診があったのですか！？」
+							PRINTL
+							PRINTFORML %CALLNAME:(汎:11)%から%CALLNAME:LOCAL%にキャプテンを変更しますか？
+							DRAWLINE
+							PRINTBUTTON "[他] - いいえ",0
+							PRINTPLAIN 　　　　　
+							PRINTL [9] - はい
+							DRAWLINE
+							INPUT
+							改行数 += 8
+							SELECTCASE RESULT
+								CASE 9
+									PRINTFORML 事務所の方針により、%CALLNAME:LOCAL%のキャプテン就任が決定。
+									PRINTL 時間を調整して二人を事務所に呼び出し、応接室で経緯を説明しました。
+									PRINTL
+									PRINTFORML %NAME:(汎:11)%「これからは一アイドルとして%NAMEPLUS(LOCAL,0)%を支えていくから、がんばって」
+									PRINTW 新しいキャプテンの誕生に、明日アイドルたちは驚くことでしょう。
+									CLEARBIT CFLAG:(汎:11):チームキャプテン,1
+									SETBIT CFLAG:LOCAL:チームキャプテン,1
+									TIME += 120
+									CLEARLINE 改行数 + 5
+									GOTO メンバー表示
+								CASEELSE
+									PRINTFORML %CALLNAME:GET_SEC()%「いいんですか、上の方針に逆らって……」
+									PRINTFORML %CALLNAME:GET_SEC()%「え？　アイドル管理はプロデューサーの専権事項だから、問題があれば全部自分が責任を取る？」
+									PRINTFORMW %CALLNAME:GET_SEC()%「もう、格好つけなんだからー」
+									TIME += 20
+									CLEARLINE 改行数 + 3
+									GOTO メンバー表示
+							ENDSELECT
+					ENDSELECT
+				
+				;	あとは元キャプテンと次期キャプテンのやりとりのみ
+				CASEELSE
+					PRINTFORML %CALLNAME:GET_SEC()%「あら、プロディーサー。何をバタバタしてるんですか？」
+					PRINTFORML %CALLNAME:GET_SEC()%「ええっ、キャプテン交代の一件、上の冗句が発端だった可能性があるから、真偽を確認中！？」
+					PRINTL
+					PRINTFORML 交代指示を破棄し、元の体制に戻しますか？
+					DRAWLINE
+					PRINTBUTTON "[他] - いいえ",0
+					PRINTPLAIN 　　　　　
+					PRINTL [9] - はい
+					DRAWLINE
+					INPUT
+					改行数 += 8
+					SELECTCASE RESULT
+						CASE 9
+							PRINTL 上層部から返答の緊急入電がありました。
+							PRINTFORML %CALLNAME:GET_SEC()%「やっぱり上の軽口が回りまわってプロデューサーへの指示にすりかわっちゃったんですね」
+							PRINTFORML %CALLNAME:GET_SEC()%「もう、%NAMEPLUS(汎:12,0)%と%NAMEPLUS(LOCAL,0)%には何て説明したらよいのか……」
+							PRINTL
+							PRINTW %CALLNAME:GET_SEC()%と事後処理に駆け回った今回の一件、事務所の黒歴史として緘口令が出されてしまったのでした。
+							CLEARBIT CFLAG:(汎:12):チームキャプテン,1
+							SETBIT CFLAG:LOCAL:チームキャプテン,1
+							TIME += 120
+							CLEARLINE 改行数 + 5
+							GOTO メンバー表示
+						CASEELSE
+							PRINTFORML %CALLNAME:GET_SEC()%「プロデューサー、いま連絡が入り、この件は正規の指示だったと確認がとれました」
+							PRINTFORMW %CALLNAME:GET_SEC()%「大ごとにならずに済んで良かったですね」
+							TIME += 20
+							CLEARLINE 改行数 + 2
+							GOTO メンバー表示
+					ENDSELECT
+			ENDSELECT
+	ENDSELECT
+
+	改行数 -= 1
+	CLEARLINE 1
+	GOTO INPUT_LOOP3
+
+;	-----ユニットオールスター化処理
+$全員選択処理
+	
+	DRAWLINE
+	PRINTFORML %CALLNAME:GET_SEC()%「このユニットをアイドルさん全員参加のオールスターユニットに変更するのですか？」
+	PRINTFORML %CALLNAME:GET_SEC()%「大変でしょうが、宣材資料に載せるアピールポイント、しっかり指定してくださいね」
+	PRINTL
+	PRINTL 全員参加ユニットに変更してもよろしいですか？
+	DRAWLINE
+	PRINTBUTTON "[他] - いいえ",0
+	PRINTPLAIN 　　　　　
+	PRINTL [9] - はい
+	DRAWLINE
+	INPUT
+	改行数 = 9
+	SELECTCASE RESULT
+		CASE 9
+			PRINTFORML %CALLNAME:GET_SEC()%「ユニットの人員名簿にアイドルさん全員の名前を記載しておきますね」
+			PRINTFORML %CALLNAME:GET_SEC()%「オールスターユニットは事務手続きが大変なんですから……」
+			PRINTFORMW %CALLNAME:GET_SEC()%「プロデューサーさんもしっかりアピールポイント指示、お願いしますね」
+			FOR COUNT,2,CHARA_ACTIVE
+				SIF TALENT:COUNT:アイドル == 0
+					CONTINUE
+				SETBIT CDFLAG:COUNT:ユニットナンバー:0,0
+			NEXT
+			TIME += 60
+			CLEARLINE 改行数 + 3
+			GOTO メンバー表示
+		CASEELSE
+			PRINTFORML %CALLNAME:GET_SEC()%「わかりました、現状のままですね」
+			PRINTFORMW %CALLNAME:GET_SEC()%「でも、いつかはオールスターのイベント、開催したいですね……」
+			CLEARLINE 改行数 + 2
+			GOTO メンバー表示
+	ENDSELECT
+
+;	-----ユニット無人化処理
+$全員解除処理
+	DRAWLINE
+	PRINTFORML %CALLNAME:GET_SEC()%「このユニットの参加メンバーを一旦白紙に戻して、選びなおすのですね」
+	PRINTFORML %CALLNAME:GET_SEC()%「変更を行うと、ユニットに関する全ての情報も一緒にリセットされちゃいます」
+	PRINTFORML %CALLNAME:GET_SEC()%「ただ、これは一時的な措置で、このまま終了されたら困ります」
+	PRINTFORML %CALLNAME:GET_SEC()%「もしユニットを解散させたいのであれば、『ユニット解散』を指示してくださいね」
+	PRINTL
+	PRINTL 実行してもよろしいですか？
+	DRAWLINE
+	PRINTBUTTON "[他] - いいえ",0
+	PRINTPLAIN 　　　　　
+	PRINTL [9] - はい
+	DRAWLINE
+	INPUT
+	改行数 = 11
+	SELECTCASE RESULT
+		CASE 9
+			PRINTFORML %CALLNAME:GET_SEC()%「指示通り、一度ユニット参加者を白紙に戻しました」
+			PRINTFORMW 新しいメンバーを選びなおした際には、アピールポイントなどの指示も忘れないでくださいね」
+			FOR COUNT,2,CHARA_ACTIVE
+				;	アイドル以外をはじ～く
+				SIF TALENT:COUNT:アイドル == 0
+					CONTINUE
+				;	現状使用している bit:0～5 を全てフラグOFF
+				FOR COUNT:1,0,5
+					CLEARBIT CDFLAG:COUNT:ユニットナンバー:0,COUNT:1
+				NEXT
+			NEXT
+			TIME += 3
+			CLEARLINE 改行数 + 2
+			GOTO メンバー表示
+		CASEELSE
+			PRINTFORMW %CALLNAME:GET_SEC()%「メンバー一覧に戻りますね」
+			TIME += 3
+			CLEARLINE 改行数 + 1
+			GOTO メンバー表示
+	ENDSELECT
+
+;	-----ユニット名称管理処理
+$ユニット名確定処理
+	
+	DRAWLINE
+	PRINTFORML %CALLNAME:GET_SEC()%「ユニット名の管理を行うんですね」
+	PRINTFORM %CALLNAME:GET_SEC()%「現在、選択されているユニットの名前は
+	SETCOLORBYNAME Orange
+	SELECTCASE ユニットネーム
+		CASE ""
+			PRINT 未登録
+			RESETCOLOR
+			PRINTL ですね」
+			PRINTL
+			PRINTFORML %CALLNAME:GET_SEC()%「素敵な名前を設定してください」
+		CASEELSE
+			PRINTFORM %ユニットネーム%
+			RESETCOLOR
+			PRINTL ですね」
+			PRINTL
+			PRINTFORML %CALLNAME:GET_SEC()%「素敵な名前ですが、変更しちゃうんですか？」
+	ENDSELECT
+	RESETCOLOR
+	DRAWLINE
+	改行数 = 6
+	PRINTL [01] - ユニット名を手入力で変更する(要キーボード入力)
+	PRINTL
+	PRINTL [02] - ユニット名を自動で設定する
+	DRAWLINE
+	PRINTFORM %"[90] - ユニット選択へ",23,LEFT%
+	PRINTL [99] - ユニット設定終了
+	DRAWLINE
+	改行数 += 6
+	$INPUT_LOOP4
+	INPUT
+	改行数 += 1
+	SELECTCASE RESULT
+		CASE 90,99
+			CLEARLINE 改行数
+			SIF RESULT == 90
+				汎 = 1
+			SIF RESULT == 99
+				汎 = 0
+			GOTO 終了チェック
+		CASE 1
+			DRAWLINE
+			PRINTFORML %CALLNAME:GET_SEC()%「ユニット名称を手入力するのですね」
+			PRINTL ※キーボードを用意ください。
+			PRINTL 　未入力のままエンターキーを押下すると、名称の自動生成が行われます。
+			PRINTL
+			PRINT 現在のユニット名：
+			SELECTCASE ユニットネーム
+				CASE ""
+					PRINTL 未登録
+				CASEELSE
+					PRINTFORML %ユニットネーム%
+			ENDSELECT
+			DRAWLINE
+			改行数 += 7
+			$INPUT_LOOP5
+			INPUTS
+			改行数 += 1
+			SELECTCASE RESULTS
+				CASE ""
+					CALL ユニット名自動抽選(ユニットナンバー)
+					PRINTL 空白のままエンターキーが押されました。
+					PRINTFORML 自動生成にて【%CSTR:MASTER:ユニット＋50%】が作成されました。
+					PRINTL これでよろしいですか？
+					TIME += 5
+					改行数 += 3
+				CASEELSE
+					CSTR:MASTER:ユニット＋50 = %RESULTS%
+					PRINTFORML 【%CSTR:MASTER:ユニット＋50%】と入力されました。
+					PRINTL これでよろしいですか？
+					TIME += 5
+					改行数 += 2
+			ENDSELECT
+			DRAWLINE
+			PRINTFORM [01] - %"はい",16,LEFT%
+			PRINTL [09] - いいえ
+			DRAWLINE
+			改行数 += 3
+			$INPUT_LOOP6
+			INPUT
+			改行数 += 1
+			SELECTCASE RESULT
+				CASE 1
+					PRINTFORML %CALLNAME:GET_SEC()%「ユニット名【%CSTR:MASTER:ユニット＋50%】として正式に申請を行いました」
+					PRINTFORMW %CALLNAME:GET_SEC()%「これからこの名前で活躍してもらいましょう」
+					CLEARLINE 改行数 + 2
+					GOTO メンバー表示
+				CASE 9
+					PRINTL 再度キーボードにて入力をお願いします。
+					改行数 += 1
+					GOTO INPUT_LOOP5
+				CASEELSE
+					改行数 -= 1
+					CLEARLINE 1
+					GOTO INPUT_LOOP6
+			ENDSELECT
+		CASE 2
+			$NAME_LOOP
+			CALL ユニット名自動抽選(ユニットナンバー)
+			PRINTFORML 自動生成を行った結果、【%CSTR:MASTER:ユニット＋50%】が作成されました。
+			PRINTL これでよろしいですか？
+			DRAWLINE
+			PRINTFORM [01] - %"はい",16,LEFT%
+			PRINTL [09] - いいえ
+			DRAWLINE
+			改行数 += 5
+			$INPUT_LOOP7
+			INPUT
+			改行数 += 1
+			SELECTCASE RESULT
+				CASE 1
+					PRINTFORML %CALLNAME:GET_SEC()%「ユニット名【%CSTR:MASTER:ユニット＋50%】として正式に申請を行いました」
+					PRINTFORMW %CALLNAME:GET_SEC()%「これからこの名前で活躍してもらいましょう」
+					TIME += 5
+					CLEARLINE 改行数 + 2
+					GOTO メンバー表示
+				CASE 9
+					TIME += 5
+					GOTO NAME_LOOP
+				CASEELSE
+					改行数 -= 1
+					CLEARLINE 1
+					GOTO INPUT_LOOP7
+			ENDSELECT
+		CASEELSE
+			改行数 -= 1
+			CLEARLINE 1
+			GOTO INPUT_LOOP4
+	ENDSELECT
+
+;	-----ユニット解散処理
+$ユニット解散処理
+	
+	DRAWLINE
+	PRINTFORML %CALLNAME:GET_SEC()%「えーと……、このユニットを本当に解散させちゃうんですか？」
+	PRINTL ※ユニット名・メンバー・各種登録情報が全て白紙となります。
+	PRINTL
+	PRINTL 解散処理を行ってもよろしいですか？
+	DRAWLINE
+	PRINTFORM [01] - %"いいえ",16,LEFT%
+	PRINTL [09] - はい
+	DRAWLINE
+	改行数 = 8
+	$INPUT_LOOP8
+	INPUT
+	改行数 += 1
+	SELECTCASE RESULT
+		CASE 1
+			PRINTFORMW %CALLNAME:GET_SEC()%「安心しました。引き続きこのユニットで頑張ってもらいましょう」
+			CLEARLINE 改行数 + 1
+			GOTO メンバー表示
+		CASE 9
+			PRINTFORML %CALLNAME:GET_SEC()%「本当の本当に、解散させちゃうんですね？」
+			PRINTL ※誤押下防止のため、最終確認を行います。
+			PRINTL
+			PRINTL 本当に解散してもよろしいですか？
+			DRAWLINE
+			PRINT [01] - いいえ
+			PRINTPLAIN 　　　　　　　　　　　　　　　　　　　　　　　　　　　
+			PRINTL [90] - はい
+			DRAWLINE
+			改行数 += 7
+			$INPUT_LOOP9
+			INPUT
+			改行数 += 1
+			SELECTCASE RESULT
+				CASE 1
+					PRINTFORMW %CALLNAME:GET_SEC()%「安心しました。引き続きこのユニットで頑張ってもらいましょう」
+					CLEARLINE 改行数 + 1
+					GOTO メンバー表示
+				CASE 90
+					PRINTFORML %CALLNAME:GET_SEC()%「わかりました。解散申請書を各部署に回しておきます」
+					PRINTFORMW %CALLNAME:GET_SEC()%「所属されていたアイドルさんたちには、次のステップで頑張ってもらうことにしましょう」
+					FOR COUNT,2,CHARA_ACTIVE
+						SIF TALENT:COUNT:アイドル == 0
+							CONTINUE
+						FOR COUNT:1,0,5
+							CLEARBIT CDFLAG:COUNT:ユニットナンバー:0,COUNT:1
+						NEXT
+					NEXT
+					CSTR:MASTER:ユニット＋50 =
+					TIME += 30
+					CLEARLINE 改行数 + 2
+					汎 = 1
+					GOTO 終了チェック
+				CASEELSE
+					改行数 -= 1
+					CLEARLINE 1
+					GOTO INPUT_LOOP9
+			ENDSELECT
+		CASEELSE
+			改行数 -= 1
+			CLEARLINE 1
+			GOTO INPUT_LOOP8
+	ENDSELECT
+
+;	-----終了前設定不足チェック
+$終了チェック
+	;	汎:0 の値が -1 ならチェックスキップして終了
+	;	0 ならチェック後に関数処理終了、1 ならチェック後ユニット選択に戻ります
+	
+	改行数 = 0
+
+	;	LOCAL:0にアイドル総数を代入
+	LOCAL = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		SIF TALENT:COUNT:アイドル == 0
+			CONTINUE
+		LOCAL += 1
+	NEXT
+
+	;	現在選択されているユニットの状態を確認
+	;	選択ユニット名が空白か否か
+	SELECTCASE CSTR:MASTER:ユニット＋50
+		CASE ""
+			;	空白のため、 汎:1 のフラグを折る(名称有無判定に利用)
+			汎:1 = 0
+		CASEELSE
+			;	ユニット存在を確認したため、 汎:1 のフラグを立てる
+			汎:1 = 1
+	ENDSELECT
+	
+	;	選択ユニットにメンバーが一人でも登録されているか否か
+	;	判定ループ中、一人でも存在していた場合は 汎:2 のフラグをON、
+	;	不在のままループ抜けした場合はフラグOFFのまま
+	;	汎:3 の値は選択ユニットの参加人数の総数を確保
+	汎:2 = 0
+	汎:3 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		IF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,0)
+			汎:2 = 1
+			汎:3 += 1
+		ENDIF
+	NEXT
+	
+	;	チームキャプテンが存在しているか否か
+	;	いなければ 汎:4 のフラグOFF、いた場合はフラグON
+	汎:4 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		IF GETBIT(CFLAG:COUNT:チームキャプテン,1)
+			汎:4 = 1
+			BREAK
+		ENDIF
+	NEXT
+	
+	;	ユニットリーダーが存在しているか否か
+	;	いなければ 汎:5 のフラグOFF、いた場合はフラグON
+	汎:5 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		IF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,1)
+			汎:5 = 1
+			BREAK
+		ENDIF
+	NEXT
+
+	;	センターメンバーが存在しているか否か
+	;	いなければ 汎:6 のフラグOFF、いた場合はフラグON
+	汎:6 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		IF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,2)
+			汎:6 = 1
+			BREAK
+		ENDIF
+	NEXT
+
+	;	アピールポイント設定忘れがないか確認
+	;	設定忘れなしなら 汎:7 のフラグOFF、設定忘れありならフラグON
+	汎:7 = 0
+	FOR COUNT,2,CHARA_ACTIVE
+		;	前提として、そのアイドルがユニットに参加していることが条件
+		IF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,0) == 1
+			;	Vi/Vo/Da全てが 0(未設定) の場合にフラグ立て
+			SIF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,3) == 0 && GETBIT(CDFLAG:COUNT:ユニットナンバー:0,4) == 0 && GETBIT(CDFLAG:COUNT:ユニットナンバー:0,5) == 0
+			汎:7 = 1
+		ENDIF
+	NEXT
+
+	;	最初の判定(解散処理が行われている場合：ユニット名称なし+メンバーなし)
+	IF 汎:1 == 0 && 汎:2 == 0
+		;	そのまま終了へ
+		GOTO 終端処理
+	
+	;	ユニット名不備(ユニットメンバーありでユニット名称なし)
+	ELSEIF 汎:1 == 0 && 汎:2 == 1
+		PRINTFORML %CALLNAME:GET_SEC()%「ユニット名がまだ決まってませんね」
+		PRINTFORMW %CALLNAME:GET_SEC()%「申請書に記入をお願いします」
+		CLEARLINE 2
+		;	入力戻り
+		GOTO メンバー表示
+	
+	;	ユニットメンバー未登録(ユニット名称ありでメンバーなし)
+	ELSEIF 汎:1 == 1 && 汎:3 == 0
+		PRINTFORML %CALLNAME:GET_SEC()%「ユニットメンバーが誰も選ばれていませんよ」
+		PRINTFORMW %CALLNAME:GET_SEC()%「解散させるなら解散処理を、そうでないならメンバーを選んでくださいね」
+		CLEARLINE 2
+		;	入力戻り
+		GOTO メンバー表示
+	
+	;	アピールポイントが未設定の者がいる場合(アピール設定漏れあり)
+	ELSEIF 汎:7 == 1
+		PRINTFORML %CALLNAME:GET_SEC()%「プロデューサー、アイドルさんの宣材資料を作っているのですが、本当にこれでいいのですか？」
+		PRINTW アピールポイント未設定の人がいます。必ず1つは設定をお願いします。
+		CLEARLINE 2
+		;	入力戻り
+		GOTO メンバー表示
+	
+	;	所属アイドル/ユニットメンバーが1人きりでTC/UL/CMどれかが未設定
+	ELSEIF ((LOCAL == 1 || 汎:3 == 1) && 汎:7 == 0) && (汎:5 == 0 || 汎:6 == 0)
+		;	所属アイドルが1人きりの場合
+		SIF LOCAL == 1
+			PRINTFORML %CALLNAME:GET_SEC()%「いま、うちの事務所にいるアイドルさんは1人だけですよね」
+		;	ユニットメンバーが1人きりの場合(ソロユニット)
+		SIF LOCAL > 1 && 汎:3 == 1
+			PRINTFORML %CALLNAME:GET_SEC()%「このユニットに参加登録されているアイドルさんは1人だけですよね」
+		PRINTFORML %CALLNAME:GET_SEC()%「でしたら、必要な事項はこちらで処理しておきますね」
+		SIF LOCAL == 1 && 汎:4 == 0
+			PRINT チームキャプテン・
+		PRINTW ユニットリーダー・センターメンバーの中で未設定のものは、自動的に設定が行われました。
+		;	後処理：ロンリーアイドル
+		IF LOCAL == 1
+			FOR COUNT,2,CHARA_ACTIVE
+				SIF TALENT:COUNT:アイドル
+					汎:10 = COUNT
+			NEXT
+			SETBIT CFLAG:(汎:10):チームキャプテン,1
+			SETBIT CDFLAG:(汎:10):ユニットナンバー:0,1
+			SETBIT CDFLAG:(汎:10):ユニットナンバー:0,2
+			CLEARLINE 3
+			;	終了処理へ
+			GOTO 終端処理
+		
+		;	後処理：ソロプレイヤー
+		ELSEIF LOCAL > 1 && 汎:3 == 1
+			FOR COUNT,2,CHARA_ACTIVE
+				SIF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,0)
+					汎:10 = COUNT
+			NEXT
+			SETBIT CDFLAG:(汎:10):ユニットナンバー:0,1
+			SETBIT CDFLAG:(汎:10):ユニットナンバー:0,2
+			CLEARLINE 3
+			;	終了処理へ
+			GOTO 終端処理
+		ENDIF
+	
+	;	所属アイドルが2人以上でチームキャプテンが未設定
+	ELSEIF 汎:3 > 1 && 汎:4 == 0
+		PRINTFORML %CALLNAME:GET_SEC()%「あら、チームキャプテンがまだ決まっていませんよ」
+		PRINTFORMW %CALLNAME:GET_SEC()%「今後のためにも、決めておいてくださいね」
+		CLEARLINE 2
+		;	入力戻り
+		GOTO メンバー表示
+	
+	;	所属アイドルが2人以上でユニットリーダーが未設定
+	ELSEIF 汎:3 > 1 && 汎:5 == 0
+		PRINTFORML %CALLNAME:GET_SEC()%「えーと、ユニットリーダーがまだ決まっていませんよね」
+		PRINTFORMW %CALLNAME:GET_SEC()%「ユニット運営上でも、決めておいた方がいいでしょう」
+		CLEARLINE 2
+		;	入力戻り
+		GOTO メンバー表示
+	
+	;	所属アイドルが2人以上でセンターメンバーが未設定
+	ELSEIF 汎:3 > 1 && 汎:6 == 0
+		PRINTFORML %CALLNAME:GET_SEC()%「このユニット、センターメンバーって誰でしたっけ？」
+		PRINTFORMW %CALLNAME:GET_SEC()%「メンバー全員が主役！　というのも嫌いではないのですが、見栄えとかありますから……」
+		CLEARLINE 2
+		;	入力戻り
+		GOTO メンバー表示
+	
+	;	ここまで問題がなければ不備なしとして終端処理へ
+	ELSE
+		GOTO 終端処理
+	ENDIF
+	
+	;	万が一ここまできてしまった場合はメンバー表示にジャンプさせる
+	GOTO メンバー表示
+
+;	-----終了処理：チェック済みのため、それぞれ終了/最初に
+$終端処理
+	
+	SIF 汎 == -1
+		RETURN 0
+	SIF 汎 == 1
+		GOTO ユニット選択
+	IF 汎 == 0
+		PRINTFORML %CALLNAME:GET_SEC()%「あとの決裁はこちらで処理しちゃいますね」
+		PRINTFORMW %CALLNAME:GET_SEC()%「お疲れさまでした、プロデューサーさん」
+		RETURN 1
+	ENDIF
+
+
+
+;	---------------------------------------------------------------------------
+;	文責者がファイル作成した際には、ピクシブ百科事典の「THEiDOLM@STERの公式・非
+;	公式ユニット一覧」URL:http://dic.pixiv.net/a/THEiDOLM%40STER%E3%81%AE%E5%85%AC%E5%BC%8F%E3%83%BB%E9%9D%9E%E5%85%AC%E5%BC%8F%E3%83%A6%E3%83%8B%E3%83%83%E3%83%88%E4%B8%80%E8%A6%A7
+;	の情報などを元にユニット名を可能なかぎり前後に分解、それを記載しました。
+;	また、様々なサイトを回り、それっぽい名前を思いつくまま書き込んでみました。
+;	前後部各1000個まで追記が可能ですので、候補名の追加をお願いいたします。
+;	ネタやちょっとＨな単語でもご自由にどうぞ。
+;	---------------------------------------------------------------------------
+@ユニット名自動抽選(ユニットナンバー)
+
+	;	使用変数定義
+	#DIM ユニットナンバー	;	制御するユニットの番号を把握
+	#DIM ユニット＋50		;	ユニット名に必要な番号を保持
+	#DIMS 前				;	自動抽選ユニット名前半部
+	#DIMS 後				;	自動抽選ユニット名後半部
+	#DIMS 名,1000			;	とりあえず、候補を合計1000個まで利用可能に
+	
+	;	ユニットナンバーからユニット＋50を確保
+	ユニット＋50 = ユニットナンバー + 50
+	
+	;	以前の履歴をクリア
+	FOR LOCAL,0,1000
+		名:LOCAL =
+	NEXT
+	
+	;	前後半部それぞれランダム選択をするか、既存ユニット名にするか判定
+	;	デフォルトではランダム90％、既存10％で割り振る
+	SIF RAND:100 < 10
+		GOTO 既存候補
+	
+	;	使わないけど目印としてのジャンプラベル
+;	$ランダム候補
+	
+	;	前半部の処理開始
+	
+	;	ユニット名前半部の名前候補
+	;	調べやすいように、英数記号→かな五十音順→漢字五十音順に並べてみる
+	
+	名:0 = 34o 
+	名:1 = 7o5 
+	名:2 = 87o 
+	名:3 = Age 
+	名:4 = B.B.
+	名:5 = C 
+	名:6 = GIRLS 
+	名:7 = UK 
+
+	名:8 = アーティ
+	名:9 = あーにゃん
+	名:10 = アイン
+	名:11 = アイス
+	名:12 = アイリス
+	名:13 = アクア
+	名:14 = アクエリアス
+	名:15 = アズール・
+	名:16 = アップル
+	名:17 = アニマル
+	名:18 = アプリコット
+	名:19 = アポロ
+	名:20 = アメシスト
+	名:21 = アメジスト
+	名:22 = アリス
+	名:23 = アルカディア
+	名:24 = アンダー・ザ・
+	名:25 = イエロー
+	名:26 = イカバラ
+	名:27 = イタリアン
+	名:28 = インディ
+	名:29 = インディゴ・
+	名:30 = ウインター
+	名:31 = ウインド
+	名:32 = エターナル
+	名:33 = エメラルド
+	名:34 = エレガント
+	名:35 = オータム
+	名:36 = オーロラ
+	名:37 = オフェリア
+	名:38 = オペラ
+	名:39 = オペレーション
+	名:40 = オペレーター
+	名:41 = オリオン
+	名:42 = オレンジ
+
+	名:43 = ガール
+	名:44 = ガールズ
+	名:45 = カシオペア
+	名:46 = かな☆
+	名:47 = かな☆かな☆
+	名:48 = カナリア
+	名:49 = から
+	名:50 = カワイイボクと
+	名:51 = キャラメル
+	名:52 = ギャル
+	名:53 = ギャルズ
+	名:54 = キャロット
+	名:55 = キャンディ
+	名:56 = キャンバス
+	名:57 = キャンパス
+	名:58 = キューティー
+	名:59 = クーリッシュ
+	名:60 = クール
+	名:61 = クリーム
+	名:62 = グリーン
+	名:63 = グルーヴ
+	名:64 = グルーヴィー
+	名:65 = グループ
+	名:66 = グレープ
+	名:67 = クレシェンド
+	名:68 = クレッシェンド
+	名:69 = コーラル
+	名:70 = コケティッシュ
+	名:71 = コスモ
+	名:72 = コスモス
+	
+	名:73 = サイキック
+	名:74 = サイキック・
+	名:75 = サイレント
+	名:76 = さくら
+	名:77 = サクラ
+	名:78 = サザン
+	名:79 = サザンクロス
+	名:80 = サファイア
+	名:81 = サファイヤ
+	名:82 = サマ
+	名:83 = サマー
+	名:84 = サマータイム
+	名:85 = サマーライブ
+	名:86 = サン
+	名:87 = サンセット
+	名:88 = サンライズ
+	名:89 = シーサイド
+	名:90 = ジェネレーション
+	名:91 = ジェネレーションオブ
+	名:92 = シックス
+	名:93 = シャイニング
+	名:94 = シャイン
+	名:95 = しゅがしゅが☆
+	名:96 = しゅーくりーむ
+	名:97 = シュークリーム
+	名:98 = ジョイ
+	名:99 = ジョイフル
+	名:100 = シルバー
+	名:101 = シングル
+	名:102 = シンデレラ
+	名:103 = シンフォニー
+	名:104 = シンフォニック
+	名:105 = スイート
+	名:106 = スウィート
+	名:107 = スカーレット
+	名:108 = スカイ
+	名:109 = スカイブルー
+	名:110 = スクール
+	名:111 = スクールガール
+	名:112 = ストライド
+	名:113 = ストレート
+	名:114 = ストレイト
+	名:115 = ストレリチア
+	名:116 = ストロベリー
+	名:117 = ストロベリースマッシュ
+	名:118 = スネーキーショー
+	名:119 = スノー
+	名:120 = スノゥ
+	名:121 = スモーキー
+	名:122 = スモーキィ
+	名:123 = スプリング
+	名:124 = スペース
+	名:125 = スペーシア
+	名:126 = スリーピング
+	名:127 = スリープ
+	名:128 = セーラー
+	名:129 = セクシー
+	名:130 = センゴク
+	名:131 = センゴク☆
+
+	名:132 = ダーク
+	名:133 = ダイアモンド
+	名:134 = ダイヤモンド
+	名:135 = ダブル
+	名:136 = タンポポ
+	名:137 = チーム
+	名:138 = チーム・
+	名:139 = チアフル
+	名:140 = チャレンジ
+	名:141 = チョコレート
+	名:142 = ツイン
+	名:143 = ティアリー
+	名:144 = ディテクティブ
+	名:145 = テンプテーション・
+	名:146 = テンポ
+	名:147 = テンポラリ
+	名:148 = トーキング
+	名:149 = トーク
+	名:150 = トークバトル
+	名:151 = ドイツ
+	名:152 = トライ
+	名:153 = トライアド
+	名:154 = トライスター
+	名:155 = ドリーム
+	名:156 = ドリームス
+	名:157 = トリトン
+	名:158 = トリプル
+	名:159 = トロピカル
+	名:160 = トロピカル☆
+
+	名:161 = なう
+	名:162 = ナウ
+	名:163 = にゃん・にゃん・
+	名:164 = ニュー
+	名:165 = ニューイヤー
+	名:166 = ネーブル
+	名:167 = ネクスト
+	名:168 = ノーザン
+	名:169 = ノーザンクロス
+	名:170 = ノーティ
+	名:171 = ノーマル
+
+	名:172 = ハート
+	名:173 = ハートフル
+	名:174 = ハーディ
+	名:175 = ハード
+	名:176 = ハードメテオ
+	名:177 = パウダースノー
+	名:178 = パステル
+	名:179 = バタフライ
+	名:180 = バッド
+	名:181 = ハッピー
+	名:182 = ハツラツ
+	名:183 = ハニー
+	名:184 = バニラ
+	名:185 = ハピネス
+	名:186 = ハピハピ
+	名:187 = バレンタイン
+	名:188 = ハロウィン
+	名:189 = パンプキン
+	名:190 = ヒート
+	名:191 = ビート
+	名:192 = ヒートアップ
+	名:193 = ヒートアップ☆
+	名:194 = ビーチ
+	名:195 = ピーチ
+	名:196 = ビーチサイド
+	名:197 = ヒーロー
+	名:198 = ビスケット
+	名:199 = ひつじさんと
+	名:201 = ピュア
+	名:202 = ピュアリー
+	名:203 = ヒロイン
+	名:204 = ピンキー
+	名:205 = ピンク
+	名:206 = ピンクドット
+	名:207 = ピンクチェック
+	名:208 = ファミリア
+	名:209 = ファンキー
+	名:210 = フォー・
+	名:211 = プチ・
+	名:212 = フランメ・
+	名:213 = ブラック
+	名:214 = プリティ
+	名:215 = プリティー
+	名:216 = プリムローズ
+	名:217 = ブリヤント・
+	名:218 = フリルド
+	名:219 = プリンセス
+	名:220 = プリンセス・
+	名:221 = ブルー
+	名:222 = フルーツ
+	名:223 = フルーティー
+	名:224 = ブルーベリー
+	名:225 = ブルーム
+	名:226 = フレッシュ
+	名:227 = プロジェクト・
+	名:228 = ホーリー
+	名:229 = ボール・
+	名:230 = ポジティブ
+	名:231 = ホットアート
+	名:232 = ホットコーヒー
+	名:233 = ホットココア
+	名:234 = ホットティー
+	名:235 = ホワイティ
+	名:236 = ホワイト
+
+	名:237 = マーマレード
+	名:238 = マジカル
+	名:239 = マスカット
+	名:240 = マッシブ
+	名:241 = ミス・
+	名:242 = ミステリアス
+	名:243 = ミックス
+	名:244 = ミッシング
+	名:245 = ミラージュ
+	名:246 = ミルク
+	名:247 = ミルキー
+	名:248 = ミント
+	名:249 = ムーラン
+	名:250 = ムーン
+	名:251 = ムーンシャイン
+	名:252 = ムーンライト
+	名:253 = ムシバレイナと
+	名:254 = メロウ・
+	名:255 = モノクローム
+	名:256 = モ○m@s
+
+	名:257 = ようせいさんと
+
+	名:258 = ライトグリーン
+	名:259 = ライラック
+	名:260 = ラズベリー
+	名:261 = ラピスラズリ
+	名:262 = ラブ
+	名:263 = ラブリー
+	名:264 = ラベンダー
+	名:265 = リーフ
+	名:266 = リトル
+	名:267 = リトル・マーチング・
+	名:268 = ルーキー
+	名:269 = ルビー
+	名:270 = ルビィ
+	名:271 = レイジー・
+	名:272 = レイン
+	名:273 = レインドロップ・
+	名:274 = レジェンド
+	名:275 = レッド
+	名:276 = レディ
+	名:277 = レモン
+	名:278 = ローゼンブルク
+	名:279 = ロータス
+	名:280 = ロイヤル
+	名:281 = ロッキング
+	名:282 = ロック
+	名:283 = ロック・ザ・
+	名:284 = ロボ
+	名:285 = ロワイヤル
+
+	名:286 = ワイルド
+	名:287 = わかば
+	名:288 = ワン
+	名:289 = ワンダリング
+
+	名:290 = 羽衣
+	名:291 = 炎
+	名:292 = 桜
+	名:293 = 桜花
+	名:294 = 桜色
+	名:295 = 乙女
+	名:296 = 杏ちゃんと
+	名:297 = 京町
+	名:298 = 午後の
+	名:299 = 幸運
+	名:300 = 灼熱
+	名:301 = 酒場の
+	名:302 = 春色
+	名:303 = 女神たちの
+	名:304 = 笑美と
+	名:305 = 聖なる
+	名:306 = 都会の
+	名:307 = 桃
+	名:308 = 桃花
+	名:309 = 桃色
+	名:310 = 凸
+	名:200 = 日菜子と
+	名:311 = 忍武☆
+	名:312 = 壁サーの
+	名:313 = 放課後
+	名:314 = 魔王
+	名:315 = 誘惑
+	
+	;	----------
+	;	ここから好きな単語を自由に登録してください。
+	
+	名:316 = 
+	名:317 = 
+	名:318 = 
+	名:319 = 
+	名:320 = 
+
+	;	----------
+	;	あえて前半部を使わずに後半の単語のみだけのユニット名にしてみる選択
+	名:999 = 前半無視
+
+	;	前半部変数代入処理部
+	$前半部抽選
+	
+	;	抽選を行う
+	LOCAL = RAND:1000
+
+	;	当選した番号での処理
+	SELECTCASE 名:LOCAL
+		;	何も登録されていない場合
+		CASE ""
+			;	再抽選へ
+			GOTO 前半部抽選
+		;	"前半無視"が登録されていた場合
+		CASE "前半無視"
+			;	ブランク処理
+			前 = 
+			;	それ以外の何らかの文字が登録されていた場合
+		CASEELSE
+			前 = %名:LOCAL%
+	ENDSELECT
+
+	;	前半部処理終了
+
+	;	続いて後半部の処理開始
+	
+	;	前半部の履歴をクリア
+	FOR LOCAL,0,1000
+		名:LOCAL =
+	NEXT
+	
+	;	ユニット名後半部の名前候補
+	;	調べやすいように、英数記号→かな五十音順→漢字五十音順に並べてみる
+	
+	名:0 = 142's
+	名:1 = MILLION ALLSTARS
+	名:2 = PRO ALLSTARS
+	名:3 = THEATAR ALLSTARS
+	名:4 = BE
+
+	名:5 = アイズ
+	名:6 = アイランド
+	名:7 = アスリーテス
+	名:8 = アタック
+	名:9 = アップル
+	名:10 = アプサラス
+	名:11 = アルプトラウム
+	名:12 = アルラウネ
+	名:13 = アロー
+	名:14 = アンバサダー
+	名:15 = イエロー
+	名:16 = イビル
+	名:17 = イルミネイト
+	名:18 = インモラリスト
+	名:19 = ヴァーサス
+	名:20 = ヴァンパイア
+	名:21 = ヴィーナス
+	名:22 = ヴィジュアルズ
+	名:23 = ウインター
+	名:24 = ウェーブ
+	名:25 = ウェーブス
+	名:26 = ウェイ
+	名:27 = ウォーマー
+	名:28 = うさぎさん
+	名:29 = エース
+	名:30 = エンジェル
+	名:31 = エンジェルス
+	名:32 = オータム
+	名:33 = オールスターズ
+	名:34 = おねえさん
+	名:35 = オレンジ
+
+	名:36 = ガール
+	名:37 = ガールズ
+	名:38 = カラー
+	名:39 = カルテット
+	名:40 = カレイドスコープ
+	名:41 = ギャルズ
+	名:42 = キャンディ
+	名:43 = キューティー
+	名:44 = キュート
+	名:45 = きらりんのハピハピツイン☆
+	名:46 = ギルティ
+	名:47 = クール
+	名:48 = クイーン
+	名:49 = クイーンズ
+	名:50 = クインテット
+	名:51 = クッキング
+	名:52 = グラス
+	名:53 = グレープ
+	名:54 = グレープフルーツ
+	名:55 = コスモス
+	名:56 = コック
+	名:57 = ゴッドチェリー
+
+	名:58 = サイト
+	名:59 = サウンド
+	名:60 = サマー
+	名:61 = サン
+	名:62 = サンシャイン
+	名:63 = サンデー
+	名:64 = シーサイド
+	名:65 = ジェネレーション
+	名:66 = ジェネレーションズ
+	名:67 = シスター
+	名:68 = シスターズ
+	名:69 = ジャーニー
+	名:70 = ジャーニーズ
+	名:71 = ジャンピン
+	名:72 = ジャンピング
+	名:73 = ジャンプ
+	名:74 = シューター
+	名:75 = ショルダー
+	名:76 = スクール
+	名:77 = スクエア
+	名:78 = スクリーマー
+	名:79 = スター
+	名:80 = スターズ
+	名:81 = スターフィッシュ
+	名:82 = スタイル
+	名:83 = ステップ
+	名:84 = ステップス
+	名:85 = ストーム
+	名:86 = ストーム！
+	名:87 = ストレートフラッシュ
+	名:88 = ストロベリー
+	名:89 = スノー
+	名:90 = スプラッシュ
+	名:91 = すぷりんぐ
+	名:92 = スプリング
+	名:93 = セーフ
+	名:94 = セーラー
+	名:95 = セイバー
+	名:96 = セイレーン
+	名:97 = セインツ
+	名:98 = セイント
+
+	名:99 = ダイナース
+	名:100 = チアー
+	名:101 = チアーズ
+	名:102 = チェリー
+	名:103 = チェリーブロッサム
+	名:104 = チューン
+	名:105 = チョコレート
+	名:106 = ツイン
+	名:107 = ツイン☆
+	名:108 = ツインズ
+	名:109 = テール
+	名:110 = ディーヴァ
+	名:111 = ティータイム
+	名:112 = ディーバ
+	名:113 = デイズ
+	名:114 = デコレーション
+	名:115 = デスク
+	名:116 = テット
+	名:117 = トゥザワールド
+	名:118 = ドリーム
+	名:119 = ドリームス
+	名:120 = トリオ
+	名:121 = ドロップ
+	名:122 = ドロップス
+
+	名:123 = ナッツ
+	名:124 = ナポレオン
+	名:125 = にゃん
+	名:126 = ニューカマー
+	名:127 = ノート
+	名:128 = ノスタルジー
+	名:129 = ノワール
+
+	名:130 = パーク
+	名:131 = パーティー
+	名:132 = ハーモナイズ
+	名:133 = ハーモニー
+	名:134 = ハズカム
+	名:135 = パッション
+	名:136 = バラード
+	名:137 = バルーン
+	名:138 = ぱれ
+	名:139 = パレード
+	名:140 = バレンタイン
+	名:141 = パワー
+	名:142 = バンド・ガールズ
+	名:143 = ピース
+	名:144 = ビースト
+	名:145 = ピーチ
+	名:146 = ヒーツ
+	名:147 = ヒート
+	名:148 = ビート
+	名:149 = ビーナス
+	名:150 = ヒーロー
+	名:151 = ビスケット
+	名:152 = ビスケッツ
+	名:153 = ビジョン
+	名:154 = ヒロイン
+	名:155 = ふぁんしー
+	名:156 = ファンシー
+	名:157 = フェアリー
+	名:158 = フェアリーズ
+	名:159 = フェリア
+	名:160 = フォーチュン
+	名:161 = フラワー
+	名:162 = プリ
+	名:163 = ブリーズ
+	名:164 = プリーズ
+	名:165 = プリズム
+	名:166 = プリムス
+	名:167 = プリンセス
+	名:168 = ブルー
+	名:169 = フルーツ
+	名:170 = フルート
+	名:171 = フレンド
+	名:172 = フレンズ
+	名:173 = プロジェクト
+	名:174 = ブロッサム
+	名:175 = ベリィズ
+	名:176 = ベル
+	名:177 = ホープスプリング
+	名:178 = ボンテージ
+	名:179 = ボンバーズ
+	
+	名:180 = マーメイド
+	名:181 = また逢いましょう
+	名:182 = またステージで会えたら
+	名:183 = マリナー
+	名:184 = マリン
+	名:185 = み～ん
+	名:186 = みくにゃん
+	名:187 = ムーン
+	名:188 = ムーンライト
+	名:189 = ムジカ
+	名:190 = モンスター
+
+	名:191 = ライダーズ
+	名:192 = ライツ
+	名:193 = ライフ
+	名:194 = ラヴァーズ
+	名:195 = ランブ
+	名:196 = リリー
+	名:197 = リリィ
+	名:198 = ルージュ
+	名:199 = レーション
+	名:200 = レイジー
+	名:201 = レディー
+	名:202 = レディエイト
+	名:203 = レモン
+	名:204 = ロワイヤル
+
+	名:205 = 愛海の妄想ワールド
+	名:206 = 宴
+	名:207 = 乙女
+	名:208 = 花
+	名:209 = 花園
+	名:210 = 歌宴
+	名:211 = 夏宴
+	名:212 = 華☆ランブ
+	名:213 = 姫君
+	名:214 = 紅茶
+	名:215 = 姉妹
+	名:216 = 小町
+	名:217 = 小春ちゃん
+	名:218 = 少女
+	名:219 = 親善大使
+	名:220 = 陣
+	名:221 = 世界
+	名:222 = 踊り子
+	名:223 = 茶会
+	名:224 = 爆笑エブリデイ
+	名:225 = 反省会
+	名:226 = 妄想ワールド
+	名:227 = 野球どすえ
+	名:228 = 愉快な仲間たち
+	名:229 = 鈴帆の爆笑エブリデイ
+	名:230 = 繚乱
+
+	;	----------
+	;	ここから好きな単語を自由に登録してください。
+
+	名:231 = 
+	名:232 = 
+	名:233 = 
+	名:234 = 
+	名:235 = 
+
+	;	----------
+	;	998番には現在のユニットメンバー人数を上限にランダムに数字を
+	;	現在指定されているユニットの参加メンバーの総数を把握
+	LOCAL = 1
+	FOR COUNT,1,CHARA_ACTIVE
+		SIF GETBIT(CDFLAG:COUNT:ユニットナンバー:0,0)
+				LOCAL += 1
+	NEXT
+	
+	;	ランダムで1～最大人数の数字を設定
+	LOCAL:1 = RAND:LOCAL
+	
+	;	結果を代入
+	名:998 = {LOCAL:1}
+
+	;	999番には最大人数を全角で代入
+	名:999 = TOSTR(LOCAL)
+
+	;	後半部変数代入処理部
+	$後半部抽選
+	
+	;	抽選を行う
+	LOCAL = RAND:1000
+
+	;	当選した番号での処理
+	SELECTCASE 名:LOCAL
+		;	何も登録されていない場合
+		CASE ""
+			;	再抽選へ
+			GOTO 後半部抽選
+		CASEELSE
+			後 = %名:LOCAL%
+	ENDSELECT
+
+	;	後半部処理終了
+
+	;	実効文字変数に結果を反映
+	CSTR:MASTER:ユニット＋50 = %前%%後%
+
+	;	終端にジャンプ
+	GOTO 終端
+	
+
+	;	既存ユニット名の名前候補
+	$既存候補
+
+	;	調べやすいように、英数記号→かな五十音順→漢字五十音順に並べてみる
+	
+	名:0 = *
+	名:1 = 《蒼ノ楽団》、『アズール・ムジカ』
+	名:2 = 34oPRO ALLSTARS
+	名:3 = 7o5 MILLIONSTARS
+	名:4 = 7o5PRO ALLSTARS
+	名:5 = 7o5THEATER ALLSTARS
+	名:6 = 7o5エンジェルス
+	名:7 = Age16
+	名:8 = Asterisk
+	名:9 = Ai's
+	名:10 = ARRIVE
+	名:11 = B.B
+	名:12 = B.B.ロワイヤル
+	名:13 = BIRTH
+	名:14 = BLACK PRINCESS
+	名:15 = BlueMoon Harmony
+	名:16 = C5
+	名:17 = CAERULA
+	名:18 = Caskets
+	名:19 = D.L.F
+	名:20 = D.L.F.S
+	名:21 = D･LOVE
+	名:22 = Engage!／you-i
+	名:23 = ERICATHY
+	名:24 = Flowery
+	名:25 = FOUR PIECE
+	名:26 = FrenchKisS
+	名:27 = GIRLS BE
+	名:28 = GIRLS BE NEXT STEP
+	名:29 = Jumpin'Joker
+	名:30 = KBYD
+	名:31 = L.M.B.G
+	名:32 = la Roseraie
+	名:33 = LiPPS
+	名:34 = LOVE LAIKA
+	名:35 = LTP02
+	名:36 = LTP03
+	名:37 = LTP04
+	名:38 = LTP05
+	名:39 = LTP06
+	名:40 = LTP07
+	名:41 = LTP08
+	名:42 = LTP09
+	名:43 = LTP10
+	名:44 = LTP11
+	名:45 = LTP12
+	名:46 = LTP13
+	名:47 = Masque:Rade
+	名:48 = MILLION ALLSTARS
+	名:49 = NiGHT ENCOUNTER
+	名:50 = P･U
+	名:51 = Rosenburg Alptraum
+	名:52 = Rosenburg Engel
+	名:53 = SprouT
+	名:54 = Starlight Melody
+	名:55 = THE IDOLM@STER THREE STARS!!!
+	名:56 = TORICO
+	名:57 = UKスタイル
+
+	名:58 = アーティスター
+	名:59 = あーにゃんみくにゃん
+	名:60 = アインフェリア
+	名:61 = アスタリスク
+	名:62 = アスタリスク with なつなな
+	名:63 = アップトゥデイト
+	名:64 = アニマルパーク
+	名:65 = アンヴトンテレディ
+	名:66 = アンダーザデスク
+	名:67 = イエローリリー
+	名:68 = イカバラピュアプリンセス
+	名:69 = イカバラプリンセス
+	名:70 = イタリアンスタイル
+	名:71 = インディヴィジュアルズ
+	名:72 = インディゴ・ベル
+	名:73 = ヴァンパイア姉妹
+	名:74 = エターナルハーモニー
+	名:75 = エターナルレディエイト
+	名:76 = エレガントインモラリスト
+	名:77 = オペレータートリオ
+	
+	名:78 = ガールズ・パワー
+	名:79 = かな☆かな☆ふぁんしー
+	名:80 = カナリアサマー
+	名:81 = カプリコーン
+	名:82 = からぱれ
+	名:83 = カワイイボクと142's
+	名:84 = カワイイボクと野球どすえ
+	名:85 = ギャルズパーティー
+	名:86 = キャンディアイランド
+	名:87 = キャンサー
+	名:88 = くノ一あやめ忍法帖
+	名:89 = グリーンブリーズ
+	名:90 = クレシェンドブルー
+	名:91 = コーラルスターフィッシュ
+	
+	名:92 = サイキックヒーツ
+	名:93 = サイネリア
+	名:94 = サイバーグラス
+	名:95 = サイレントスクリーマー
+	名:96 = サクヤヒメ
+	名:97 = サクラブロッサム
+	名:98 = サマプリ
+	名:99 = サマーライブ
+	名:100 = サマーライブセーラー
+	名:101 = サンセットノスタルジー
+	名:102 = サンフラワー
+	名:103 = ジェネレーションオブサマー
+	名:104 = シックステール
+	名:105 = シャイニングゴッドチェリー
+	名:106 = しゅがしゅが☆み～ん
+	名:107 = シンデレラガールズ
+	名:108 = シンデレラドリーム
+	名:109 = シンデレラプロジェクト
+	名:110 = スウィートラヴァーズ
+	名:111 = スカウトスリーズ
+	名:112 = スクールガールフレンズ
+	名:113 = ストレートフルート
+	名:114 = ストロベリースマッシュコック
+	名:115 = スネーキーショーガール
+	名:116 = スペーススタイル
+	名:117 = セーラーマリナー
+	名:118 = セクシーギャルズ
+	名:119 = セクシーギルティ
+	名:120 = セクシーボンテージ
+	名:121 = セクシーモンスター
+	名:122 = ゼッケンズ
+	名:123 = センゴク☆ランブ
+	名:124 = センゴク☆華☆ランブ
+	名:125 = センゴク華ランブ
+	名:126 = ソル
+	
+	名:127 = ダークイルミネイト
+	名:128 = チーム・フラワー
+	名:129 = チーム・フラワー with ライラ
+	名:130 = チアフルボンバーズ
+	名:131 = チャレンジクッキング
+	名:132 = ディアリースターズ
+	名:133 = ディテクティブヴァーサス
+	名:134 = テンプテーション・アイズ
+	名:135 = トークバトルチアーズ
+	名:136 = ドイツスタイル
+	名:137 = トライアドプリムス
+	名:138 = ドリームホープスプリング
+	名:139 = トロピカル☆スターズ
+	
+	名:140 = ○ムコエンジェル
+	名:141 = にゃん・にゃん・にゃん
+	名:142 = ニューイヤースタイル
+	名:143 = ニューウェーブ
+	名:144 = ニューウェーブス
+	名:145 = ニュージェネレーション
+	名:146 = ニュージェネレーションズ
+	名:147 = ネクストニューカマー
+	名:148 = ノーティギャルズ
+	
+	名:149 = ハートウォーマー
+	名:150 = ハートハーモナイズ
+	名:151 = ハードメテオライツ
+	名:152 = パーフェクトサン
+	名:153 = ハッピーバレンタイン
+	名:154 = ハツラツスターズ
+	名:155 = パティシエトリオ
+	名:156 = ハニーサウンド
+	名:157 = ハピハピツイン☆
+	名:158 = バレンタイン反省会
+	名:159 = ハロウィンヴァンパイア
+	名:160 = ヒートアップ☆チアーズ
+	名:161 = ビートシューター
+	名:162 = ヒーローヴァーサス
+	名:163 = ひつじさんとうさぎさん
+	名:164 = ピュアリーツイン
+	名:165 = ピンキーキュート
+	名:166 = ピンクチェックスクール
+	名:167 = ピンクドットバルーン
+	名:168 = ファミリアツイン
+	名:169 = ファンキーノート
+	名:170 = フィオレンティナ
+	名:171 = フォーピース
+	名:172 = プチ・シスターズ
+	名:173 = フランメ・ルージュ
+	名:174 = プリティッシュユニット
+	名:175 = ブリヤント・ノワール
+	名:176 = フリルドスクエア
+	名:177 = ブルースプラッシュ
+	名:178 = ブルーナポレオン
+	名:179 = ブルームジャーニー	
+	名:180 = フレッシュアスリーテス
+	名:181 = プロジェクト・フェアリー
+	名:182 = プロジェクトクローネ
+	名:183 = ボール・フレンズ
+	名:184 = ポジティブパッション
+	名:185 = ホットアートジャンピン
+	
+	名:186 = マジカルテット
+	名:187 = マッシブライダーズ
+	名:188 = ミス・フォーチュン
+	名:189 = ミス・フォーチュン feat. 朋
+	名:190 = ミステリアスアイズ
+	名:191 = ミックスナッツ
+	名:192 = ミッシングムーン
+	名:193 = ミルキーウェイ
+	名:194 = ムーランルージュ
+	名:195 = ムシバレイナと小春ちゃん
+	名:196 = メロウ・イエロー
+	名:197 = モノクロームリリィ
+	
+	名:198 = ユニット16
+	名:199 = ようせいさんとおねえさん
+	
+	名:200 = ラ・ロズレ
+	名:201 = ライトグリーンセーフ
+	名:202 = ラブライカ
+	名:203 = ラブライカ with ローゼンブルクエンゲル
+	名:204 = ラブリーダイナーズ
+	名:205 = リコッタ
+	名:206 = リトル・マーチ・バンド・ガールズ
+	名:207 = リトルチェリーブロッサム
+	名:208 = リブラ
+	名:209 = ルーキースターズ
+	名:210 = レイジー・レイジー
+	名:211 = レインドロップ
+	名:212 = レインドロップス
+	名:213 = レオ
+	名:214 = レジェンドデイズ
+	名:215 = レッドショルダー
+	名:216 = レッドパッション
+	名:217 = レッドバラード
+	名:218 = レッドベリィズ
+	名:219 = レディビースト
+	名:220 = ローゼンブルクアルプトラウム
+	名:221 = ローゼンブルクエンゲル
+	名:222 = ロッキングガール
+	名:223 = ロック・ザ・ビート
+	名:224 = ロボフレンズ
+	
+	名:225 = 闇のアンデッド
+	名:226 = 羽衣小町
+	名:227 = 炎陣
+	名:228 = 王宮のメイドたち
+	名:229 = 桜花小町
+	名:230 = 桜祭り's
+	名:231 = 乙女ストーム！
+	名:232 = 花鳥風月
+	名:233 = 夏色姫君
+	名:234 = 杏ちゃんときらりんのハピハピツイン☆
+	名:235 = 京町乙女
+	名:236 = 幸福エンジェル
+	名:237 = 山紫水明
+	名:238 = 灼熱少女
+	名:239 = 酒場の踊り子
+	名:240 = 春色姫君
+	名:241 = 女神たちの夏宴
+	名:242 = 笑美と鈴帆の爆笑エブリデイ
+	名:243 = 食いしん坊なお客
+	名:244 = 新幹少女
+	名:245 = 雪月花ュ
+	名:246 = 凸レーション
+	名:247 = 日菜子と愛海の妄想ワールド
+	名:248 = 忍武☆繚乱
+	名:249 = 壁サーの花
+	名:250 = 魔王エンジェル
+	名:251 = 毛利三姉妹
+	名:252 = 誘惑イビル
+	名:253 = 竜宮小町
+
+	;	○○親善大使シリーズ(都道府県コード番号順)
+	名:254 = 北海道親善大使
+	名:255 = 青森県親善大使
+	名:256 = 岩手県親善大使
+	名:257 = 宮城県親善大使
+	名:258 = 秋田県親善大使
+	名:259 = 山形県親善大使
+	名:260 = 福島県親善大使
+	名:261 = 茨城県親善大使
+	名:262 = 栃木県親善大使
+	名:263 = 群馬県親善大使
+	名:264 = 埼玉県親善大使
+	名:265 = 千葉県親善大使
+	名:266 = 東京都親善大使
+	名:267 = 神奈川県親善大使
+	名:268 = 新潟県親善大使
+	名:269 = 富山県親善大使
+	名:270 = 石川県親善大使
+	名:271 = 福井県親善大使
+	名:272 = 山梨県親善大使
+	名:273 = 長野県親善大使
+	名:274 = 岐阜県親善大使
+	名:275 = 静岡県親善大使
+	名:276 = 愛知県親善大使
+	名:277 = 三重県親善大使
+	名:278 = 滋賀県親善大使
+	名:279 = 京都府親善大使
+	名:280 = 大阪府親善大使
+	名:281 = 兵庫県親善大使
+	名:282 = 奈良県親善大使
+	名:283 = 和歌山県親善大使
+	名:284 = 鳥取県親善大使
+	名:285 = 島根県親善大使
+	名:286 = 岡山県親善大使
+	名:287 = 広島県親善大使
+	名:288 = 山口県親善大使
+	名:289 = 徳島県親善大使
+	名:290 = 香川県親善大使
+	名:291 = 愛媛県親善大使
+	名:292 = 高知県親善大使
+	名:293 = 福岡県親善大使
+	名:294 = 佐賀県親善大使
+	名:295 = 長崎県親善大使
+	名:296 = 熊本県親善大使
+	名:297 = 大分県親善大使
+	名:298 = 宮崎県親善大使
+	名:299 = 鹿児島県親善大使
+	名:300 = 沖縄県親善大使
+	
+	名:301 = 米国親善大使
+	名:302 = 露国親善大使
+	名:303 = 伊国親善大使
+	名:304 = 仏国親善大使
+	名:305 = 英国親善大使
+	名:306 = ドバイ親善大使
+	名:307 = 伯国親善大使
+	名:308 = 香港親善大使
+	名:309 = グリーンランド親善大使
+	名:310 = とある国の親善大使
+
+	;	----------
+	;	ここから好きな単語を自由に登録してください。
+
+	名:311 = 
+	名:312 = 
+	名:313 = 
+	名:314 = 
+	名:315 = 
+
+	;	----------
+	;	999番に自称17歳さんの故郷？　を・・・
+	名:999 = ウサミン星親善大使
+
+	;	既存ユニット名変数代入処理部
+	$既存抽選
+	
+	;	抽選を行う
+	LOCAL = RAND:1000
+
+	;	当選した番号での処理
+	SELECTCASE 名:LOCAL
+		;	何も登録されていない場合
+		CASE ""
+			;	再抽選へ
+			GOTO 既存抽選
+		CASEELSE
+			CSTR:MASTER:ユニット＋50 = %名:LOCAL%
+			GOTO 終端
+	ENDSELECT
+
+	$終端
+	RETURN
+
+

@@ -1,0 +1,442 @@
+@SHOW_SHOP
+	#DIM LOOP_CHR
+	TRYCALL COM461_PUNISHMENT_END
+	TRYCALL 追加パッチVerUP
+
+	TRYCALL UPDATA
+	;自動でデータを変換するための関数です
+	;素質やフラグを変更したなど、セーブデータを変換する必要がある場合
+	;この関数を使用してください
+
+	;奴隷購入ページフラグ
+	TFLAG:100 = 0
+	DRAWLINE
+	PRINTFORML %日付_月(暦法月)%{暦法日}日[{DAY}日目](%GET_DAY()%) 
+	PRINTL 
+	PRINTFORML 所属アイドル：{場所番号最大値 - 場所番号最大値初期数}人 
+	PRINTFORML 所持金：${MONEY} 
+	PRINTL 
+;	PRINT 体力:
+;	BAR BASE:MASTER:0,MAXBASE:MASTER:0,16
+;	PRINTFORM ({BASE:MASTER:0,4}/{MAXBASE:MASTER:0,4}) 
+;	PRINT 気力:
+;	BAR BASE:MASTER:1,MAXBASE:MASTER:1,16
+;	PRINTFORM ({BASE:MASTER:1,4}/{MAXBASE:MASTER:1,4})
+	PRINTFORML 起床時間：{CFLAG:MASTER:312 / 60, 3}時 
+;	PRINTFORML 現在私室：%GETPLACENAME(CFLAG:MASTER:開始位置)% 
+	PRINTFORML 現在位置：%GETPLACENAME(CFLAG:MASTER:現在位置)%にいます
+	PRINTL 
+
+	;現在の状況描写
+	IF CFLAG:MASTER:現在位置 == CFLAG:MASTER:開始位置 && TARGET:LOCAL == 0
+		PRINT 
+	ELSEIF TARGET:LOCAL > 0 && CFLAG:MASTER:現在位置 == CFLAG:TARGET:現在位置 && CFLAG:TARGET:睡眠 
+		PRINTL -------------------------------------------------------------------------------
+		PRINT あなたの横に
+		PRINTFORM %CALLNAME:TARGET%\@ GET_TARGETNUM() > 1 ? 達 # \@
+		PRINT がすやすやと眠っている…
+		PRINTL 
+		PRINTL -------------------------------------------------------------------------------
+	ELSEIF TARGET:LOCAL > 0 && CFLAG:MASTER:現在位置 == CFLAG:TARGET:現在位置
+		PRINTL -------------------------------------------------------------------------------
+		PRINT あなたの横に
+		PRINTFORM %CALLNAME:TARGET%\@ GET_TARGETNUM() > 1 ? 達 # \@
+		PRINT がくつろいでいる…
+		PRINTL 
+		PRINTL -------------------------------------------------------------------------------
+	ENDIF
+	;行事のお知らせ
+	CALL EVENTDAYS
+	PRINTL 
+
+	PRINTL [100] - 起床
+	PRINTL [101] - 能力表示
+	SIF STRLENS(SAVESTR:10) > 1
+		PRINTL [102] - コレクション
+;	PRINTL [103] - 通信販売
+	PRINTL [104] - 設定
+	PRINTL [200] - SAVE
+	PRINTL [300] - LOAD
+	PRINTL [400] - OPTION
+	PRINTL [900] - 服装の更新(仮)
+	TRYCALL 妊娠パッチDEBUG88
+
+@USERSHOP
+	#DIM LOOP_CHR
+
+	TRYCALL 妊娠パッチDEBUG88COM
+
+	IF RESULT == 100
+		BEGIN TRAIN
+		RETURN 1
+	ELSEIF RESULT == 101
+		CALL SHOW_CHARADATA
+	ELSEIF RESULT == 102 && STRLENS(SAVESTR:10) > 1
+		CALL SHOW_COLLECTION
+;	ELSEIF RESULT == 103
+;		CALL ITEM_BUY
+	ELSEIF RESULT == 104
+		CALL SCHEDULE
+	ELSEIF RESULT == 200
+		SAVEGAME
+	ELSEIF RESULT == 300
+		LOADGAME
+	ELSEIF RESULT == 400
+		CALL OPTION
+	ELSEIF RESULT == 900
+		DRAWLINE
+		PRINTL (この処理は暫定的なものです)
+		PRINTL アイドル達の服を各人のイメージに合うものに変更します
+		PRINTL しかし処理に不明な点が多いため、想定外の事が起きる可能性があります
+		PRINTL 
+		PRINTL 更新しますか？
+
+		PRINTL [1] - はい
+		PRINTL [2] - いいえ
+		INPUT
+		IF RESULT == 1
+			CALL CLOTHE_Chara
+		ELSEIF RESULT == 2
+			RESTART
+		ENDIF
+	ENDIF
+
+@SCHEDULE
+	#DIM LOOP_CHR
+	
+	PRINTFORML [0] - 起床時間設定　　現在の設定：{CFLAG:MASTER:312 / 60, 3}時
+	SIF FLAG:陥落人数
+		PRINTFORML [1] - 私室設定　　　　現在の設定：%GETPLACENAME(CFLAG:MASTER:開始位置)%
+	SIF FLAG:陥落人数
+		PRINTFORML [2] - 宿泊設定
+	PRINTFORML [3] - %NTR_NAME(他人)%ステータス設定
+	PRINTFORML [4] - 子供の呼び出し
+	PRINTL [100] - 戻る
+	INPUT
+	IF RESULT == 100
+		RETURN 0
+	ELSEIF RESULT == 0
+		PRINTL 何時に起床しますか?(0～23を入力してください)
+		$INPUT_LOOP
+		INPUT
+		SIF RESULT < 0 || RESULT > 23
+			GOTO INPUT_LOOP
+		CFLAG:MASTER:312 = RESULT * 60
+		RESTART
+	ELSEIF RESULT == 1 && FLAG:陥落人数
+		PRINTL 寝起きする部屋を変えることが出来ます
+		PRINTL [0] - 自分の部屋
+		FOR LOOP_CHR,1,CHARA_ACTIVE
+			SIF TALENT:LOOP_CHR:恋慕 && CFLAG:LOOP_CHR:開始位置 != 895
+				PRINTFORML [{LOOP_CHR}] - %CALLNAME:LOOP_CHR%の部屋
+		NEXT
+		$INPUT_LOOP1
+		PRINTL [999] - 戻る
+		INPUT
+		IF RESULT == 999
+			RESTART
+		
+		ELSEIF RESULT < 0 || RESULT >= CHARA_ACTIVE
+			CLEARLINE 1
+			GOTO INPUT_LOOP1
+		ELSEIF RESULT == 0
+			CFLAG:MASTER:開始位置 = 場所_あなたの家
+		ELSEIF TALENT:RESULT:恋慕
+			CFLAG:MASTER:開始位置 = CFLAG:RESULT:311
+		ELSE
+			CLEARLINE 1
+			GOTO INPUT_LOOP1
+		ENDIF
+		PRINTW 変更は翌日から反映されます
+		RESTART
+	ELSEIF RESULT == 2 && FLAG:陥落人数
+		PRINTFORML %GETPLACENAME(場所_あなたの家)%に親しい相手をお泊りさせる事が出来ます
+		PRINTL ちひろさん「アイドルは駄目ですよ！」
+		PRINTL 
+		PRINTL [0] - 相手を選ぶ
+		PRINTL [1] - やっぱりやめる
+		INPUT
+		IF RESULT == 0
+		ELSEIF RESULT == 1
+			RESTART
+		ENDIF
+
+		FOR LOOP_CHR,1,CHARA_ACTIVE
+			SIF CFLAG:LOOP_CHR:同棲 >= 1
+				CFLAG:LOOP_CHR:開始位置 = 895
+				CFLAG:LOOP_CHR:同棲 = 0
+			SIF TALENT:LOOP_CHR:恋慕 && CFLAG:LOOP_CHR:開始位置 == 895
+				PRINTFORMLC [{LOOP_CHR}] - %CALLNAME:LOOP_CHR%
+		NEXT
+
+		$INPUT_LOOP2
+		INPUT
+		IF RESULT < 0 || RESULT >= CHARA_ACTIVE
+			CLEARLINE 1
+			GOTO INPUT_LOOP2
+		ELSEIF RESULT == 0
+			CFLAG:RESULT:開始位置 = 895
+		ELSEIF TALENT:RESULT:恋慕 && CFLAG:LOOP_CHR:開始位置 == 895
+			CFLAG:RESULT:311 = 場所_あなたの家
+			CFLAG:RESULT:同棲 = 1
+		ELSE
+			CLEARLINE 1
+			GOTO INPUT_LOOP2
+		ENDIF
+		PRINTFORMW %CALLNAME:RESULT%がお泊りする事になりました
+		PRINTFORML 留守番してもらいますか？
+		PRINTL [0] - お願いする
+		PRINTL [1] - 自由にしてもらう
+		INPUT
+		$INPUT_LOOP3
+		IF RESULT < 0 || RESULT >= CHARA_ACTIVE
+			CLEARLINE 1
+			GOTO INPUT_LOOP3
+		ELSEIF RESULT == 0
+			FOR LOOP_CHR,1,CHARA_ACTIVE
+				SIF CFLAG:LOOP_CHR:同棲 == 1
+					CFLAG:LOOP_CHR:同棲 = 2
+			NEXT
+			PRINTFORMW お留守番しているようにお願いしました
+		ELSEIF RESULT == 1
+			FOR LOOP_CHR,1,CHARA_ACTIVE
+				SIF CFLAG:LOOP_CHR:同棲 == 2
+					CFLAG:LOOP_CHR:同棲 = 1
+			NEXT
+			PRINTFORMW 自由にしてもらうようにお願いしました
+		ELSE
+			CLEARLINE 1
+			GOTO INPUT_LOOP3
+		ENDIF
+		RESTART
+	ELSEIF RESULT == 3
+		CALL MAN_SET
+		RESTART
+	ELSEIF RESULT == 4
+		CALL 子供訪問_設定
+		RESTART
+	ENDIF
+
+RETURN 1
+
+@EVENTDAYS
+	;日付による行事お知らせ。毎月恒例の行事があるかどうかを日で判断、次に月日で判断。
+	;アイドルに関係のあるものとえろいの中心。
+	PRINT 本日は
+	IF 暦法日 == 15
+			PRINT 【お菓子の日】
+	ELSEIF 暦法日 == 29
+			PRINT 【肉の日】
+	ENDIF
+	IF 暦法月 == 1 && 暦法日 == 1
+			PRINT 【元旦】
+	ELSEIF 暦法月 == 1 && 暦法日 == 5
+			PRINT 【シンデレラの日】【いちごの日】
+	ELSEIF 暦法月 == 1 && 暦法日 == 6
+			PRINT 【ショートケーキの日】
+	ELSEIF 暦法月 == 1 && 暦法日 == 15
+			PRINT 【アダルトの日】
+	ELSEIF 暦法月 == 1 && 暦法日 == 17
+			PRINT 【おむすびの日】
+	ELSEIF 暦法月 == 1 && 暦法日 == 19
+			PRINT 【カラオケの日】
+	ELSEIF 暦法月 == 1 && 暦法日 == 20
+			PRINT 【玉の輿の日】
+	ELSEIF 暦法月 == 1 && 暦法日 == 31
+			PRINT 【愛妻家の日】
+	ELSEIF 暦法月 == 2 && 暦法日 == 2
+			PRINT 【くちびるの日】
+	ELSEIF 暦法月 == 2 && 暦法日 == 1
+			PRINT 【テレビ放送記念日】
+	ELSEIF 暦法月 == 2 && 暦法日 == 4
+			PRINT 【節分】
+	ELSEIF 暦法月 == 2 && 暦法日 == 14
+			PRINT 【バレンタインデー】
+	ELSEIF 暦法月 == 2 && 暦法日 == 22
+			PRINT 【猫の日】【忍者の日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 1
+			PRINT 【行進曲の日】【豚の日】【ビキニデー】
+	ELSEIF 暦法月 == 3 && 暦法日 == 3
+			PRINT 【平和の日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 8
+			PRINT 【光の日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 14
+			PRINT 【ホワイトデー】
+	ELSEIF 暦法月 == 3 && 暦法日 == 19
+			PRINT 【ミュージックの日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 20
+			PRINT 【動物愛護デー】
+	ELSEIF 暦法月 == 3 && 暦法日 == 21
+			PRINT 【ランドセルの日】【催眠術の日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 22
+			PRINT 【放送記念日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 27
+			PRINT 【さくらの日】
+	ELSEIF 暦法月 == 3 && 暦法日 == 31
+			PRINT 【オーケストラの日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 1
+			PRINT 【エイプリルフール】
+	ELSEIF 暦法月 == 4 && 暦法日 == 6
+			PRINT 【白の日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 10
+			PRINT 【女性の日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 13
+			PRINT 【喫茶店の日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 15
+			PRINT 【ふとんの日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 20
+			PRINT 【女子大の日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 26
+			PRINT 【ガールズデー】【よい風呂の日】
+	ELSEIF 暦法月 == 4 && 暦法日 == 28
+			PRINT 【ボーイズデー】
+	ELSEIF 暦法月 == 5 && 暦法日 == 1
+			PRINT 【青春の日】
+	ELSEIF 暦法月 == 5 && 暦法日 == 4
+			PRINT 【音楽の日】
+	ELSEIF 暦法月 == 5 && 暦法日 == 5
+			PRINT 【子どもの日】
+	ELSEIF 暦法月 == 5 && 暦法日 == 6
+			PRINT 【ゴムの日】
+	ELSEIF 暦法月 == 5 && 暦法日 == 15
+			PRINT 【ストッキングの日】
+	ELSEIF 暦法月 == 5 && 暦法日 == 21
+			PRINT 【小学校の日】
+	ELSEIF 暦法月 == 5 && 暦法日 == 23
+			PRINT 【キスの日】【ラブレターの日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 1
+			PRINT 【写真の日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 9
+			PRINT 【ロックの日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 12
+			PRINT 【恋人の日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 17
+			PRINT 【おまわりさんの日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 21
+			PRINT 【恋の魔法の日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 24
+			PRINT 【ドレミの日】
+	ELSEIF 暦法月 == 6 && 暦法日 == 28
+			PRINT 【パフェの日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 1
+			PRINT 【童謡の日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 5
+			PRINT 【ビキニスタイルの日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 7
+			PRINT 【恋の日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 8
+			PRINT 【ナンパの日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 13
+			PRINT 【オカルト記念日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 15
+			PRINT 【ファミコンの日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 20
+			PRINT 【Ｔシャツの日】
+	ELSEIF 暦法月 == 7 && 暦法日 == 26
+			;最初のアイドルマスターは、アーケードゲームとして2005年のこの日に稼動を開始した
+			;全国のユーザーにはとても大切な日です
+			PRINT 【アイドルマスターの日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 1
+			PRINT 【おっぱいの日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 2
+			PRINT 【パンツの日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 7
+			PRINT 【花の日】【バナナの日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 9
+			PRINT 【ハグの日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 16
+			PRINT 【女子大生の日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 19
+			PRINT 【バイクの日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 22
+			PRINT 【チンチン電車の日】
+	ELSEIF 暦法月 == 8 && 暦法日 == 24
+			PRINT 【愛酒の日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 2
+			PRINT 【牛乳の日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 3
+			PRINT 【ベッドの日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 4
+			PRINT 【クラシック音楽の日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 6
+			PRINT 【妹の日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 7
+			PRINT 【CMソングの日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 21
+			PRINT 【ファッションショーの日】
+	ELSEIF 暦法月 == 9 && 暦法日 == 30
+			PRINT 【くるみの日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 1
+			PRINT 【国際音楽の日】【メガネの日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 4
+			PRINT 【世界動物の日】【天使の日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 5
+			PRINT 【音楽芸術の日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 7
+			PRINT 【ミステリー記念日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 10
+			PRINT 【体育の日】【トレーナーの日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 11
+			PRINT 【ウィンクの日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 15
+			PRINT 【きのこの日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 17
+			PRINT 【カラオケ文化の日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 18
+			PRINT 【ミニスカートの日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 30
+			PRINT 【初恋の日】
+	ELSEIF 暦法月 == 10 && 暦法日 == 31
+			PRINT 【ハロウィン】
+	ELSEIF 暦法月 == 11 && 暦法日 == 1
+			PRINT 【紅茶の日】【犬の日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 2
+			PRINT 【タイツの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 3
+			PRINT 【レコードの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 11
+			PRINT 【ポッキーの日】【もやしの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 13
+			PRINT 【あいさつの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 15
+			PRINT 【きものの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 16
+			PRINT 【幼稚園記念日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 18
+			PRINT 【音楽著作権の日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 19
+			PRINT 【世界トイレの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 20
+			PRINT 【世界子どもの日】【ホテルの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 22
+			PRINT 【いい夫婦の日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 23
+			PRINT 【ゲームの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 24
+			PRINT 【オペラ記念日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 25
+			PRINT 【OLの日】
+	ELSEIF 暦法月 == 11 && 暦法日 == 30
+			PRINT 【カメラの日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 1
+			PRINT 【映画の日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 3
+			PRINT 【妻の日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 6
+			PRINT 【音の日】【姉の日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 10
+			PRINT 【ごめんねの日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 13
+			PRINT 【双子の日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 14
+			PRINT 【麺の日】
+	ELSEIF 暦法月 == 12 && 暦法日 == 24
+			PRINT 【クリスマスイヴ】
+	ELSEIF 暦法月 == 12 && 暦法日 == 25
+			PRINT 【クリスマス】
+	ELSEIF 暦法月 == 12 && 暦法日 == 31
+			PRINT 【シンデレラデー】
+	ELSE
+			PRINT プロデュース日和
+	ENDIF
+	PRINTL です

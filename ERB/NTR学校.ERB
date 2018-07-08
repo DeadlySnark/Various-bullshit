@@ -1,0 +1,69 @@
+@学校出席状況(ARG, ARG:1)
+;ARG=人物のARG:1=日までの欠席日数を返す
+#DIM LOOP_DAY
+#DIM 欠席日数
+#FUNCTION
+欠席日数=0
+FOR LOOP_DAY,1, (ARG:1+1)
+	SIF GETBIT(CFLAG:ARG:登校管理, LOOP_DAY)
+		欠席日数++
+NEXT
+RETURNF 欠席日数
+
+@学校_月極
+;bitの清算、イベントの進行
+#DIM LOOP_CHR
+#DIM 欠席
+FOR LOOP_CHR,0, CHARA_ACTIVE
+	SIF !GETBIT(FLAG:ＮＴＲパッチ設定,7)
+		CONTINUE
+	;学生でないキャラはスルー
+	SIF !TALENT:LOOP_CHR:小○生 && !TALENT:LOOP_CHR:中○生 && !TALENT:LOOP_CHR:高○生
+		CONTINUE
+	欠席=学校出席状況(LOOP_CHR, 31)
+	;平均1月21日出席必要、その1/3で7ぐらいかなーと
+	IF 欠席>7
+		IF GETBIT(CFLAG:LOOP_CHR:学校イベント ,0) && !GETBIT(CFLAG:LOOP_CHR:学校イベント ,1)
+		;先月も怒られた
+			SETBIT CFLAG:LOOP_CHR:学校イベント ,1
+			IF NTR_CHK_VISIBLE(場所_学校)
+				IF CFLAG:LOOP_CHR:現在位置 < 場所番号最大値+1
+					;通常空間にいる
+					PRINTFORML %CALLNAME:LOOP_CHR%は担当教諭に呼び出された・・・
+					PRINTFORML 「%CALLNAME:LOOP_CHR%くん、君はこのままだと出席日数が足らないんだよねぇ」
+					PRINTFORML 「頑張る事は良いことだけど、学業に支障を来たすのであれば親御さんにはアイドル活動辞めさせるように言わなきゃいけないんだよねぇ」
+					PRINTFORML 「・・・それだけはやめて欲しい？うーん、どうしようかなあ」
+					PRINTFORML 「そうだなぁ、君がボクの補習を受ければ黙っててあげよう、それでどうだい？」
+					PRINTFORMW %CALLNAME:LOOP_CHR%は教師と補習を受ける約束をした・・・
+				ELSE
+					PRINTFORMW あまりの欠席の多さから、%CALLNAME:LOOP_CHR%に補習を受けるように、と学校から通達が来たようだ
+				ENDIF
+			ENDIF
+		ELSEIF !GETBIT(CFLAG:LOOP_CHR:学校イベント ,0) && !GETBIT(CFLAG:LOOP_CHR:学校イベント ,1)
+			PRINTFORML アイドルたちの通う学校から連絡が来た。
+			PRINTFORMW 先月は%CALLNAME:LOOP_CHR%の欠席が目立ったため、よく注意して下さい、とのことだ。
+			SETBIT CFLAG:LOOP_CHR:学校イベント,0
+		ENDIF
+	ELSE
+		CLEARBIT CFLAG:LOOP_CHR:学校イベント ,0
+	ENDIF
+	CFLAG:LOOP_CHR:登校管理=0
+NEXT
+
+@学校関連(ARG)
+;ARGが補習を受けるべきか否かを判定
+;学校にいないときは関係ない
+SIF CFLAG:ARG:現在位置!=場所_学校
+	RETURN 0
+;出席を確認
+他人= 人物_教師
+CLEARBIT CFLAG:ARG:登校管理, 暦法日
+IF GETBIT(CFLAG:ARG:学校イベント,1) && GETBIT(FLAG:ＮＴＲパッチ設定,7)
+;フラグがオン→生徒指導室へＧＯ
+SIF NTR_CHK_VISIBLE(場所_学校)
+	PRINTFORML 学校に着いた%CALLNAME:ARG%は、“補習”のために生徒指導室へと連れて行かれたようだ・・・
+	CALL VISITER_TAKINGOUT(ARG)
+	CALL NTR_ADD_SURRENDER(ARG, 200)
+ENDIF
+他人=人物_教師
+RETURN 1

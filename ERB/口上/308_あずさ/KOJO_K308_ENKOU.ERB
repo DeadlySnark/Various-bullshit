@@ -1,0 +1,106 @@
+@ENKOU_START_K308(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「また道に迷ってしまいました～」
+	PRINTFORML 「プロデューサーさん、あそこですこし休んでいきませんか？ %MSG_HEART()%」
+ELSE
+	PRINTFORML 「私、もう20代ですから、元気ピッチピチ☆とまではいきませんけど……」
+	PRINTFORML 「運命の人のために大人の魅力を磨こうと思うんです～。一緒によろしくお願いしますね。ふふっ %MSG_HEART()%」
+ENDIF
+
+@ENKOU_FINISH_K308(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「プロデューサーさんが、私の運命の人かもしれない、って言ったらどうしますか？ ふふっ、ふふふ♪」
+ELSE
+	PRINTFORML 「ふふっ、どうでしたか？　これなら運命の人にも喜んでもらえそう %MSG_HEART()%」
+ENDIF
+@SORP_START_K308(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「あらあら、どうしましょう～♪」
+	PRINTFORML 「――プロデューサーさん、もっと側に行っても良いですか？ %MSG_HEART()%」
+ELSE
+	PRINTFORML 「私ちょっぴりマイペースなところもありますけれど、精一杯頑張りますから～♪」
+ENDIF
+@SORP_FINISH_K308(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「上達してるのは、歌やダンスだけではないんですよ %MSG_HEART()%」
+	PRINTFORML 「セックスの作法なんかもろいろ……また私の勉強に付き合ってくださいね～♪」
+ELSE
+	PRINTFORML 「お腹の中が、温かくてとっても気持ちいいです～。よろしかったら、また来てくださいね %MSG_HEART()%」
+ENDIF
+
+@KOJO_MESSAGE_COM_K308_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「私、結構セックスが上手なんです。パイズリとかも得意ですから、みんないいお嫁さんになれるって言ってくれるんですよ♪」
+
+@KOJO_MESSAGE_COM_K308_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「私、結構セックスが上手なんです。パイズリとかも得意ですから、みんないいお嫁さんになれるって言ってくれるんですよ♪」
+
+@KOJO_MESSAGE_COM_K308_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「あらあら、どうしましょう～」
+			PRINTFORML 「……頼ってしまっても、良いのですか？」
+			PRINTFORML 言いたいことがしっかり伝わっているのか不安だが、あずさは少し考え込んだ後に小さくうなずいた。
+			PRINTFORML 「プロデューサーさん。私、運命の人を見つけた気がします。ふふっ、誰かはまだ秘密ですよ～だ♪」
+		ELSE
+			PRINTFORML 「もしかして%CALLNAME:MASTER%さんが、私の運命の……」
+			PRINTFORML 上手く伝わったかわからないが、とりあえず何とかなったようだ。
+		ENDIF
+	CASE 2
+			PRINTFORML 「あらあら、どうしましょう～♪」
+	CASE 3
+			PRINTFORML 「あらあら、どうしましょう～♪」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K308(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORMW 「プロデューサーさんと重ねてきた思い出が、私のすべてです」
+	PRINTFORMW 「あの…他の人に抱かれて居る姿もしっかり覚えていてくださいね %MSG_HEART()%」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「もっとプロデューサーさんのために上手にならないと……」
+	PRINTFORML 「%NTR_NAME_SEX(奴隷,他人)%さん、精一杯頑張りますから、今日もよろしくお願いしますね♪ %MSG_HEART()%」
+	PRINTFORMW そういいながら、あずさは艶かしい肢体を%NTR_NAME_SEX(奴隷,他人)%に重ね、その逸物を秘所にくわえ込んでいった。
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「プロデューサーさん。私、もしかしたら運命の人を見つけたのかもしれません……! ふふっ、ふふふ♪ %MSG_HEART()%」
+	PRINTFORMW 「あの……%NTR_NAME_SEX(奴隷,他人)%さんに、私の全てをお任せしたいって思ってます」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K308(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「あらあら、どうしましょう～。…ほんのすこしだけですから」
+ELSE
+	PRINTFORML 「あらあら、うふふ♪」
+	PRINTFORML そういって微笑み続ける%CALLNAME:奴隷%の目は虚ろだ。
+ENDIF

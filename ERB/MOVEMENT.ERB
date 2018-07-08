@@ -1,0 +1,1385 @@
+  ;-------------------------------------------------------------------------------
+;キャラクターの移動
+@CHARA_MOVEMENT
+	;訪問者の移動処理
+	CALL VISITER_MOVEMENT
+	;同行者への影響チェック
+	CALL NTR_CHK_GOWITH(TIME_PROGRESS(TFLAG:300))
+	FOR LOCAL,0,CHARA_ACTIVE
+		CALL 円光関連(LOCAL)
+		CALL 皆援交判定(LOCAL)
+	;	CALL 学校関連(LOCAL)
+		SIF CFLAG:LOCAL:凍結
+			CONTINUE
+		SIF TALENT:LOCAL:ＥＮＥＭＹ
+			CALL ENEMY_DO(LOCAL)
+		SIF MAXBASE:LOCAL:薬物 > 100 && CFLAG:LOCAL:現在位置 <= 場所番号最大値
+			CALL DRAG_DO(LOCAL)
+
+	;トイレ関連は未使用
+	;	;尿量/便量増加@お手洗い勝手に拡張パッチ
+	;	TRYCALL REST_PeePoo_Increase(LOCAL)
+
+		;通常エリアの外なら移動しない（霊夢の寝床は特殊）
+		SIF CFLAG:LOCAL:現在位置 >= 場所_訪問者宅
+			CONTINUE
+
+		;キャラクター発見処理 ターン終了まで移動させない
+		;433 お酒を注文する(居酒屋)
+		SIF LOCAL == TFLAG:発見キャラ_居酒屋 && SELECTCOM == 433
+			CONTINUE
+
+		;MASTER以外が、睡眠中、MASTERと同室で、恋慕状態でなく、施錠ができて、MASTERの子供 でなく、MASTERの起きる部屋でなければ追い出す
+		IF LOCAL > 0 && CFLAG:LOCAL:睡眠 && CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置 && !TALENT:LOCAL:恋慕 && FLAG:(300 + CFLAG:MASTER:現在位置) && CFLAG:LOCAL:父親 != MASTER && CFLAG:LOCAL:母親 != MASTER && CFLAG:LOCAL:現在位置 != CFLAG:MASTER:開始位置
+			IF CFLAG:LOCAL:衰弱
+				PRINTFORML %CALLNAME:LOCAL%は疲れて眠ってしまった…
+			ELSE
+				IF CFLAG:LOCAL:成長度 == 1 || CFLAG:LOCAL:成長度 == 2
+					;赤ん坊、幼子相手には遠慮してあげる優しいMASTER
+					PRINTFORML 眠そうな%CALLNAME:LOCAL%に遠慮して%CALLNAME:MASTER%は外に出た…
+				ELSE
+					PRINTFORML %CALLNAME:LOCAL%に追い出された…
+				ENDIF
+			ENDIF
+			FOR LOCAL:1,0,MAXROOM()
+				IF CAN_MOVE(CFLAG:MASTER:現在位置, LOCAL:1)
+					CFLAG:MASTER:現在位置 = LOCAL:1
+					BREAK
+				ENDIF
+			NEXT
+			;うふふリセット
+			CVARSET CFLAG, 317
+		ENDIF
+		;BASEの自然変動
+		;MASTERと同じ場所にいないとき
+		IF CFLAG:LOCAL:現在位置 != CFLAG:MASTER:現在位置
+			BASE:LOCAL:ムード = BASE:LOCAL:ムード - TIME_PROGRESS(TFLAG:300) * 2 * (BASE:LOCAL:ムード + 1000) / 1000
+			BASE:LOCAL:ムード = MAX(0,BASE:LOCAL:ムード)
+			BASE:LOCAL:理性 = BASE:LOCAL:理性 + TIME_PROGRESS(TFLAG:300) * (MAXBASE:LOCAL:理性 + 1000) / ((BASE:LOCAL:理性 + 1000) * 2)
+			BASE:LOCAL:理性 = MIN(MAXBASE:LOCAL:理性,BASE:LOCAL:理性)
+		ENDIF
+		;怒りは常に減少する
+		BASE:LOCAL:怒り = BASE:LOCAL:怒り - TIME_PROGRESS(TFLAG:300) * 5 / (CFLAG:LOCAL:怒り + 1)
+		SIF BASE:LOCAL:怒り <= 0
+			CFLAG:LOCAL:怒り = 0
+		BASE:LOCAL:怒り = MAX(0,BASE:LOCAL:怒り)
+		;不機嫌
+		SIF CFLAG:LOCAL:不機嫌
+			BASE:LOCAL:怒り = MAXBASE:LOCAL:怒り
+		;勃起度の自然減少
+		SIF CFLAG:LOCAL:勃起度２ <= CFLAG:LOCAL:勃起度 && !TCVAR:LOCAL:イきそう
+			BASE:LOCAL:勃起 = MAX(0,BASE:LOCAL:勃起 - TIME_PROGRESS(TFLAG:300) * 20)
+		;衰弱の処理
+		IF CFLAG:LOCAL:衰弱
+			BASE:LOCAL:体力 = MIN(BASE:LOCAL:体力 + 2 * TIME_PROGRESS(TFLAG:300),MAXBASE:LOCAL:体力)
+			BASE:LOCAL:気力 = MIN(BASE:LOCAL:気力 + 2 * TIME_PROGRESS(TFLAG:300),MAXBASE:LOCAL:気力)
+			CFLAG:LOCAL:衰弱 = MAX(CFLAG:LOCAL:衰弱 - TIME_PROGRESS(TFLAG:300),0)
+		ENDIF
+		;会話累積値
+		SIF TCVAR:LOCAL:会話累積値 > 100
+			TCVAR:LOCAL:会話不能 = 1
+		TCVAR:LOCAL:会話累積値 = MAX(TCVAR:LOCAL:会話累積値 - TIME_PROGRESS(TFLAG:300) , 0)
+		SIF TCVAR:LOCAL:会話累積値 == 0
+			TCVAR:LOCAL:会話不能 = 0
+		;身体の清潔度
+		LOCAL:1 = CFLAG:LOCAL:風呂
+		CFLAG:LOCAL:風呂 += TIME_PROGRESS(TFLAG:300)
+		IF BATHROOM(CFLAG:LOCAL:現在位置)
+			;SIF LOCAL == 0 && LOCAL:1
+			;	PRINTFORMW %CALLNAME:MASTER%は風呂に浸かった
+			CFLAG:LOCAL:風呂 = 0
+		ENDIF
+		IF CFLAG:LOCAL:風呂 == 0
+			RESET_STAIN LOCAL
+			;アヌスを洗う
+			STAIN:LOCAL:Ａ = 汚れ_なし
+			CFLAG:LOCAL:射精者M = 0
+			CFLAG:LOCAL:射精者V = 0
+			CFLAG:LOCAL:射精者A = 0
+		ELSEIF CFLAG:LOCAL:風呂 > 120 && !CFLAG:LOCAL:うふふ
+			STAIN:LOCAL:Ａ |= 汚れ_アナル
+		ENDIF
+		;同行フラグ（1時間持続）
+		;改造 好感度に準じて持続力up
+		SIF RAND(MAX(1, 2000/MAX(1,(CFLAG:LOCAL:好感度+1)))) && PREVCOM != 470
+			CFLAG:LOCAL:同行 = MAX(CFLAG:LOCAL:同行 - TIME_PROGRESS(TFLAG:300),0)
+		SIF CFLAG:LOCAL:同行
+			CFLAG:LOCAL:現在位置 = CFLAG:MASTER:現在位置
+
+		;起きてからパジャマでいる時間の設定
+		SIF CFLAG:LOCAL:起床後寝間着時間
+			CFLAG:LOCAL:起床後寝間着時間 = MAX(CFLAG:LOCAL:起床後寝間着時間 - TIME_PROGRESS(TFLAG:300),0)
+		
+		;起床後部屋を出ず1時間経つと衣服変更
+		IF !CFLAG:LOCAL:うふふ && CFLAG:LOCAL:寝間着着用 && !CFLAG:LOCAL:起床後寝間着時間 && !CFLAG:LOCAL:起床時間外 && !CFLAG:LOCAL:衰弱 && !CFLAG:LOCAL:睡眠
+			;寝間着から着替える時だけ下着を替える
+			CALL CLOTHES_SETTING(LOCAL,1)
+		ENDIF
+
+		;あなた以外の処理
+		IF LOCAL != MASTER
+			;特殊な状況の場合、ここで移動処理を中断する
+			SIF CFLAG:LOCAL:うふふ
+				CONTINUE
+			SIF CFLAG:LOCAL:同行
+				CONTINUE
+			SIF CFLAG:LOCAL:自慰中 > 0
+				CONTINUE
+			;朝5:00、7:30、8:00までを私室で過ごす
+			IF CFLAG:LOCAL:現在位置 == CFLAG:LOCAL:開始位置 && !CFLAG:LOCAL:起床時間外
+				IF TALENT:LOCAL:事務員 == 1
+					SIF TIME < 300
+						CONTINUE
+				ELSEIF TALENT:LOCAL:トレーナー >= 1
+					SIF TIME < 300
+						CONTINUE
+				ELSEIF TALENT:LOCAL:小○生
+					SIF TIME < 450
+						CONTINUE
+				ELSEIF TALENT:LOCAL:中○生
+					SIF TIME < 450
+						CONTINUE
+				ELSEIF TALENT:LOCAL:高○生
+					SIF TIME < 450
+						CONTINUE
+				ELSE
+					SIF TIME < 480
+						CONTINUE
+				ENDIF
+			ENDIF
+			;夜になったら帰宅する（一斉に帰ると不自然なので確率で帰る）
+			;処理が長くなったのでどうにかしたい
+			IF CFLAG:LOCAL:所属 == 1 && CFLAG:LOCAL:帰宅 == 0
+				;事務員は21時
+				IF RAND:8 == 0 && TALENT:LOCAL:事務員 == 1 && TIME >= 1260
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;大人組は22時
+				ELSEIF RAND:8 == 1 && Base:LOCAL:実年齢 >= 20 && TIME >= 1320
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;小学生は17時
+				ELSEIF RAND:8 == 2 && TALENT:LOCAL:小○生 && TIME >= 1020
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;中学生は18時
+				ELSEIF RAND:8 == 3 && TALENT:LOCAL:中○生 && TIME >= 1080
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;高校生か20歳未満は19時
+				ELSEIF RAND:8 == 4 && (TALENT:LOCAL:高○生 || Base:LOCAL:実年齢 < 20) && TIME >= 1140
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;それ以上は20時
+				ELSEIF RAND:8 == 5 && TIME >= 1200
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;23時を過ぎたら確率四分の一
+				ELSEIF RAND:4 == 0 && TIME >= 1380
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;00時を過ぎたら確率二分の一
+				ELSEIF RAND:2 == 0 && TIME < 60
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				;01時を過ぎたら強制帰宅
+				ELSEIF TIME < 140
+					IF CFLAG:LOCAL:同室 && !CFLAG:MASTER:睡眠
+						PRINTFORMW %CALLNAME:LOCAL%は%GETPLACENAME(CFLAG:LOCAL:現在位置)%から%GETPLACENAME(CFLAG:LOCAL:311)%に戻りました
+						CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:開始位置
+					ENDIF
+					CFLAG:LOCAL:帰宅 = 1
+				ENDIF
+			ENDIF
+
+			;部屋移動
+			SIF CFLAG:LOCAL:現在位置 == FLAG:訪問者の現在位置 && (CFLAG:LOCAL:他人との行為の終了時刻 > DATETIME() || CFLAG:LOCAL:他人との行為の終了時刻 != 0)
+				CONTINUE
+			SIF CFLAG:LOCAL:住人同士イベント相手 != 0 || CFLAG:LOCAL:住人同士イベント内容 != 0
+				CONTINUE
+
+			;下校時間を過ぎると校内から繁華街に移動(18時)
+			IF TIME > 1080 && CFLAG:LOCAL:現在位置 >= 場所_学校 && CFLAG:LOCAL:現在位置 <= 場所_学校高等部
+			;	PRINTFORML 下校時間を過ぎたので%CALLNAME:LOCAL%は繁華街に移動した
+				CFLAG:LOCAL:現在位置 = 場所_繁華街
+			ENDIF
+			;不適切なアイドルが裏路地いる時、繁華街南に移動
+			IF CFLAG:LOCAL:現在位置 == 場所_裏路地 && Base:LOCAL:実年齢 < 20 && CFLAG:LOCAL:AV路線 == 0 && CFLAG:LOCAL:NTRPRELOG == 0
+				CFLAG:LOCAL:現在位置 = 場所_繁華街南
+			ENDIF
+			;不適切なアイドルが裏路地の奥にいる時、裏路地に移動
+			IF CFLAG:LOCAL:現在位置 >= 場所_ラブホ && CFLAG:LOCAL:現在位置 <= 場所_AV事務所 && Base:LOCAL:実年齢 < 20 && CFLAG:LOCAL:AV路線 == 0 && CFLAG:LOCAL:NTRPRELOG == 0
+				CFLAG:LOCAL:現在位置 = 場所_裏路地
+			ENDIF
+
+			CALL CHARA_MOVEMENT_T(LOCAL)
+			IF RESULT
+				LOCAL:2 = RESULT
+				;%CALLNAME:MASTER%が見えたら態度に応じて接近しやすく
+				SIF CAN_MOVE(CFLAG:LOCAL:現在位置, CFLAG:MASTER:現在位置) == 2
+					RESULT:(CFLAG:MASTER:現在位置) += RESULT:(CFLAG:MASTER:現在位置) / 10 * CFLAG:LOCAL:馴れ合い強度度
+				;訪問者が紅魔館のアイドルならば、接近します。
+				SIF CAN_MOVE(CFLAG:LOCAL:現在位置, FLAG:訪問者の現在位置) == 2 
+					RESULT:(FLAG:訪問者の現在位置) += MAX(0, (CFLAG:LOCAL:屈服度 - CFLAG:LOCAL:好感度) / 3)
+				FOR LOCAL:1, 1, MAXROOM()
+					SIF RESULT:(LOCAL:2) < RESULT:(LOCAL:1)
+						LOCAL:2 = LOCAL:1
+				NEXT
+				;妊娠している場合はダッシュで帰る(強制)
+				IF CFLAG:LOCAL:にんっしんっ > 0
+					LOCAL:2 = GET_PRIVATE_ROOM(LOCAL, 0)
+				ENDIF
+
+			;トイレ関連は未使用
+			;	;尿意を感じた時、無理矢理トイレに向ける
+			;	IF (REST_NeedRestroom(LOCAL)>0) && !REST_IsRestRoom(CFLAG:LOCAL:現在位置)
+			;		LOCAL:2 = GO_TO_RESTROOM(LOCAL)
+			;	ENDIF
+			;	;トイレからの帰り道
+			;	IF AFTER_REST_ROOM(LOCAL)
+			;		LOCAL:2 = CFLAG:LOCAL:910
+			;		CFLAG:LOCAL:910 = 0
+			;	ENDIF
+
+				;訪問者と同じ位置にいて、屈服度が高い状態なら訪問者によるお仕置きが発生
+				IF CFLAG:LOCAL:現在位置 == FLAG:訪問者の現在位置
+					SIF CFLAG:LOCAL:屈服度 > 500 && (CFLAG:LOCAL:屈服度 - 500) > RAND:500 && GET_N_WITH_VISITER(LOCAL) == 1
+						TRYCALL NTR_PUNISHMENT(LOCAL)
+				ENDIF
+				;自慰判定
+				CALL キャラ自慰判定, LOCAL
+				SIF RESULT
+					LOCAL:2 = GET_PRIVATE_ROOM(LOCAL, 0)
+				
+				SIF CFLAG:LOCAL:現在位置 == LOCAL:2
+					CONTINUE
+				IF (CAN_MOVE(CFLAG:MASTER:現在位置, CFLAG:LOCAL:現在位置) == 2 || CFLAG:LOCAL:同室) && !CFLAG:MASTER:睡眠
+					PRINTFORMW %CALLNAME:LOCAL%は【%GETPLACENAME(CFLAG:LOCAL:現在位置)%】から【%GETPLACENAME(LOCAL:2)%】に移動した
+				ENDIF
+				;起床時間内で寝間着を着ている場合は移動時に私服に戻る
+				IF CFLAG:LOCAL:寝間着着用
+					IF !CFLAG:LOCAL:起床時間外
+						CALL CLOTHES_SETTING(LOCAL,1)
+					ELSE
+						;そうでない場合は靴を履いて移動
+						CALL CLOTHES_Preset_NIGHTWEAR_S(LOCAL)
+					ENDIF
+				ENDIF
+				IF LOCAL:2
+					CFLAG:LOCAL:現在位置 = LOCAL:2
+					CALL NTR_CHK_CHAR_MOVE(LOCAL)
+				ENDIF
+			ENDIF
+		ENDIF
+		;母乳ダダ漏れ対応
+		CALL PREGNACY_S_Milking(LOCAL)
+	NEXT
+
+	FOR LOCAL,0,CHARA_ACTIVE
+	;トイレ関連は未使用
+	;	;トイレを済ませれたか、漏らしたかのチェック@お手洗い勝手に拡張パッチ
+	;	CALL REST_MovementCheck(LOCAL)
+	NEXT
+	CALL AUTO_TRAINING
+	;カメラ設置パッチ対応
+	TRYCALL SECRET_CAMERA
+	CALL INTRUDER_MOVEMENT
+
+;-------------------------------------------------------------------------------
+@目的地設定(ARG)
+#DIM LOOP_CHR
+#DIM LOOP_NUM
+#DIM 仮配置,200
+VARSET 仮配置
+;ARG:キャラ番号
+;そのキャラの状況に合わせて目的地を設定
+;下の目的地に上書きされるため、下にあるほど優先度が高い
+;0300現在　仮組み
+
+;	起床時の処理が消えるのでコメントアウト
+;	CFLAG:ARG:目的地 = 0
+
+	;円光(未所属)
+	SIF PRENTR(ARG, 人物_パパ, NTRPRE_職)
+		CFLAG:ARG:目的地 = 場所_裏路地
+
+	;同棲相手を家に居させる
+	SIF CFLAG:ARG:同棲 == 2
+		CFLAG:ARG:目的地 = 場所_あなたの家
+
+	;事務所所属
+	IF CFLAG:ARG:所属 == 1 && CFLAG:ARG:帰宅
+			CFLAG:ARG:目的地 = CFLAG:ARG:開始位置
+	ELSEIF CFLAG:ARG:所属 == 1 && TALENT:ARG:ニート != 2
+		;事務所待機
+		SIF CFLAG:ARG:行動予定 == 0 && TALENT:ARG:事務員
+			CFLAG:ARG:目的地 = 場所_事務所オフィス
+		SIF CFLAG:ARG:行動予定 == 0 && TALENT:ARG:アイドル
+			CFLAG:ARG:目的地 = 場所_事務所休憩室
+		SIF CFLAG:ARG:行動予定 == 0 && TALENT:ARG:トレーナー
+			CFLAG:ARG:目的地 = 場所_事務所レッスン室
+		;レッスン
+		SIF CFLAG:ARG:行動予定 == 1
+			CFLAG:ARG:目的地 = 場所_事務所レッスン室
+		;自由
+		SIF CFLAG:ARG:行動予定 == 2
+			CFLAG:ARG:目的地 = 0
+		;自宅待機
+		SIF CFLAG:ARG:行動予定 == 3
+			CFLAG:ARG:目的地 = CFLAG:ARG:開始位置
+		;秘密のお願い(1)
+		SIF CFLAG:ARG:行動予定 == 4
+			CFLAG:ARG:目的地 = 場所_あなたの家居間
+	ENDIF
+
+	;円光かつ所属=気分で円光に
+	SIF PRENTR(ARG, 人物_パパ, NTRPRE_職) && 所属(ARG) && (DAY+NO:ARG+FLAG:共通ランダム数)%4==0 && !CFLAG:ARG:帰宅
+		CFLAG:ARG:目的地 = 場所_裏路地
+
+;敵の目標
+IF TALENT:ARG:ＥＮＥＭＹ && GETBIT(FLAG:ＮＴＲパッチ設定,14)
+	FOR LOOP_CHR,1, CHARA_ACTIVE
+		;point制 
+		;普通2 +アイドル7 NTR済-2 自分以外のENEMY -20
+		SIF CFLAG:LOOP_CHR:現在位置>場所番号最大値
+			CONTINUE
+		SIF LOOP_CHR==ARG
+			CONTINUE
+		仮配置:(CFLAG:LOOP_CHR:現在位置)=仮配置:(CFLAG:LOOP_CHR:現在位置)+(2+7*(MIN(1, TALENT:LOOP_CHR:アイドル))-2*MIN(1, TALENT:LOOP_CHR:NTR)-20*MIN(1, TALENT:LOOP_CHR:ＥＮＥＭＹ))
+	NEXT
+	;ただし事務所内は×
+	仮配置:0=0
+	FOR LOOP_NUM, 場所_シャワールーム+1, 場所番号最大値+1
+	;	PRINTFORML {LOOP_NUM} {仮配置:LOOP_NUM}%GETPLACENAME(LOOP_NUM,0)%
+		IF 仮配置:LOOP_NUM > 仮配置:0
+			仮配置:0=仮配置:LOOP_NUM
+			CFLAG:ARG:目的地=LOOP_NUM
+		ENDIF
+	NEXT
+;	PRINTFORML 目的値{ARG} {CFLAG:ARG:目的地} %GETPLACENAME(CFLAG:ARG:目的地,0)%
+ENDIF
+;-------------------------------------------------------------------------------
+;キャラA
+@CHARA_MOVEMENT_ACTIVETIME_1(ARG)
+;あなた以外の起床時間と睡眠時間の設定、フラグは使われていない
+
+IF TALENT:ARG:事務員 == 1 || TALENT:ARG:トレーナー >= 1
+	;事務員は特殊(ほぼ寝ない！ヤバイ！)
+	RETURN (TIME > 60 && TIME < 180) || CFLAG:ARG:衰弱
+	;お子様キャラは早寝早起き
+	;(パッチ)起床を学生7:00、就寝を小○生20:00、中○生21:00、高○生と20歳未満22:00、他を24:00としておく
+ELSEIF TALENT:ARG:小○生
+	RETURN TIME < 420 || TIME > 1200 || CFLAG:ARG:衰弱
+ELSEIF TALENT:ARG:中○生
+	RETURN TIME < 420 || TIME > 1260 || CFLAG:ARG:衰弱
+ELSEIF TALENT:ARG:高○生 || Base:ARG:実年齢 < 20
+	RETURN TIME < 420 || TIME > 1320 || CFLAG:ARG:衰弱
+ELSE
+	RETURN (TIME > 0 && TIME < 450) || CFLAG:ARG:衰弱
+ENDIF
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@CHARA_MOVEMENT_MOVERATE_1(ARG)
+RETURN 20
+
+;-------------------------------------------------------------------------------
+;上記の特殊移動が実行されると、ここの処理を無視して移動する
+;特に、どこにでも移動できるあなたや訪問者に接近する処理には現在対策がないので注意
+
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@CHARA_MOVEMENT_1(ARG,ARG:1)
+#DIM 誘導先=1
+;PRINTFORML %CALLNAME:(ARG:1)%の{ARG}
+;ARG,場所
+;ARG:1,登録番号
+IF CFLAG:(ARG:1):目的地
+;		理由は不明だがごくまれにARG:1が移動不可能な場所のときにここに来てしまうようなのでバグ回避
+		SIF CFLAG:(ARG:1):現在位置 <= 場所番号最大値 && CFLAG:(ARG:1):現在位置 != 0
+			誘導先=FARMOVE(ARG:1, CFLAG:(ARG:1):目的地)
+		SIF ARG==誘導先
+			RETURN 100
+		SIF CAN_MOVE(誘導先, ARG)
+			RETURN 50
+		RETURN 20
+ENDIF
+
+;ここからは目的地のない人用のコマンド
+	SELECTCASE ARG
+		;所属でなければ事務所に行かない
+		CASE IS <= 場所_シャワールーム
+			IF TALENT:(ARG:1):事務員 == 1 || TALENT:(ARG:1):アイドル == 1 || TALENT:LOCAL:トレーナー >= 1
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		;学校
+		;(パッチ)6時前から15時以降は登校できない(登下校の繰り返し防止)
+		CASE 場所_学校
+			IF CFLAG:(ARG:1):現在位置 == 場所_繁華街 && TIME > 360 && (TALENT:(ARG:1):小○生 || TALENT:(ARG:1):中○生 || TALENT:(ARG:1):高○生) && DAY%7<5 && TIME < 900
+				RETURN 120
+			ELSEIF CFLAG:(ARG:1):現在位置 >= 場所_学校初等部 && CFLAG:(ARG:1):現在位置 <= 場所_学校高等部
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		CASE 場所_学校初等部
+			IF TALENT:(ARG:1):小○生 && DAY%7<5
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		CASE 場所_学校中等部
+			IF TALENT:(ARG:1):中○生 && DAY%7<5
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		CASE 場所_学校高等部
+			IF TALENT:(ARG:1):高○生 && DAY%7<5
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		;スタジオは×
+		CASE 場所_収録スタジオ
+			RETURN 0
+		;居酒屋はアダルトだけ
+		CASE 場所_居酒屋
+			IF Base:(ARG:1):実年齢 >= 20
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		;裏路地はアダルトかＮＴＲだけ
+		CASE 場所_裏路地
+			IF Base:(ARG:1):実年齢 >= 20 || CFLAG:(ARG:1):AV路線 >= 1 || CFLAG:(ARG:1):NTRPRELOG >= 1
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		;ＮＴＲだけ
+		CASE 場所_ソープ待合室
+			IF CFLAG:(ARG:1):AV路線 >= 1 || !CFLAG:(ARG:1):NTRPRELOG >= 1
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		;ＮＴＲだけ
+		CASE 場所_AV事務所
+			IF CFLAG:(ARG:1):AV路線 >= 1 || !CFLAG:(ARG:1):NTRPRELOG >= 1
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		;所属していなければ行かない（寮内からは移動可能）
+		CASE 場所_寮玄関
+			IF TALENT:(ARG:1):事務員 == 1 || TALENT:(ARG:1):アイドル == 1 || TALENT:LOCAL:トレーナー >= 1
+				RETURN 120
+			ELSEIF CFLAG:(ARG:1):現在位置 == 場所_寮ホール
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		CASE 場所_寮ホール
+			RETURN 120
+		;あなたの家には同棲してなければ行かない
+		CASE 場所_あなたの家玄関
+			IF CFLAG:(ARG:1):同棲 == 1 || 場所_あなたの家玄関 < CFLAG:(ARG:1):現在位置
+				RETURN 120
+			ELSE
+				RETURN 0
+			ENDIF
+		CASEELSE
+			RETURN 60
+	ENDSELECT
+
+;-------------------------------------------------------------------------------
+;あなた
+@CHARA_MOVEMENT_ACTIVETIME_0(ARG)
+	;21時～6時は寝てる
+RETURN TIME < 360 || TIME > 1260 || CFLAG:ARG:衰弱
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@CHARA_MOVEMENT_MOVERATE_0
+RETURN 60
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@CHARA_MOVEMENT_0(ARG,ARG:1)
+
+
+;-------------------------------------------------------------------------------
+;侵入者は未使用の処理
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@INTRUDER_MOVEMENT
+	VARSET LOCAL
+	SIF RAND:(TIME_PROGRESS(TFLAG:300) + 1) <= RAND:60
+		LOCAL = 1
+	SIF LOCAL || !FLAG:侵入者の現在位置
+		RETURN 0
+	FOR LOCAL,0,MAXROOM()
+		;施錠
+		IF FLAG:(300 + LOCAL)
+			LOCAL:1 = 100
+		ELSE
+			LOCAL:1 = 100
+		ENDIF		
+		RESULT:LOCAL = LOCAL:1 * (CAN_MOVE(FLAG:侵入者の現在位置, LOCAL) > 0)
+		SIF RESULT:LOCAL
+			RESULT:LOCAL = RAND:(RESULT:LOCAL) + 1
+	NEXT
+	FOR LOCAL,1,MAXROOM()
+		SIF RESULT:(LOCAL:1) < RESULT:LOCAL
+			LOCAL:1 = LOCAL
+	NEXT
+	IF CAN_MOVE(CFLAG:MASTER:現在位置, FLAG:侵入者の現在位置) == 2 || CFLAG:MASTER:現在位置 == FLAG:侵入者の現在位置
+		PRINTFORMW はるかさんは【%GETPLACENAME(FLAG:侵入者の現在位置)%】から【%GETPLACENAME(LOCAL:1)%】に移動した
+	ELSE
+		LOCAL:2 = 1
+	ENDIF
+	SIF LOCAL:1
+		FLAG:侵入者の現在位置 = LOCAL:1
+	IF LOCAL:2 && CFLAG:MASTER:現在位置 == FLAG:侵入者の現在位置
+		PRINTFORMW はるかさんが【%GETPLACENAME(LOCAL:1)%】に入ってきた
+	ENDIF
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@CAN_MOVE(ARG, ARG:1)
+	#FUNCTION
+	;RETURNF 2は間に扉がなく見透かせる。庭から二階は見えないが逆は見える
+	SELECTCASE ARG
+		CASE 0
+		;バグよけのおまじない
+		;PRINTFORMW 位置に関するエラー?(CM)
+			RETURNF 0
+		CASE 場所_事務所玄関
+				SIF ARG:1 == 場所_事務所オフィス
+				RETURNF 1
+				SIF ARG:1 == 場所_事務所休憩室
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所応接室
+				RETURNF 1
+				SIF ARG:1 == 場所_大通り東
+				RETURNF 2
+		CASE 場所_事務所オフィス
+				SIF ARG:1 == 場所_事務所玄関
+				RETURNF 1
+				SIF ARG:1 == 場所_事務所廊下
+				RETURNF 1
+		CASE 場所_事務所休憩室
+				SIF ARG:1 == 場所_事務所玄関
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所廊下
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所キッチン
+				RETURNF 2
+		CASE 場所_事務所キッチン
+				SIF ARG:1 == 場所_事務所廊下
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所休憩室
+				RETURNF 2
+		CASE 場所_事務所廊下
+				SIF ARG:1 == 場所_事務所オフィス
+				RETURNF 1
+				SIF ARG:1 == 場所_事務所休憩室
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所キッチン
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所レッスン室
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所衣装ルーム
+				RETURNF 1
+				SIF ARG:1 == 場所_事務所宿泊室
+				RETURNF 1
+				SIF ARG:1 == 場所_事務所トイレ
+				RETURNF 1
+				SIF ARG:1 == 場所_事務所倉庫
+				RETURNF 1
+		CASE 場所_事務所応接室
+				SIF ARG:1 == 場所_事務所玄関
+				RETURNF 1
+		CASE 場所_事務所衣装ルーム, 場所_事務所宿泊室, 場所_事務所トイレ, 場所_事務所倉庫
+				SIF ARG:1 == 場所_事務所廊下
+				RETURNF 1
+		CASE 場所_事務所レッスン室
+				SIF ARG:1 == 場所_事務所廊下
+				RETURNF 2
+				SIF ARG:1 == 場所_事務所更衣室
+				RETURNF 1
+		CASE 場所_事務所更衣室
+				SIF ARG:1 == 場所_事務所レッスン室
+				RETURNF 1
+				SIF ARG:1 == 場所_シャワールーム
+				RETURNF 1
+		CASE 場所_シャワールーム
+				SIF ARG:1 == 場所_事務所更衣室
+				RETURNF 1
+		CASE 場所_住宅街
+				SIF ARG:1 == 場所_大通り西
+				RETURNF 2
+				SIF ARG:1 == 場所_公園
+				RETURNF 2
+				SIF ARG:1 == 場所_コンビニ
+				RETURNF 1
+				SIF ARG:1 == 場所_スーパー
+				RETURNF 1
+				SIF ARG:1 == 場所_寮玄関
+				RETURNF 1
+				SIF ARG:1 == 場所_あなたの家玄関
+				RETURNF 1
+		CASE 場所_公園
+				SIF ARG:1 == 場所_住宅街
+				RETURNF 2
+				SIF ARG:1 == 場所_公園トイレ
+				RETURNF 1
+				SIF ARG:1 == 場所_駄菓子屋
+				RETURNF 2
+		CASE 場所_公園茂み
+				SIF ARG:1 == 場所_公園トイレ
+				RETURNF 1
+		CASE 場所_公園トイレ
+				SIF ARG:1 == 場所_公園
+				RETURNF 1
+				SIF ARG:1 == 場所_公園茂み
+				RETURNF 1
+		CASE 場所_駄菓子屋
+				SIF ARG:1 == 場所_公園
+				RETURNF 2
+		CASE 場所_コンビニ, 場所_スーパー
+				SIF ARG:1 == 場所_住宅街
+				RETURNF 2
+		CASE 場所_大通り西
+				SIF ARG:1 == 場所_住宅街
+				RETURNF 2
+				SIF ARG:1 == 場所_繁華街
+				RETURNF 2
+				SIF ARG:1 == 場所_レストラン
+				RETURNF 1
+				SIF ARG:1 == 場所_書店
+				RETURNF 1
+				SIF ARG:1 == 場所_家電店
+				RETURNF 1
+				SIF ARG:1 == 場所_文房具屋
+				RETURNF 1
+		CASE 場所_レストラン, 場所_書店, 場所_家電店, 場所_文房具屋
+				SIF ARG:1 == 場所_大通り西
+				RETURNF 2
+		CASE 場所_大通り東
+				SIF ARG:1 == 場所_事務所玄関
+				RETURNF 1
+				SIF ARG:1 == 場所_繁華街
+				RETURNF 2
+				SIF (ARG:1 >= 場所_ライバル事務所) && (ARG:1 <= 場所_出版社)
+				RETURNF 1
+		CASE 場所_ライバル事務所, 場所_役所, 場所_ジム, 場所_収録スタジオ, 場所_出版社
+				SIF ARG:1 == 場所_大通り東
+				RETURNF 1
+		CASE 場所_繁華街
+				SIF ARG:1 == 場所_大通り東
+				RETURNF 2
+				SIF ARG:1 == 場所_大通り西
+				RETURNF 2
+				SIF ARG:1 == 場所_繁華街南
+				RETURNF 2
+				SIF ARG:1 == 場所_学校
+				RETURNF 1
+				SIF (ARG:1 >= 場所_花屋) && (ARG:1 <= 場所_ゲームセンター)
+				RETURNF 1
+		CASE 場所_繁華街南
+				SIF ARG:1 == 場所_繁華街
+				RETURNF 2
+				SIF ARG:1 == 場所_裏路地
+				RETURNF 1
+				SIF (ARG:1 >= 場所_カラオケ) && (ARG:1 <= 場所_駅)
+				RETURNF 1
+		CASE 場所_花屋, 場所_喫茶店, 場所_服屋, 場所_ゲームセンター
+				SIF ARG:1 == 場所_繁華街
+				RETURNF 2
+		CASE 場所_カラオケ, 場所_居酒屋, 場所_フードショップ, 場所_音楽店, 場所_ビデオ屋, 場所_交番所, 場所_駅
+				SIF ARG:1 == 場所_繁華街南
+				RETURNF 2
+		CASE 場所_学校
+				SIF ARG:1 == 場所_繁華街
+				RETURNF 1
+				SIF (ARG:1 >= 場所_学校初等部) && (ARG:1 <= 場所_学校高等部)
+				RETURNF 2
+		CASE 場所_学校初等部, 場所_学校中等部, 場所_学校高等部
+				SIF ARG:1 == 場所_学校
+				RETURNF 2
+		CASE 場所_裏路地
+				SIF ARG:1 == 場所_繁華街南
+				RETURNF 2
+				SIF (ARG:1 >= 場所_ラブホ) && (ARG:1 <= 場所_AV事務所)
+				RETURNF 1
+		CASE 場所_ラブホ, 場所_雑貨屋, 場所_ソープ待合室, 場所_AV事務所
+				SIF ARG:1 == 場所_裏路地
+				RETURNF 1
+		CASE 場所_寮玄関
+				SIF ARG:1 == 場所_住宅街
+				RETURNF 2
+				SIF ARG:1 == 場所_寮ホール
+				RETURNF 2
+		CASE 場所_寮ホール
+				SIF ARG:1 == 場所_寮玄関
+				RETURNF 2
+				SIF (ARG:1 > 場所_あなたの家) && (ARG:1 <= 場所番号最大値)
+				RETURNF 1
+		CASE 場所_あなたの家玄関
+				SIF ARG:1 == 場所_住宅街
+				RETURNF 1
+				SIF ARG:1 == 場所_あなたの家風呂
+				RETURNF 1
+				SIF ARG:1 == 場所_あなたの家居間
+				RETURNF 2
+		CASE 場所_あなたの家風呂
+				SIF ARG:1 == 場所_あなたの家玄関
+				RETURNF 1
+		CASE 場所_あなたの家居間
+				SIF ARG:1 == 場所_あなたの家玄関
+				RETURNF 2
+				SIF ARG:1 == 場所_あなたの家
+				RETURNF 1
+		CASE 場所_あなたの家
+				SIF ARG:1 == 場所_あなたの家居間
+				RETURNF 1
+		CASE IS <= 場所番号最大値
+				SIF ARG:1 == 場所_寮ホール
+				RETURNF 1
+		CASEELSE
+	ENDSELECT
+
+;-------------------------------------------------------------------------------
+;指定した時間から現在までの経過時間を返す
+;@param ARG  基準とする時間
+;@return 現在の時間との差分（分）
+@TIME_PROGRESS(ARG)
+#FUNCTION
+RETURNF DATETIME() - ARG
+
+;-------------------------------------------------------------------------------
+;キャラクターを眠らせる処理
+;@param キャラ番号 対象となるキャラクター
+@CHARA_SLEEP(キャラ番号)
+	#DIM キャラ番号
+	VARSET LOCAL
+	IF (CAN_MOVE(CFLAG:MASTER:現在位置, CFLAG:キャラ番号:現在位置) == 2 || CFLAG:MASTER:現在位置 == CFLAG:キャラ番号:現在位置) && !CFLAG:MASTER:睡眠
+		IF CFLAG:キャラ番号:現在位置 == CFLAG:キャラ番号:開始位置
+			IF TALENT:キャラ番号:恋慕 == 1
+				IF CFLAG:キャラ番号:睡眠
+					PRINTFORM %CALLNAME:キャラ番号%は
+					IF CFLAG:キャラ番号:睡眠深度 > 2500
+						PRINTW 泥のように眠っている
+					ELSEIF CFLAG:キャラ番号:睡眠深度 > 800
+						PRINTW 深い寝息をたてている
+					ELSEIF CFLAG:キャラ番号:睡眠深度 > 500
+						PRINTW すやすやと眠っている
+					ELSEIF CFLAG:キャラ番号:睡眠深度 > 200
+						PRINTW 寝返りをうっている
+					ELSE
+						PRINTL 小さく寝言を呟いた
+						PRINTW これ以上うるさくしたら起きるかもしれない
+					ENDIF
+				ELSE
+					PRINTFORMW %CALLNAME:キャラ番号%は眠った
+				ENDIF
+				LOCAL = 2
+			ELSE
+				PRINTFORMW %CALLNAME:キャラ番号%は眠そうにしている
+				LOCAL = 1
+			ENDIF
+		ELSE
+			IF CFLAG:キャラ番号:衰弱 && TALENT:キャラ番号:恋慕 && CFLAG:MASTER:現在位置 == CFLAG:キャラ番号:現在位置 && CFLAG:キャラ番号:開始位置 <= 場所番号最大値
+				PRINTFORMW %CALLNAME:キャラ番号%を%GETPLACENAME(CFLAG:キャラ番号:現在位置)%から%GETPLACENAME(CFLAG:キャラ番号:311)%へ運びました
+				LOCAL = 3
+			ELSE
+				PRINTFORMW %CALLNAME:キャラ番号%は%GETPLACENAME(CFLAG:キャラ番号:現在位置)%から%GETPLACENAME(CFLAG:キャラ番号:311)%に戻りました
+				LOCAL = 0
+			ENDIF
+		ENDIF
+		;おやすみ口上
+		SIF CFLAG:MASTER:現在位置 == CFLAG:キャラ番号:現在位置
+			CALL KOJO_EVENT(7, キャラ番号, LOCAL)
+	ENDIF
+	;自室でねる
+	CFLAG:キャラ番号:現在位置 = CFLAG:キャラ番号:開始位置
+	SIF LOCAL == 3
+		CFLAG:MASTER:現在位置 = CFLAG:キャラ番号:開始位置
+	;子悪魔以外は施錠する
+	IF NO:キャラ番号 != 0
+		FLAG:(300 + CFLAG:キャラ番号:現在位置) = 1
+	ENDIF
+	CFLAG:キャラ番号:同行 = 0
+	CFLAG:キャラ番号:睡眠 = 1
+	CFLAG:(キャラ番号:0):就寝時間 = TIME_PROGRESS(0)
+	CFLAG:キャラ番号:うふふ = 0
+	CFLAG:キャラ番号:物陰   = 0
+	CFLAG:キャラ番号:自慰中 = 0
+	;衰弱してなくて、着替えてなければ寝間着に着替える
+	IF !CFLAG:キャラ番号:衰弱 && !CFLAG:キャラ番号:寝間着着用
+		CALL CLOTHES_SETTING(キャラ番号,0)
+		CFLAG:キャラ番号:起床時間外 = 1
+	ENDIF
+	SIF !CFLAG:キャラ番号:睡眠深度
+		CFLAG:キャラ番号:睡眠深度 = 1000
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;キャラクターを起こす処理
+;@param ARG:0 対象となるキャラクター
+@CHARA_AWAKE, ARG
+	IF CFLAG:ARG:睡眠 && CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
+		SIF ARG > 0
+			PRINTFORMW %CALLNAME:ARG%が目を覚ました
+		;おはよう口上
+		CALL KOJO_EVENT(6, ARG)
+	ENDIF
+	SIF CFLAG:ARG:睡眠
+		CFLAG:ARG:帰宅 = 0
+	SIF CFLAG:ARG:睡眠
+		CFLAG:ARG:起床後寝間着時間 = 10
+	SIF CFLAG:ARG:睡眠深度
+		CFLAG:ARG:睡眠深度 = 0
+	CFLAG:ARG:睡眠 = 0
+	CFLAG:(ARG:0):起床時間 = TIME_PROGRESS(0)
+	;施錠
+	FLAG:(300 + CFLAG:ARG:現在位置) = 0
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;キャラクターの移動
+;@param ARG:0 キャラクター番号
+;@return 1:行動可、0:行動不可
+@CHARA_MOVEMENT_T(ARG)
+	IF !CFLAG:ARG:幽閉 && !CFLAG:ARG:衰弱 && REST_NeedRestroom(ARG) > 1
+		;幽閉、衰弱以外で「漏らしそう」であれば活動時間帯に関係なく覚醒し、行動できる。
+		CALL CHARA_AWAKE, ARG
+		RETURN 1
+	ELSEIF !CFLAG:ARG:幽閉 && !CFLAG:ARG:衰弱 && AFTER_REST_ROOM(ARG)
+		;幽閉、衰弱以外でトイレから帰る時は常に行動可能（そうしないとトイレで寝てしまう）
+		RETURN 1
+	ENDIF
+	;活動時間帯のチェック
+	TRYCCALLFORM CHARA_MOVEMENT_ACTIVETIME_{CFLAG:ARG:298}(ARG)
+	CATCH
+		;個別指定が無ければ標準的な移動判定
+		IF CFLAG:ARG:298 == 501 || CFLAG:ARG:298 == 502
+			TRYCALL CHARA_MOVEMENT_ACTIVETIME_CHILD(ARG)
+		;基本的には2時寝10時起き(いいのか？)
+		ELSE
+			;基本的には2時寝10時起き(いいのか？)
+			RESULT = (TIME > 120 && TIME < 600) || CFLAG:ARG:衰弱
+		ENDIF
+	ENDCATCH
+	IF RESULT
+		;活動時間帯判定の結果、寝ている時は行動不可
+		CALL CHARA_SLEEP, ARG
+		RETURN 0
+	ELSE
+		;目を覚ます
+		CALL CHARA_AWAKE, ARG
+		CFLAG:ARG:起床時間外 = 0
+	ENDIF
+	IF CFLAG:ARG:幽閉
+		;幽閉時は行動不可
+		RETURN 0
+	ENDIF
+	IF CFLAG:ARG:衰弱
+		;衰弱時は行動不可
+		RETURN 0
+	ENDIF
+
+	IF CFLAG:ARG:現在位置==場所_ダミー || CFLAG:ARG:現在位置==場所_アイドル長屋 || CFLAG:ARG:現在位置==場所_間男長屋
+		;ダミーにいる人たちは起きたら適当な町の場所に放置で
+		SIF CFLAG:ARG:睡眠 != 0 || CFLAG:ARG:衰弱
+			RETURN 0
+		;平日なら学生は1/3で学校に
+		IF (TALENT:ARG:小○生 || TALENT:ARG:中○生 || TALENT:ARG:高○生) && RAND:3 == 0 && DAY%7<5
+			IF TALENT:ARG:小○生
+				CFLAG:ARG:現在位置 = 場所_学校初等部
+				RETURN 0
+			ELSEIF TALENT:ARG:中○生
+				CFLAG:ARG:現在位置 = 場所_学校中等部
+				RETURN 0
+			ELSEIF TALENT:ARG:高○生
+				CFLAG:ARG:現在位置 = 場所_学校高等部
+				RETURN 0
+			ENDIF
+		ENDIF
+		;AV路線は1/3で裏路地に
+		IF CFLAG:ARG:AV路線 >= 1 && RAND:3 == 0
+			CFLAG:ARG:現在位置 = 場所_裏路地
+			RETURN 0
+		ENDIF
+		;それ以外は適当に繁華街,住宅街,大通り東西に配置
+		SELECTCASE RAND:4
+			CASE 0
+				IF RAND:2 == 0
+					CFLAG:ARG:現在位置=場所_繁華街
+				ELSE
+					CFLAG:ARG:現在位置=場所_繁華街南
+				ENDIF
+			CASE 1
+				IF TALENT:ARG:小○生 >= 1
+					CFLAG:ARG:現在位置=場所_公園
+				ELSE
+					CFLAG:ARG:現在位置=場所_住宅街
+				ENDIF
+			CASE 2
+					CFLAG:ARG:現在位置=場所_大通り西
+			CASE 3
+					CFLAG:ARG:現在位置=場所_大通り東
+			CASEELSE
+				;念のため
+					CFLAG:ARG:現在位置=場所_駅
+		ENDSELECT
+		RETURN 0
+	ENDIF
+	;移動確率の決定
+	TRYCCALLFORM CHARA_MOVEMENT_MOVERATE_1(ARG)
+	CATCH
+		IF CFLAG:ARG:298 == 501 || CFLAG:ARG:298 == 502
+			TRYCALL CHARA_MOVEMENT_MOVERATE_CHILD(ARG)
+		ELSE
+			RESULT = 90
+		ENDIF
+	ENDCATCH
+	IF RAND:(TIME_PROGRESS(TFLAG:300) + 1) <= RAND:RESULT
+		RETURN 0
+	ENDIF
+	IF FLAG:訪問者のムード == CFLAG:ARG:現在位置 && FLAG:訪問者との行為の終了時刻 != 0
+		;訪問者に捕まっている場合(非監禁的な意味で)は移動不可
+		RETURN 0
+	ENDIF
+
+	;目的地の決定
+	CALL 目的地設定(ARG)
+
+	;目的地による移動キャンセル
+	;夜間帰宅済みなら自宅から移動しない
+	IF CFLAG:ARG:帰宅 == 1 && CFLAG:ARG:現在位置 == CFLAG:ARG:開始位置
+		;自分の部屋待機中は行動不可
+		RETURN 0
+	ENDIF
+	;事務員はオフィスから移動しない
+	IF TALENT:ARG:事務員 == 1 && CFLAG:ARG:現在位置 == 場所_事務所オフィス
+		RETURN 0
+	ENDIF
+	;スケジュールが自宅待機なら自宅から移動しない
+	IF CFLAG:ARG:行動予定 == 3 && CFLAG:ARG:現在位置 == CFLAG:ARG:開始位置
+		;自分の部屋待機中は行動不可
+		RETURN 0
+	ENDIF
+	;あなたの家待機か留守番ならあなたの家から移動しない
+	IF (CFLAG:ARG:行動予定 == 4 || CFLAG:ARG:同棲 == 2)  && CFLAG:ARG:現在位置 == 場所_あなたの家
+		;あなた部屋待機中は行動不可
+		RETURN 0
+	ENDIF
+
+	;ここから移動場所の決定
+	VARSET RESULT
+	FOR LOCAL,1,MAXROOM()
+		TRYCCALLFORM CHARA_MOVEMENT_1(LOCAL,ARG)
+		CATCH
+			IF CFLAG:ARG:298 == 502 || CFLAG:ARG:298 == 501
+				TRYCALL CHARA_MOVEMENT_CHILD(LOCAL,ARG)
+			ELSE
+					RESULT = 100
+			ENDIF
+		ENDCATCH
+		RESULT:LOCAL = RESULT * (CAN_MOVE(CFLAG:ARG:現在位置, LOCAL) > 0 && CAN_MOVE(CFLAG:ARG:現在位置, LOCAL) < 3)
+		SIF LOCAL == CFLAG:ARG:現在位置
+			RESULT:LOCAL = 0
+		SIF RESULT:LOCAL
+			RESULT:LOCAL = RAND:(RESULT:LOCAL) + 1
+	NEXT
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;ARGで指定した場所にいる住人の人数を返す
+;ARG…場所の指定
+;戻り値…指定した場所にいる住人の人数
+@COUNT_MEM_IN_POS(ARG)
+	#FUNCTION
+	LOCAL = 0
+	FOR LOCAL:1,1,CHARA_ACTIVE
+		SIF CFLAG:(LOCAL:1):現在位置 == ARG
+			LOCAL ++
+	NEXT
+RETURNF LOCAL
+
+;-------------------------------------------------------------------------------
+;現在位置が個人の私室か判定
+;ARG…キャラ番号
+;ARG:1…子悪魔例外処理フラグ 0:寝る部屋 1:うふふ時誘う場所
+@IS_PRIVATE_ROOM(ARG, ARG:1)
+	#FUNCTION
+RETURNF (CFLAG:ARG:現在位置 == GET_PRIVATE_ROOM(ARG, ARG:1) ? 1 # 0)
+
+;-------------------------------------------------------------------------------
+;個人の私室を返す
+;ARG…キャラ番号
+;ARG:1…子悪魔例外処理フラグ 0:寝る部屋 1:うふふ時誘う場所
+@GET_PRIVATE_ROOM(ARG, ARG:1)
+#FUNCTION
+	LOCAL = 0
+		LOCAL=CFLAG:ARG:開始位置
+RETURNF LOCAL
+
+;----------------------
+@キャラ自慰判定(ARG)
+;ARG キャラ
+
+;自慰発生条件
+;・性欲が90以上
+SIF CFLAG:ARG:性欲 < 90
+	RETURN 0
+;・自室に誰もいない
+FOR LOCAL, 0, CHARA_ACTIVE
+	SIF ARG != LOCAL && GET_PRIVATE_ROOM(ARG, 0) == CFLAG:LOCAL:現在位置
+		RETURN 0
+NEXT
+SIF GET_PRIVATE_ROOM(ARG, 0) == FLAG:訪問者の現在位置
+	RETURN 0
+SIF GET_PRIVATE_ROOM(ARG, 0) == FLAG:侵入者の現在位置
+	RETURN 0
+;・眠っていない
+SIF CFLAG:ARG:睡眠 == 1
+	RETURN 0
+	;PRINTFORM {ARG}P0 
+;・トイレに行く気がない
+SIF REST_NeedRestroom(ARG)
+	RETURN 0
+	;PRINTFORM {ARG}P1 
+;・体力気力が半分以上
+SIF (BASE:ARG:体力 <= (MAXBASE:ARG:体力/2) || BASE:ARG:気力 <= (MAXBASE:ARG:気力/2))
+	RETURN 0
+	;PRINTFORM {ARG}P2 
+;・訪問者と同じ場所にいない
+SIF CFLAG:ARG:現在位置 == FLAG:訪問者の現在位置
+	RETURN 0
+	;PRINTFORM {ARG}P3 
+;・お持ち帰りされていない
+SIF CFLAG:ARG:現在位置 == 場所_訪問者宅
+	RETURN 0
+	;PRINTFORM {ARG}P4 
+;・発生確率を満たしている
+SIF RAND:(MAX(70-(CFLAG:ARG:性欲-90), 2))
+	RETURN 0
+	;PRINTFORM {ARG}P5 
+;満足にいたる絶頂回数設定
+;自慰を中断しているなら残り回数を取得
+IF CFLAG:ARG:自慰中 < 0
+	CFLAG:ARG:自慰中 = ABS(CFLAG:ARG:自慰中)
+;欲望＋自慰中毒＋好感度OR屈服度
+ELSE
+	CFLAG:ARG:自慰中 = MAX((ABL:ARG:欲望 + ABL:ARG:自慰中毒) / 2, 1)
+
+	LOCAL:1 = MAX(CFLAG:ARG:好感度, CFLAG:ARG:屈服度)
+	IF LOCAL:1 >= 5000
+		CFLAG:ARG:自慰中 = MIN(CFLAG:ARG:自慰中+10 , 10)
+	ELSEIF LOCAL:1 >= 2500
+		CFLAG:ARG:自慰中 = MIN(CFLAG:ARG:自慰中+7 , 10)
+	ELSEIF LOCAL:1 >= 1000
+		CFLAG:ARG:自慰中 += 4
+	ELSEIF LOCAL:1 >= 300
+		CFLAG:ARG:自慰中 += 2
+	ENDIF
+ENDIF
+
+;PRINTFORML %CALLNAME:ARG%は部屋に戻り自慰を始めた（{CFLAG:ARG:自慰中}）
+
+RETURN 1
+
+@FARMOVE(ARG, ARG:1)
+#FUNCTION
+#DIM 現在地
+#DIM 暫定地
+;ARG	登録番号
+;ARG:1	最終目的地
+;LOCAL一覧
+;0	現在の位置
+;1	暫定目的地
+
+;現在位置取得
+現在地 = CFLAG:ARG:現在位置
+
+;暫定目的地決定
+暫定地 = ARG:1
+$LOOP
+;暫定目的地に直接移動できる場合
+IF CAN_MOVE(現在地, 暫定地)
+	;そこに移動
+	RETURNF 暫定地
+ENDIF
+
+;袋小路から行ける場所は固定なので、そこを目指す
+;応接室からは玄関のみ
+IF (現在地 == 場所_事務所宿泊室)
+	RETURNF 場所_事務所玄関
+ENDIF
+;事務所トイレからは廊下のみ
+IF (現在地 == 場所_事務所トイレ)
+	RETURNF 場所_事務所廊下
+ENDIF
+;事務所衣装ルームからは廊下のみ
+IF (現在地 == 場所_事務所衣装ルーム)
+	RETURNF 場所_事務所廊下
+ENDIF
+;事務所宿泊室からは廊下のみ
+IF (現在地 == 場所_事務所宿泊室)
+	RETURNF 場所_事務所廊下
+ENDIF
+;事務所倉庫からは廊下のみ
+IF (現在地 == 場所_事務所倉庫)
+	RETURNF 場所_事務所廊下
+ENDIF
+;シャワールームからは更衣室のみ
+IF (現在地 == 場所_シャワールーム)
+	RETURNF 場所_事務所更衣室
+ENDIF
+;公園茂みからは公園トイレのみ
+IF 現在地 == 場所_公園茂み
+	RETURNF 場所_公園トイレ
+ENDIF
+;駄菓子屋からは公園のみ
+IF 現在地 == 場所_駄菓子屋
+	RETURNF 場所_公園
+ENDIF
+;コンビにからは住宅街のみ
+IF (現在地 == 場所_コンビニ)
+	RETURNF 場所_住宅街
+ENDIF
+;スーパーからは住宅街のみ
+IF (現在地 == 場所_スーパー)
+	RETURNF 場所_住宅街
+ENDIF
+;大通り西関連は大通り西のみ
+IF (場所_レストラン <= 現在地 && 現在地 <= 場所_家電店)
+	RETURNF 場所_大通り西
+ENDIF
+;大通り東関連は大通り東のみ
+IF (場所_ライバル事務所 <= 現在地 && 現在地 <= 場所_出版社)
+	RETURNF 場所_大通り東
+ENDIF
+;繁華街北関連は繁華街北のみ
+IF (場所_花屋 <= 現在地 && 現在地 <= 場所_ゲームセンター)
+	RETURNF 場所_繁華街
+ENDIF
+;繁華街南関連は繁華街南のみ
+IF (場所_カラオケ <= 現在地 && 現在地 <= 場所_駅)
+	RETURNF 場所_繁華街南
+ENDIF
+;各学舎からは学校のみ
+IF (場所_学校初等部 <= 現在地 && 現在地 <= 場所_学校高等部)
+	RETURNF 場所_学校
+ENDIF
+;裏路地関連
+IF (場所_ラブホ <= 現在地 && 現在地 <= 場所_AV事務所)
+	RETURNF 場所_裏路地
+ENDIF
+;あなたの家風呂からは玄関のみ
+IF 現在地 == 場所_あなたの家風呂
+	RETURNF 場所_あなたの家玄関
+ENDIF
+;あなたの家からは居間のみ
+IF 現在地 == 場所_あなたの家
+	RETURNF 場所_あなたの家居間
+ENDIF
+;寮内部からは寮ホールのみ
+IF (場所_あなたの家 < 現在地 && 現在地 <= 場所番号最大値)
+	RETURNF 場所_寮ホール
+ENDIF
+
+;直接移動できない場合、1つ近い位置を暫定目的地に設定し直してループ
+SELECTCASE 暫定地
+CASE 場所_事務所玄関
+		IF 現在地 == 場所_事務所キッチン
+			暫定地 = 場所_事務所休憩室
+		ELSEIF (場所_事務所廊下 <= 現在地 && 現在地 <= 場所_シャワールーム)
+			暫定地 = 場所_事務所休憩室
+		ELSE
+			暫定地 = 場所_大通り東
+		ENDIF
+CASE 場所_事務所オフィス
+		IF  現在地 == 場所_事務所応接室
+			暫定地 = 場所_事務所玄関
+		ELSEIF (場所_事務所休憩室 <= 現在地 && 現在地 <= 場所_シャワールーム)
+			暫定地 = 場所_事務所廊下
+		ELSE
+			暫定地 = 場所_事務所玄関
+		ENDIF
+CASE 場所_事務所休憩室
+		IF  現在地 == 場所_事務所応接室
+			暫定地 = 場所_事務所玄関
+		ELSEIF (場所_事務所オフィス <= 現在地 && 現在地 <= 場所_シャワールーム)
+			暫定地 = 場所_事務所廊下
+		ELSE
+			暫定地 = 場所_事務所玄関
+		ENDIF
+CASE 場所_事務所キッチン
+		IF  現在地 == 場所_事務所応接室
+			暫定地 = 場所_事務所休憩室
+		ELSEIF (場所_事務所オフィス <= 現在地 && 現在地 <= 場所_シャワールーム)
+			暫定地 = 場所_事務所廊下
+		ELSE
+			暫定地 = 場所_事務所休憩室
+		ENDIF
+CASE 場所_事務所廊下
+	SELECTCASE 現在地
+		CASE 場所_事務所更衣室, 場所_シャワールーム
+			暫定地 = 場所_事務所レッスン室
+		CASEELSE
+			暫定地 = 場所_事務所休憩室
+	ENDSELECT
+CASE 場所_事務所レッスン室
+	SELECTCASE 現在地
+		CASE 場所_シャワールーム
+			暫定地 = 場所_事務所更衣室
+		CASEELSE
+			暫定地 = 場所_事務所廊下
+	ENDSELECT
+CASE 場所_事務所衣装ルーム, 場所_事務所トイレ, 場所_事務所倉庫, 場所_事務所宿泊室
+			暫定地 = 場所_事務所廊下
+CASE 場所_事務所応接室
+			暫定地 = 場所_事務所玄関
+CASE 場所_事務所更衣室
+			暫定地 = 場所_事務所レッスン室
+CASE 場所_シャワールーム
+			暫定地 = 場所_事務所更衣室
+CASE 場所_住宅街
+	SELECTCASE 現在地
+		CASE 場所_公園茂み, 場所_公園トイレ, 場所_駄菓子屋
+			暫定地 = 場所_公園
+		;寮内部処理(＋あなた宅内)
+		CASE IS > 場所_あなたの家
+			暫定地 = 場所_寮玄関
+		;あなた宅内部処理
+		CASE IS > 場所_あなたの家玄関
+			暫定地 = 場所_あなたの家玄関
+		CASE 場所_寮ホール
+		;ここいるか？
+			暫定地 = 場所_寮玄関
+		CASEELSE
+			暫定地 = 場所_大通り西
+	ENDSELECT
+CASE 場所_公園, 場所_コンビニ, 場所_スーパー
+			暫定地 = 場所_住宅街
+CASE 場所_公園トイレ, 場所_駄菓子屋
+			暫定地 = 場所_公園
+CASE 場所_公園茂み
+			暫定地 = 場所_公園トイレ
+CASE 場所_大通り西
+	SELECTCASE 現在地
+		CASE 場所_公園, 場所_公園茂み, 場所_公園トイレ, 場所_コンビニ, 場所_スーパー, 場所_寮玄関, 場所_寮ホール, 場所_あなたの家玄関
+			暫定地 = 場所_住宅街
+		;寮内部処理(＋あなた宅内)
+		CASE IS > 場所_あなたの家玄関
+			暫定地 = 場所_住宅街
+		CASEELSE
+			暫定地 = 場所_繁華街
+	ENDSELECT
+CASE 場所_レストラン, 場所_書店, 場所_家電店, 場所_文房具屋
+			暫定地 = 場所_大通り西
+CASE 場所_大通り東
+	SELECTCASE 現在地
+		;事務所内部
+		CASE IS < 場所_シャワールーム
+			暫定地 = 場所_事務所玄関
+		CASEELSE
+			暫定地 = 場所_繁華街
+	ENDSELECT
+CASE 場所_ライバル事務所, 場所_役所, 場所_ジム, 場所_収録スタジオ, 場所_出版社
+			暫定地 = 場所_大通り東
+CASE 場所_繁華街
+	IF (場所_学校初等部 <= 現在地 && 現在地 <= 場所_学校高等部) 
+		;学校内
+			暫定地 = 場所_学校
+	ELSEIF (場所_裏路地 <= 現在地 && 現在地 <= 場所_AV事務所)
+		;裏路地
+			暫定地 = 場所_繁華街南
+	ELSEIF (場所_カラオケ <= 現在地 && 現在地 <= 場所_駅) 
+		;繁華街南店
+			暫定地 = 場所_繁華街南
+	ELSEIF (場所_事務所玄関 <= 現在地 && 現在地 <= 場所_シャワールーム) 
+		;事務所関連
+			暫定地 = 場所_大通り東
+	ELSEIF (場所_ライバル事務所 <= 現在地 && 現在地 <= 場所_出版社) 
+		;大通り東関連
+			暫定地 = 場所_大通り東
+	ELSE
+			暫定地 = 場所_大通り西
+	ENDIF
+CASE 場所_繁華街南
+	IF (場所_ラブホ <= 現在地 && 現在地 <= 場所_AV事務所)
+		;裏路地
+			暫定地 = 場所_裏路地
+	ELSE
+			暫定地 = 場所_繁華街
+	ENDIF
+CASE 場所_学校, 場所_花屋, 場所_服屋, 場所_喫茶店, 場所_ゲームセンター
+		暫定地 = 場所_繁華街
+CASE 場所_カラオケ, 場所_居酒屋, 場所_フードショップ, 場所_音楽店, 場所_ビデオ屋, 場所_交番所, 場所_駅
+		暫定地 = 場所_繁華街南
+CASE 場所_学校初等部, 場所_学校中等部, 場所_学校高等部
+		暫定地 = 場所_学校
+CASE 場所_裏路地
+		暫定地 = 場所_繁華街南
+CASE 場所_ラブホ, 場所_雑貨屋, 場所_ソープ待合室, 場所_AV事務所
+		暫定地 = 場所_裏路地
+CASE 場所_寮玄関
+	SELECTCASE 現在地
+		CASE IS > 場所番号最大値
+		;念のためね
+		CASE IS > 場所_あなたの家
+			暫定地 = 場所_寮ホール
+		CASEELSE
+			暫定地 = 場所_住宅街
+	ENDSELECT
+CASE 場所_寮ホール
+		暫定地 = 場所_寮玄関
+CASE 場所_あなたの家玄関
+		暫定地 = 場所_住宅街
+CASE 場所_あなたの家風呂, 場所_あなたの家居間
+		暫定地 = 場所_あなたの家玄関
+CASE 場所_あなたの家
+		暫定地 = 場所_あなたの家居間
+CASE IS <= 場所番号最大値
+		暫定地 = 場所_寮ホール
+ENDSELECT
+
+;PRINTFORM {暫定地} ルート逆算(現在地({現在地})～最終地点({ARG:1})までの道のり)
+
+GOTO LOOP

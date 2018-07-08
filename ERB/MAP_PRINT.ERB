@@ -1,0 +1,245 @@
+
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;全体図,多分イラン
+@MAP_PRINT_0
+
+
+PRINTL ～広域マップ～
+;CALL MAP_SETING, "■■■■■■■■■■■■■■■■ ", 場所_正門, 場所_広間
+;　　　　　　　　　　　↑表示されるマップ　　　　　　　↑マップ横のボタン↑最高５つまで
+
+;マップ内のボタンとなる数値の左右を"/"で囲う、末端の場合は端ではない方のみ"/"を置く
+
+
+CALL MAP_SETING, "　　　　　　　　　　　　　　　　　　　　　　　　　　　", 
+CALL MAP_SETING, "　/14/住宅街─/21/大通り西─/32/繁華街─/26/大通り東　　　　　",
+CALL MAP_SETING, "　　　　　　　　　　　　　│　　　　　　　　　　　　　",
+CALL MAP_SETING, "　　　　　　　　　　　　/49/裏路地　　　　　　　　　　　", 
+CALL MAP_SETING, "　　　　　　　　　　　　　　　　　　　　　　　　　　　", 
+
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;事務所エリア
+@MAP_PRINT_1
+
+PRINTL ～事務所～
+PRINTL
+CALL MAP_SETING, "　　■■■■■■■■■■■■■■　　", 場所_事務所更衣室, 場所_シャワールーム
+CALL MAP_SETING, "　　■更/12/│シ/13/■衣/７/　■寝/９/■　　", 場所_事務所衣装ルーム, 場所_事務所宿泊室
+CALL MAP_SETING, "　　■■─■■■■■■─■─■■　　",
+CALL MAP_SETING, "　　■　　　　　　　■　　　　■　　", 場所_事務所レッスン室
+CALL MAP_SETING, "　　■　　　/６/　　　│　■■■■　　", 場所_事務所倉庫
+CALL MAP_SETING, "　　■　　　　　　　■　│倉/11/■　　",
+CALL MAP_SETING, "　　■■■■■■■■■　■■■■　　", 場所_事務所キッチン, 場所_事務所トイレ
+CALL MAP_SETING, "　　■厨/４/│　　　　/５/　│ト/10/■　　", 場所_事務所廊下
+CALL MAP_SETING, "　　■─■■■　■■─■■■■■　　",
+CALL MAP_SETING, "　　■　　　　　■オ/２/　■応/８/■　　", 場所_事務所オフィス, 場所_事務所応接室
+CALL MAP_SETING, "　　■　　/３/　　■■─■■─■■　　", 場所_事務所休憩室
+CALL MAP_SETING, "　　■　　　　　　　/１/　　　　■　　",
+CALL MAP_SETING, "　　■■■■■■■■↓■■■■■　　", 場所_事務所玄関
+CALL MAP_SETING, "　　　　　　　　　　/26/　　　　　　　", 場所_大通り東
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;住宅街エリア
+@MAP_PRINT_2
+#DIM 私室
+PRINTL ～住宅街～
+PRINTL
+CALL MAP_SETING, "Mm/16/mM　─ト■■　コ■■　　　ス■■■■■■", 場所_公園茂み, 場所_公園トイレ
+CALL MAP_SETING, "　　　　││/17/■　■　■　　　■　　　　　■",
+CALL MAP_SETING, "────┘■■■　■/19/■　　　■　　/20/　　■", 場所_コンビニ, 場所_スーパー
+CALL MAP_SETING, "　　　　　　　　　■─■　　　■■■─■■■",
+CALL MAP_SETING, "　　~~~~　　　┌──┘───────┘───", 場所_公園
+CALL MAP_SETING, "　~~~/15/~~~　　│/14/　　　　　　　　　　　→/21/",
+CALL MAP_SETING, "　　~~~~　　　│　┌────────────", 場所_住宅街
+CALL MAP_SETING, "　　　　　　　│　│　　　　　　　　　　　　", 場所_大通り西
+CALL MAP_SETING, "──┐────┘　│　　　　　　　　　　　　",
+CALL MAP_SETING, "菓■─寮■■■│　│自■■■　　　　　　　　", 場所_駄菓子屋
+CALL MAP_SETING, "■　/18/■　/54/│┘　└│/56/　■　　　　　　　　",
+CALL MAP_SETING, "■■■■　　■│　│■　　■　　　　　　　　", 場所_寮玄関
+CALL MAP_SETING, "■　　　　　■│　│■■■■　　　　　　　　", 場所_あなたの家玄関
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;大通り西エリア
+@MAP_PRINT_3
+
+PRINTL ～大通り西～
+PRINTL
+CALL MAP_SETING, "　　　■/22/　■　　　■/23/　■/24/■",  場所_レストラン
+CALL MAP_SETING, "　　　■レ■■　　　■書■■文■", 場所_書店, 場所_文房具屋
+CALL MAP_SETING, "────┘──────┘──┘─",
+CALL MAP_SETING, "/14/　　　　　　　/21/　　　　　　→", 場所_住宅街, 場所_大通り西
+CALL MAP_SETING, "←　　　　　　　　　　　　　　/32/", 場所_繁華街
+CALL MAP_SETING, "────────┐───────",
+CALL MAP_SETING, "　　　　　　■■電■■　　　　　",
+CALL MAP_SETING, "　　　　　　■　/25/　■　　　　　", 場所_家電店
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;大通り東エリア
+@MAP_PRINT_4
+
+PRINTL ～大通り東～
+PRINTL
+CALL MAP_SETING, "■　　/30/　　■　■/28/　■　■　/１/", 場所_収録スタジオ, 場所_役所
+CALL MAP_SETING, "■■■ス■■■　■役■■　■■事", 場所_事務所玄関
+CALL MAP_SETING, "───┘─────┘─────┘",
+CALL MAP_SETING, "/32/　　　　　　/26/　　　　　　　　", 場所_繁華街
+CALL MAP_SETING, "←　　　　　　　　　　　　　　　", 場所_大通り東
+CALL MAP_SETING, "─┐─────┐─────┐──",
+CALL MAP_SETING, "■ジ■■　■■ラ■■　　■出■■", 場所_ジム
+CALL MAP_SETING, "■/29/　■　■　/27/　■　　■/31/　■", 場所_ライバル事務所, 場所_出版社
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;繁華街エリア
+@MAP_PRINT_5
+
+PRINTL ～繁華街～
+PRINTL
+CALL MAP_SETING, "■　/45/　■　　　■/36/■　■/34/■　　", 場所_学校, 場所_服屋, 場所_花屋
+CALL MAP_SETING, "■■学■■　　　■服■　■花■　　",
+CALL MAP_SETING, "──┘──────┘───┘───", 場所_大通り西
+CALL MAP_SETING, "/21/　　　　　　　　　　　　　　　→", 場所_繁華街, 場所_大通り東
+CALL MAP_SETING, "←　　　　　　　/32/　　　　　　　/26/",
+CALL MAP_SETING, "───────┐　┌─────┐─", 場所_ゲームセンター
+CALL MAP_SETING, "　　　　■■■│　│　　　　■喫■", 場所_喫茶店
+CALL MAP_SETING, "　　　　■/37/ゲ┘　│　　　　■/35/■",
+CALL MAP_SETING, "　　■■■■■│　│■■■　■■■", 場所_ビデオ屋, 場所_音楽店
+CALL MAP_SETING, "　　■/42/■/41/■│　│■/40/■　　　　", 場所_フードショップ
+CALL MAP_SETING, "↑/49/■Ｔ■タ■│　│■フ■　　＃＃",
+CALL MAP_SETING, "│└─┘─┘─┘　└─┘──■＃■", 場所_裏路地
+CALL MAP_SETING, "│　　　　　　　/33/　　　　/44/駅＃■", 場所_繁華街南, 場所_駅
+CALL MAP_SETING, "└┐───┐───────┐■＃■",
+CALL MAP_SETING, "■酒■　■カ■　　　　　■交■＃　", 場所_居酒屋, 場所_カラオケ
+CALL MAP_SETING, "■/39/■　■/38/■　　　　　■/43/■＃　", 場所_交番所
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;学校エリア
+@MAP_PRINT_6
+
+PRINTL ～学校～
+PRINTL
+CALL MAP_SETING, "　　　　　　　中■■■■　　　　　　　", 場所_学校
+CALL MAP_SETING, "　　　　　　　■　　　■　　　　　　　",
+CALL MAP_SETING, "　　　　　　　■　/47/　■　　　　　　　", 場所_学校初等部
+CALL MAP_SETING, "　　　　　　　■■─■■　　　　　　　", 場所_学校中等部
+CALL MAP_SETING, "　　　小■■■┌┘　└┐高■■■　　　", 場所_学校高等部
+CALL MAP_SETING, "　　　■　　■┘　　　└■　　■　　　",
+CALL MAP_SETING, "　　　■　/46/│　　/45/　　│/48/　■　　　",
+CALL MAP_SETING, "　　　■　　■┐　　　┌■　　■　　　",
+CALL MAP_SETING, "　　　■■■■└─↓─┘■■■■　　　",
+CALL MAP_SETING, "　　　　　　　　　/32/　　　　　　　　　", 場所_繁華街 
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@MAP_PRINT_7
+
+PRINTL ～裏路地～
+PRINTL
+CALL MAP_SETING, "　　　　　　Ｈ■■■　　　　　　", 
+CALL MAP_SETING, "　　　　　　■　　■　　　　　　", 
+CALL MAP_SETING, "　　　　　　■/50/　■　　　　　　", 場所_ラブホ
+CALL MAP_SETING, "　　　　　　■＿＼■　　　　　　", 
+CALL MAP_SETING, "　　　　　　　││　　　　　　　", 
+CALL MAP_SETING, "■■　　　　　││　　　　　　　", 
+CALL MAP_SETING, "ソ　─────/49/└─────雑/51/", 場所_裏路地, 場所_雑貨屋
+CALL MAP_SETING, "　/52/─┤　├─┐┌─────■■", 場所_ソープ待合室
+CALL MAP_SETING, "■■　Ａ　■　││　　　　　　　", 
+CALL MAP_SETING, "　　　■/53/■　││　　　　　　　", 場所_AV事務所
+CALL MAP_SETING, "　　　■■■　││　　　　　　　", 
+CALL MAP_SETING, "　　　　　　　↓/33/　　　　　　　", 場所_繁華街南
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;私室エリア
+@MAP_PRINT_8
+#DIM 私室
+PRINTL ～自宅と寮～
+PRINTL
+CALL MAP_SETING, "　　　　　　　　　　↑/14/│　　　　　　　", 場所_住宅街
+CALL MAP_SETING, "　　　　　寮■■■■│　│自■■■■　　",
+CALL MAP_SETING, "　　　　　■　　　/54/┐　┌│/56/│/57/■　　", 場所_あなたの家玄関
+CALL MAP_SETING, "　　　　　■　　　■│　│■─■■■　　", 場所_あなたの家風呂
+CALL MAP_SETING, "　■■■■■　/55/　■│　│■/58/│/59/■　　", 場所_あなたの家居間
+CALL MAP_SETING, "　■　　　　　　　■│　│■■■■■　　", 場所_あなたの家
+CALL MAP_SETING, "　■　　　■＝│＝■│　│　　　　　　　",
+CALL MAP_SETING, "　■■↓■■■■■■│　│　　　　　　　", 場所_寮玄関, 場所_寮ホール
+
+PRINTL ～アイドルの部屋～
+PRINTL
+LOCAL:1 = 0
+FOR 私室, 場所_あなたの家+1, 場所番号最大値+1
+	SIF LOCAL:1 % 5 == 0 && LOCAL:1 != 0
+		PRINTL
+	LOCAL:1 += 1
+	PRINTBUTTONLC @"{私室}:%GETPLACENAME(私室, 0)% ", 私室
+NEXT
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;プレイヤーの位置から表示するマップを変更
+@GET_PLAYER_MAP
+;CASE1	事務所内部
+;CASE2	住宅街
+;CASE3	大通り西
+;CASE5	繁華街
+;CASE4	大通り東
+;CASE6	学校
+;CASE7	裏路地
+;CASE8	アイドル寮
+SELECTCASE CFLAG:MASTER:現在位置
+	CASE 0
+	;err
+		RETURN 0
+	CASE IS <= 場所_シャワールーム
+		RETURN 1
+	CASE IS <= 場所_スーパー
+		RETURN 2
+	CASE IS <= 場所_家電店
+		RETURN 3
+	CASE IS <= 場所_出版社
+		RETURN 4
+	CASE IS <= 場所_駅
+		RETURN 5
+	CASE IS <= 場所_学校高等部
+		RETURN 6
+	CASE IS <= 場所_AV事務所
+		RETURN 7
+	CASE IS <= 場所番号最大値
+		RETURN 8
+	CASEELSE
+		RETURN 0
+ENDSELECT
+
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;マップセット
+@MAP_SETING, ARGS, ARG:0, ARG:1, ARG:2, ARG:3, ARG:4
+
+#DIMS MAPING, 40
+
+;ARG:n = マップの横に表示するボタン
+
+VARSET MAPING
+
+SPLIT ARGS, "/", MAPING
+LOCAL:1 = RESULT
+;マップ表示
+PRINT ┃
+FOR LOCAL, 0, LOCAL:1
+	;数値か確認
+	TOHALF MAPING:LOCAL
+	TOINT RESULTS
+	;数値ならボタン化
+	IF RESULT != 0
+		CALL GETMAP(RESULT)
+	ELSE
+		PRINTFORM %MAPING:LOCAL%
+	ENDIF
+NEXT
+PRINT ┃
+
+;マップ側面のボタン表示
+FOR LOCAL, 0, 5
+	SIF ARG:LOCAL == 0
+		CONTINUE
+	
+	;数値1~9なら大文字化
+	IF ARG:LOCAL < 10
+		TOSTR ARG:LOCAL
+		TOFULL RESULTS
+		LOCALS = %RESULTS%
+	ELSE
+		LOCALS = %@"{ARG:LOCAL}"%
+	ENDIF
+		
+	PRINT  
+	PRINTBUTTON @"%LOCALS%:%GETPLACENAME(ARG:LOCAL, 0)% ", ARG:LOCAL
+NEXT
+PRINTL

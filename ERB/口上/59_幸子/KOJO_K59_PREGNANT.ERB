@@ -1,0 +1,55 @@
+;妊娠関連まとめ
+
+@INPREGNANT_K59(奴隷)
+#DIM 奴隷
+#DIM 父親
+;ヒント
+;N_T_R_P(父親)で父親の名前表示
+;父親>=10000で父親不明
+父親 = CFLAG:奴隷:にんっしんっ -1
+
+
+	;↓恋慕、父親がMASTER
+IF TALENT:奴隷:恋慕 && 父親 == MASTER
+	PRINTFORMW 「ボクと%CALLNAME:MASTER%さんの赤ちゃんです、カワイくて優秀な子に間違いないですね！」
+	;↓恋慕住人、父親がMASTERではない
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「ウ、ウソですよね……」
+	IF 父親>=10000
+		PRINTFORM 父親の分からない
+	ELSE
+		PRINTFORM %CALLNAME:MASTER%のではない
+	ENDIF
+	PRINTFORML 子を孕んでしまったことが判明し愕然とする%CALLNAME:奴隷%
+	PRINTFORMW しかし、即座に否定しないところからして心当たりがあるのだろう。
+;↓NTR
+ELSEIF TALENT:奴隷:NTR
+	PRINTFORMW 「カワイイボクを孕ませたくなるのは自然なことですね！」
+;↓その他
+ELSE
+	;↓子が既にいる
+	IF EXP:奴隷:出産経験
+		PRINTFORML 「また、赤ちゃんできてしまいましたか……」
+		PRINTFORMW %CALLNAME:奴隷%は苦悩に満ちた表情を浮かべた。
+	;↓子がまだいない
+	ELSE
+		PRINTFORMW 「この歳でお母さんになるなんて流石のボクでも想定外ですよ……」
+	ENDIF
+ENDIF
+
+@BIRTH_K59(奴隷)
+#DIM 奴隷
+#DIM 父親
+父親=CFLAG:奴隷:にんっしんっ-1
+SIF 父親 >= 10000
+	父親 -= 10000
+IF TALENT:奴隷:恋慕 && 父親 == MASTER
+	PRINTFORML 「思ってた通り、ボクに似てカワイイ子ですね！」
+	PRINTFORMW 「あ、でも……目元は%CALLNAME:MASTER%さんに似てますね」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORMW 「この子を愛し続ける……ボクにはできません……」
+ELSEIF TALENT:奴隷:NTR
+	PRINTFORMW 「またあの人に望まれればボクは産みますよ」
+ELSE
+	PRINTFORML 疲労困憊で%CALLNAME:奴隷%は気絶するように寝入ってしまった。
+ENDIF

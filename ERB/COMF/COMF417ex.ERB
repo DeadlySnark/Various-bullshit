@@ -1,0 +1,320 @@
+;何回も歯向かったらよりひどいことされるよね
+;---------------------------------------------
+;処女を奪うのだけは許してください！なんでもしますから！
+;基本あなた限定なので、意図的にMASTERを使っています。
+;ちょっと関数長すぎる上に汚いんでリファクタリングしたいですね
+;@return 0:奪ってもいいです,1:奪わないでください
+@COM417_Save_the_Virgin_ex(犠牲者,持帰フラグ)
+	#DIM 犠牲者		; 犠牲者のキャラクター番号
+	#DIM 持帰フラグ	; 0:屋外トイレ 1:持帰り
+	#DIM LOOP_CNT	; ループカウンタ
+	#DIM 取得数		; 今回押させる数
+	#DIM 取得部位	; 今回押させる場所
+	
+	IF !TALENT:犠牲者:処女
+		;非処女は助ける必要は無いね
+		RETURN 0
+	ENDIF
+
+	IF 犠牲者 == MASTER
+		;自分は助かりません
+		RETURN 0
+	ENDIF
+	
+	PRINTFORML このままでは%CALLNAME:犠牲者%の処女が奪われてしまう……！
+	
+	PRINT [0] - それだけはやめてくれと頼む [1] - 泣く泣くあきらめる
+	INPUT
+	IF RESULT
+		PRINTFORMW %CALLNAME:MASTER%は、何も言うことができなかった……
+		RETURN 0
+	ENDIF
+	
+	;娼婦紋取得部位を取得。この場合は太股に押されます
+	CALL COM417_Get_Pos_ex(犠牲者, 持帰フラグ)
+	取得部位 = RESULT
+	
+;	IF 犠牲者 == 人物_C
+;		;ぱっちぇさん見ただけでわかるねすごいね。だが絶望しかない
+;		PRINTFORMW %CALLNAME:犠牲者%は印章を見て青ざめたが、%NTR_NAME(他人)%が軽く脅しをかけると、口を噤んで%CALLNAME:MASTER%の方をじっと見つめた
+;	ENDIF
+	
+	IF 0 == CFLAG:MASTER:娼婦紋押下回数
+		;娼婦紋を押したことがないとき
+		IF EXP:MASTER:買春経験
+			PRINTFORML 印章に刻まれているのは、%NTR_NAME(他人)%から買う「便所」の鍵と似た紋だ……。
+		ENDIF
+		IF TALENT:犠牲者:処女 == 1
+			;純正処女だと……まあ、うん。なんとかなるはなるよね
+			PRINTFORML 凄く嫌な予感がする。これを押したとして、本当に%CALLNAME:犠牲者%を助けられるのだろうか……？
+		ELSE
+			;再生処女だと取り返しがつかない事になります
+			PRINTFORML 凄く嫌な予感がする。これを押してしまったら、もう取り返しがつかないような……。
+		ENDIF
+	ELSE
+		;既に押したことがあるとき
+		PRINTFORMW わかっている。この印章を押してしまうと……。
+		IF TALENT:犠牲者:恋慕
+			PRINTFORM 事情を飲み込めていない
+		ENDIF
+	ENDIF
+		IF TALENT:犠牲者:恋慕
+			PRINTFORMW %CALLNAME:犠牲者%は%CALLNAME:MASTER%以外に処女を奪われたくない一心で押してと言っている……
+		ENDIF	
+	PRINT [0] - 処女を守るために押しつける [1] - 無理だ。これは押せない……
+	INPUT
+	IF RESULT
+		IF TALENT:犠牲者:恋慕
+			PRINTFORMW %NTR_NAME(他人)%は、こいつは自分の%MSG_RE_LOVER(犠牲者)%の処女を他人にくれてやるんだとさ、と%CALLNAME:犠牲者%に告げた……
+		ELSE
+			PRINTFORMW %NTR_NAME(他人)%は、どうやら処女はいらないらしいな、と%CALLNAME:犠牲者%に告げた……
+		ENDIF
+		RETURN 0
+	ENDIF
+	
+	;娼婦紋を押す
+	CALL COM417_Put_Stump_ex(犠牲者, 取得部位)
+	PRINTFORMW %NTR_NAME(他人)%は%CALLNAME:犠牲者%の処女を大事にしてやれ、と言い笑った。
+	RETURN 1
+	
+RETURN 0
+
+;---------------------------------------------
+;特殊娼婦紋取得部位を取得
+;@return 取得部位
+@COM417_Get_Pos_ex(犠牲者, 持帰フラグ)
+	#DIM 犠牲者		; 犠牲者のキャラクター番号
+	#DIM 持帰フラグ	; 0:屋外トイレ 1:持帰り
+	#DIM LOOP_CNT	; ループカウンタ
+	#DIM 取得数		; 今回押させる数
+	#DIM 取得部位	; 今回押させる場所
+	
+;娼婦紋を押したことがないときは発生しない
+IF 0 == CFLAG:MASTER:特殊娼婦紋押下回数
+;特殊娼婦紋は押したことがない
+	PRINTFORML %CALLNAME:MASTER%が処女を奪うのだけは許してくれ、と懇願すると
+	PRINTFORML %NTR_NAME(他人)%は薄笑いを浮かべ、今回は趣向を変えようかと言い
+	PRINTFORMW ポケットから見覚えのある印章とは少し違うものを取りだし
+ELSE
+;特殊娼婦紋も押したことがある
+	IF 0 == FLAG:57
+	;特殊娼婦紋の効果を知らない時
+		PRINTFORML %CALLNAME:MASTER%が処女を奪うのだけは許してくれ、と懇願すると
+		PRINTFORMW %NTR_NAME(他人)%は薄笑いを浮かべ、ポケットから見覚えのある印章を取りだし
+	ELSE
+	;特殊娼婦紋の効果を知っている時
+		PRINTFORML %CALLNAME:MASTER%が処女を奪うのだけは許してくれ、と懇願すると
+		PRINTFORMW %NTR_NAME(他人)%は薄笑いを浮かべ、ポケットから忘れもしないあの印象を取り出し
+	ENDIF
+ENDIF
+取得数 = 0
+;押す場所は太股
+SETBIT 取得部位,娼婦紋_太股
+取得数++
+PRINTFORM %CALLNAME:犠牲者%の太股
+
+IF 0 == FLAG:57
+	;特殊娼婦紋の効果を知らない時
+	PRINTFORMW に印章を押しつければ処女は奪わずにおいてやる、と言った
+ELSE
+;特殊娼婦紋の効果を知っている時
+	PRINTFORMW に印章を押しつければ処女は奪わずにおいてやる、結果は……わかっているな？と言った
+ENDIF
+PRINTL
+
+RETURN 取得部位
+
+;---------------------------------------------
+;特殊娼婦紋を押す
+;@return 常に1
+@COM417_Put_Stump_ex(犠牲者, 取得部位)
+	#DIM 犠牲者		; 犠牲者のキャラクター番号
+	#DIM 取得部位	; 今回押させる場所
+	#DIM 取得数		; 今回押させる数
+
+	取得数 = 0
+	PRINTFORM %CALLNAME:MASTER%は印章を受け取ると、%CALLNAME:犠牲者%の
+	IF GETBIT(取得部位,娼婦紋_恥丘)
+		PRINTFORM %"と"*(取得数>0)+"恥丘"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_左尻)
+		PRINTFORM %"と"*(取得数>0)+"左尻"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_胸元)
+		PRINTFORM %"と"*(取得数>0)+"胸元"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_太股)
+		PRINTFORM %"と"*(取得数>0)+"太腿"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_右頬)
+		PRINTFORM %"と"*(取得数>0)+"右頬"%
+		取得数++
+	ENDIF
+
+	PRINTFORMW に押しつけた。
+	PRINTFORMW 印章を離すと、押したところには淫靡さを感じさせる、鮮やかなピンク色の紋が残されている
+	PRINTL
+	IF 0 == CFLAG:MASTER:特殊娼婦紋押下回数
+		IF CFLAG:MASTER:娼婦紋押下回数 == 0
+		;娼婦紋も特殊娼婦紋も押したことがないとき
+		PRINTFORML %CALLNAME:MASTER%が振り返ると、%NTR_NAME(他人)%は笑みを浮かべ、
+		PRINTFORML それは生娘を買い取る時の「目印」みたいなもんだ。生娘じゃなくなれば"それ”は消える。
+		PRINTFORML そう言い終わると含みのある表情を浮かべてみせた。
+		ELSE
+		;娼婦紋は押したことがあるけど、特殊娼婦紋は押したことが無い時
+		PRINTFORML %CALLNAME:MASTER%が前に押した紋と色が違うことを%NTR_NAME(他人)%に問いただすと
+		PRINTFORML 紫色の紋とは違って押した人間が触れないということはない、生娘じゃなくなれば"それ”は消える
+		PRINTFORML 生娘を買い取りたい時には使えない代物さ、と含みがありそうな表情で答えた
+		ENDIF
+	ELSE
+		;特殊娼婦紋を既に押したことがあるとき
+		;FLAG:57は特殊娼婦紋がどういうものか身を持って知っている判定
+		IF FLAG:57
+			PRINTFORML %CALLNAME:MASTER%は再び自らの手で、%CALLNAME:犠牲者%に取り返しの付かない紋を押してしまった
+		ENDIF
+		PRINTFORMW %CALLNAME:MASTER%は自らの手で、%CALLNAME:犠牲者%に屈辱的な娼婦紋を押してしまった
+	ENDIF
+	
+	IF GETBIT(取得部位,娼婦紋_恥丘)
+		CALL COM417_Add_Stump_ex(犠牲者, 娼婦紋_恥丘, "恥丘")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_左尻)
+		CALL COM417_Add_Stump_ex(犠牲者, 娼婦紋_左尻, "左尻")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_胸元)
+		CALL COM417_Add_Stump_ex(犠牲者, 娼婦紋_胸元, "胸元")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_太股)
+		CALL COM417_Add_Stump_ex(犠牲者, 娼婦紋_太股, "太股")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_右頬)
+		CALL COM417_Add_Stump_ex(犠牲者, 娼婦紋_右頬, "右頬")
+	ENDIF
+	
+	CFLAG:MASTER:特殊娼婦紋押下回数 += 取得数
+RETURN 1
+
+;---------------------------------------------
+;特殊娼婦紋を追加
+;@return 常に1
+@COM417_Add_Stump_ex(犠牲者, 追加部位, 部位名称)
+	#DIM 犠牲者
+	#DIM 追加部位
+	#DIMS 部位名称
+
+	IF GETBIT(CFLAG:犠牲者:娼婦紋, 追加部位)
+		CFLAG:犠牲者:娼婦紋上書回数 ++
+		;普通の娼婦紋と合算
+		CLEARBIT CFLAG:犠牲者:娼婦紋, 追加部位
+		PRINTFORML %CALLNAME:犠牲者%は%部位名称%の娼婦紋に特殊娼婦紋を上書きされた
+	ELSEIF GETBIT(CFLAG:犠牲者:特殊娼婦紋, 追加部位)
+		CFLAG:犠牲者:娼婦紋上書回数 ++
+		PRINTFORML %CALLNAME:犠牲者%は%部位名称%特殊娼婦紋を上書きされた
+	ELSE
+		PRINTFORML %CALLNAME:犠牲者%は%部位名称%に特殊娼婦紋を得た
+	ENDIF
+	SETBIT CFLAG:犠牲者:特殊娼婦紋,追加部位
+RETURN 1
+
+;---------------------------------------------
+;特殊娼婦紋を押下されたキャラの処女が失われた時の処理
+;@param ARG   奪われたキャラ
+;@param ARG:1 奪ったキャラ
+@COM417_Lost_Virgin_ex(ARG,ARG:1)
+
+	IF CFLAG:ARG:特殊娼婦紋 == 0
+		RETURN 0
+	ENDIF
+
+	IF ARG:1 == MASTER
+		PRINTFORML %CALLNAME:ARG%の鮮やかなピンク色の娼婦紋は一瞬禍々しく輝くと、紫色に変化した……それはもう二度と消えることはない……
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_恥丘)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_恥丘, "恥丘")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_左尻)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_左尻, "左尻")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_胸元)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_胸元, "胸元")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_太股)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_太股, "太股")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_右頬)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_右頬, "右頬")
+		ENDIF
+		;特殊娼婦紋は消す
+		CFLAG:ARG:特殊娼婦紋 = 0
+		;あなたが特殊娼婦紋の効果を知っているフラグを建てる
+		FLAG:57 = 1
+		RETURN 0
+	ENDIF
+;再生処女には押せないが一応
+	IF TALENT:ARG:処女 == 2
+		PRINTFORML 処女を奪われた瞬間%CALLNAME:ARG%の鮮やかなピンク色の娼婦紋は一瞬禍々しく輝くと、紫色に変化した……それはもう二度と消えることはない……
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_恥丘)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_恥丘, "恥丘")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_左尻)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_左尻, "左尻")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_胸元)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_胸元, "胸元")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_太股)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_太股, "太股")
+		ENDIF
+		IF GETBIT(CFLAG:ARG:特殊娼婦紋,特殊娼婦紋_右頬)
+		CALL COM417_Change_Stamps_ex(ARG, 特殊娼婦紋_右頬, "右頬")
+		ENDIF
+		CFLAG:ARG:特殊娼婦紋 = 0
+		FLAG:57 = 1
+		
+		RETURN 0
+	ENDIF
+	PRINTFORML %CALLNAME:MASTER%以外に処女を奪われ、%CALLNAME:ARG%の特殊娼婦紋は跡形も無く消え去った……。
+	CFLAG:ARG:特殊娼婦紋 = 0
+
+RETURN 0
+
+;---------------------------------------------
+;特殊娼婦紋→娼婦紋への書き換え
+@COM417_Change_Stamps_ex(犠牲者, 変更部位, 部位名称)
+	#DIM 犠牲者
+	#DIM 変更部位
+	#DIMS 部位名称
+SETBIT CFLAG:犠牲者:娼婦紋, 変更部位
+PRINTFORML %CALLNAME:犠牲者%は特殊娼婦紋のかわりに%部位名称%に赤紫色の娼婦紋を得た。
+
+RETURN 0
+
+;------------------------------------------------
+;特殊娼婦紋による発情処理
+@COM417_add_sexual_desire_ex(人物)
+	#DIM 人物	; 対象となる人物
+	#DIM 強度	; 追加分の強度。娼婦紋上書き回数に依存。最大10
+	
+	IF CFLAG:人物:特殊娼婦紋
+		強度 = LIMIT(CFLAG:人物:娼婦紋上書回数, 1, 10)
+		;充填率
+;		CALL COM417_GetFillingRateByPublicSperm(人物)
+;		SELECTCASE (RESULT:1 * RESULT:0)
+;			CASE IS >= 100	; 娼婦紋がピンク色
+;				強度 *= 0
+;			CASE 50 TO 99	; 娼婦紋が赤
+;				強度 *= 2
+;			CASE 1 TO 49	; 娼婦紋が赤紫
+;				強度 *= 5
+;			CASEELSE		; 娼婦紋が紫
+;				強度 *= 10
+;		ENDSELECT
+		;常に紫色相当ってことで。つねに紫にして押し倒されて思わずやってしまうというのも想定して
+		強度 *=10
+		PALAM:人物:欲情 += 強度
+		CFLAG:人物:性欲 += 強度
+	ENDIF
+RETURN 0

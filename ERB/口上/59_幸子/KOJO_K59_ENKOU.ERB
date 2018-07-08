@@ -1,0 +1,95 @@
+@ENKOU_START_K59(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「自分の事務所のアイドルとお金払ってエッチするとかとんでもない変態さんですね！」
+ELSE
+	PRINTFORML 「カワイイボクが搾り取ってあげます %MSG_HEART()%」
+ENDIF
+
+@ENKOU_FINISH_K59(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「ボクは寛大なのでこのことを他のアイドルには話さないであげますね！」
+ELSE
+	PRINTFORML 「次のおじさんとの約束があるのでお先に失礼しますね %MSG_HEART()%」
+ENDIF
+@SORP_START_K59(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「自分の事務所のアイドルとお金払ってエッチするとかとんでもない変態さんですね！」
+ELSE
+	PRINTFORML 「カワイイボクが搾り取ってあげます %MSG_HEART()%」
+ENDIF
+@SORP_FINISH_K59(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「ボクは寛大なのでこのことを他のアイドルには話さないであげますね！」
+ELSE
+	PRINTFORML 「次のおじさんとの約束があるのでお先に失礼しますね %MSG_HEART()%」
+ENDIF
+
+
+@KOJO_MESSAGE_COM_K59_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「ボクのカワイさにたくさんのおじさんがメロメロですよ！」
+
+@KOJO_MESSAGE_COM_K59_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「そうですよね、こんな汚れた体、嫌ですよね…」
+			PRINTFORML 「本当に…後悔しててっ…でもっ…」
+			PRINTFORML 色々後ろめたい気持ちを押し込めていたが、%CALLNAME:MASTER%の一言で決壊してしまったのだろう。
+			PRINTFORML 泣き出してしまった%CALLNAME:奴隷%を今までのことはどうでもいい、と慰めた。
+		ELSE
+			PRINTFORML 「アイドル活動に支障が出る？それじゃあしょうがないですね」
+		ENDIF
+	CASE 2
+		PRINTFORML 「ひょっとして独占したいってことですか？%CALLNAME:MASTER%を本気にさせちゃうなんて本当に罪作りなボク…」
+		PRINTFORML 「でもダメです！多くのおじさんたちがボクのカワイさを求めてますから！」
+	CASE 3
+		PRINTFORML 「ダメです！多くのおじさんたちがボクのカワイさを求めてますから！」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K59(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORMW 「ボクが%CALLNAME:MASTER%のじゃないチンポで種付けされちゃうところ、ちゃんと聞いててくださいね %MSG_HEART()%」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「こんなこと言える訳ないじゃないですか……」
+	PRINTFORMW 電話を切り立ちすくむ%CALLNAME:奴隷%は、下に寝そべる%NTR_NAME_SEX(奴隷,他人)%に命令されて腰を逸物へと降ろしていった。
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「%CALLNAME:MASTER%さん、ボクのアイドルおマンコが滅茶苦茶にされるところを想像してます？」
+	PRINTFORMW 「仕方ないですよ、ボクはカワイイですから！」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K59(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「だ、大丈夫ですよ、ちょっと興味本位で吸ってみただけですから！」
+ELSE
+	PRINTFORML 「これがひつようなんです、これをはじめてからボクはもっとかわいくなりましたから……」
+	PRINTFORML そういって鏡を覗き込む%CALLNAME:奴隷%の目は虚ろだ。
+ENDIF

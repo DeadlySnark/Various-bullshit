@@ -1,0 +1,24 @@
+;-------------------------------------------------
+;訪問者を案内する
+;-------------------------------------------------
+@COM464
+PRINTFORMW %NTR_NAME(他人)%の姿を見つけ、%CALLNAME:MASTER%は%NTR_NAME(他人)%に案内するからついてきて欲しいと声をかけた
+; ここから他の住人が居る場合の処理
+LOCAL:1 = 0
+FOR LOCAL,1,CHARA_ACTIVE
+	IF CFLAG:MASTER:現在位置 == CFLAG:LOCAL:現在位置
+		IF FLAG:1800 == LOCAL
+			PRINTFORMW しかし、今は%CALLNAME:LOCAL%と一緒に居るからと断られてしまった
+			RETURN 0
+		ENDIF
+	ENDIF
+NEXT
+IF FLAG:1800 == 0
+	PRINTFORMW %NTR_NAME(他人)%はもちろんと快諾してくれた
+	FLAG:訪問者同行フラグ = DATETIME() + 180
+ELSE
+	PRINTFORMW %NTR_NAME(他人)%は承諾し、%CALLNAME:MASTER%の傍に来た
+	FLAG:訪問者同行フラグ = DATETIME() + 60
+ENDIF
+CFLAG:MASTER:他人との行為の終了時刻 = 0
+CFLAG:MASTER:他人との行為 = 0

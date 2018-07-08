@@ -1,0 +1,37 @@
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - 所属人数を増やしたい 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM420_05_ENABLE
+	RESULTS:0 = %"[ 5]-所属人数の拡張"%
+	;常に実行可能
+	RETURN 1
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;事務員と話す(拡張版) - 所属人数を増やしたい
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM420_05
+#DIM キャラ番号
+TIME+=3
+	PRINTFORML %CALLNAME:TARGET% 「今現在の所属人数は{場所番号最大値 -場所番号最大値初期数}人です。」
+	PRINTFORML %CALLNAME:TARGET% 「最大配属人数は{FLAG:事務所人数CAP+5}人で、今回のシステム更新には${(FLAG:事務所人数CAP/5+1)*5000}かかります。」
+	IF MONEY -(FLAG:事務所人数CAP/5+1)*5000 < 0
+		PRINTFORML %CALLNAME:TARGET% 「・・・お金が足らないみたいなので次の機会にしましょう。」
+		RETURN 0
+	ENDIF
+	PRINTFORML %CALLNAME:TARGET% 「一回の更新で新たに5人雇えるようになります。どうしますか？」
+
+PRINTL [0] - 実行する
+PRINTL [1] - 見送る
+INPUT
+IF !RESULT
+	MONEY -= (FLAG:事務所人数CAP/5+1)*5000
+	FLAG:事務所人数CAP += 5
+	PRINTFORML %CALLNAME:TARGET% 「手続きはやっておきますね。」
+	RETURN 1
+ELSE
+	PRINTFORML %CALLNAME:TARGET% 「わかりました、今回は見送りますね。」
+	RETURN 0
+ENDIF

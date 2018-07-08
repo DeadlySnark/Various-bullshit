@@ -1,0 +1,848 @@
+;-------------------------------------------------
+;オーディション
+;-------------------------------------------------
+@COM480
+#DIM LINE
+#DIM LOOP_CHR
+#DIM LOOP_NUM
+IF !GETBIT(FLAG:オーディション情報, 0)
+	PRINTL
+	PRINTFORML 「オーディションを受けに来たのかい？」
+	PRINTFORML いかにも業界人然の男が話しかけてきた
+	PRINTFORML 「ここはオーディション合格、即収録だから活気があっていいところだよ」
+	PRINTFORML 「まあ、これでも読んでよく学びたまえ」
+	PRINTFORMW 男は%CALLNAME:MASTER%に冊子を渡すとカカッと笑ってどこかへと歩いていった
+	PRINTFORML どうやらオーディションの情報が載っているようだ。
+	PRINTFORMW 特に重要そうな部分だけかいつまんで読もう。
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTL ・体力気力がある程度減っているとオーディションに参加できない
+	PRINTL ・とれるパフォーマンスはビジュアル→ボーカル→ダンス→ビジュアル→…の三すくみの関係である
+	PRINTL ・勝った場合は対応する能力に応じたポイントを得る
+	PRINTL ・アピールが被った場合は能力の差でポイントを得る
+	PRINTL ・それぞれのとれる行動回数は決まっている
+	PRINTW ・勝敗はどちらかが三連勝あるいは出せる手がなくなった時のポイントで決まる
+	;限定じゃんけんっす
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW なんだかざわざわしてきたが大体理解できた気がする。あとは実際に試した方がよさそうだ
+	FOR COUNT,0, 10
+		CALL MAKE_AUDITION(COUNT)
+	NEXT
+	SETBIT FLAG:オーディション情報,0
+ENDIF
+$COM480_HEAD
+PRINTFORML 今日はどうしようか……？
+PRINTL [0] - オーディションを受ける
+;PRINTL [1] - 冊子「オーディションの手引き」を読む
+PRINTL [9] - 帰る
+INPUT
+LOCAL=RESULT
+IF LOCAL==0
+ELSEIF LOCAL==1
+;	CALL TORISETSU_BATTLE()
+	GOTO COM480_HEAD
+ELSEIF LOCAL==9
+	RETURN 0
+ELSE
+	GOTO COM480_HEAD
+ENDIF
+;この場にいる中でもっとも高いアイドルランクのキャラの取得
+LOCAL:5=TARGET
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF オーディション可能(LOOP_CHR,0) && CFLAG:LOOP_CHR:アイドルランク >= CFLAG:(LOCAL:5):アイドルランク
+		LOCAL:5=LOOP_CHR
+NEXT
+;WHO
+LOCAL:0=LOCAL:5
+LOCAL:1=0
+LOCAL:2=LOCAL:5
+;ランク
+LOCAL:3=CFLAG:(LOCAL:5):アイドルランク
+;順番
+LOCAL:4=0
+$COM480_BATTLE
+;battle
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;select画面
+DRAWLINE
+DRAWLINE
+LINE=LINECOUNT
+PRINTFORML [3] %IDOLRANK(LOCAL:3)%ランクオーデション　参加費:${200*(1+LOCAL:3)}
+
+PRINTFORML     ライバルの能力 Vi-{ランク:(LOCAL:3):0,2} Vo-{ランク:(LOCAL:3):2,2} Da-{ランク:(LOCAL:3):1,2}
+PRINTFORML [0] %NAME:(LOCAL:0),14% Vi-{ABL:(LOCAL:0):ビジュアル技能,2} Vo-{ABL:(LOCAL:0):ボーカル技能,2} Da-{ABL:(LOCAL:0):ダンス技能,2}
+	PRINTFORML [1] オーディション全自動 \@ LOCAL:1==1 ? ON#OFF\@
+	PRINTL [9] オーディション開始！
+	PRINTL [99] 戻る
+INPUT
+
+IF RESULT == 1
+	INVERTBIT LOCAL:1 , 0
+;	INVERTBIT LOCAL:4, 0
+	GOTO COM480_BATTLE
+ELSEIF RESULT == 3
+	PRINTFORML 　　　　　　　　　　　　　　　参加可能
+	FOR LOOP_NUM,0, MIN(CFLAG:(LOCAL:5):アイドルランク+2, 10)
+		PRINTFORM [{LOOP_NUM}] %IDOLRANK(LOOP_NUM)%ランクオーデション - 
+		FOR LOOP_CHR, 1 , CHARA_ACTIVE
+			SIF オーディション可能(LOOP_CHR, LOOP_NUM)
+				PRINTFORM %CALLNAME:LOOP_CHR% 
+		NEXT
+		PRINTL
+	NEXT
+	INPUT
+	LOCAL:3=RESULT
+	LOCAL:0=LOCAL:5
+	LOCAL:1=0
+	LOCAL:2=LOCAL:5
+	CLEARLINE LINECOUNT-LINE
+	GOTO COM480_BATTLE
+ELSEIF RESULT == 0
+	FOR LOOP_CHR, 1 , CHARA_ACTIVE
+		SIF オーディション可能(LOOP_CHR, LOCAL:3)
+			PRINTFORM [{LOOP_CHR}] %NAME:LOOP_CHR% Vi-{ABL:(LOOP_CHR):ビジュアル技能,2} Vo-{ABL:(LOOP_CHR):ボーカル技能,2} Da-{ABL:(LOOP_CHR):ダンス技能,2} 
+	NEXT
+	INPUT
+	LOCAL:0=RESULT
+	CLEARLINE LINECOUNT-LINE
+	GOTO COM480_BATTLE
+ELSEIF RESULT == 9
+	IF MONEY-200*(1+LOCAL:3) < 0
+		PRINTFORMW お金が足らない！(現在の所持金:{MONEY}$)
+		CLEARLINE LINECOUNT-LINE
+		GOTO COM480_BATTLE
+	ENDIF
+	MONEY-=200*(1+LOCAL:3)
+ELSE
+	GOTO COM480_HEAD
+ENDIF
+;select画面
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;ライバル作成
+ADDCHARA 0
+CALLNAME:(CHARANUM-1)=ライバル
+NAME:(CHARANUM-1)=ライバル
+;
+ABL:(CHARANUM-1):ビジュアル技能=ランク:(LOCAL:3):0
+ABL:(CHARANUM-1):ボーカル技能=ランク:(LOCAL:3):2
+ABL:(CHARANUM-1):ダンス技能=ランク:(LOCAL:3):1
+;チーム戦の場合の処理をここに書く
+;基本的にはADDCHARAでダミーデータを作って行う
+;PRINTFORMW ！注意！
+
+;v0.630での仮設置
+;とりあえずライバルの上に数字展開しちゃって確率battle ライバルに+1はバグ除け
+	CALL JANKEN_MAIN(LOCAL:0, CHARANUM-1, LOCAL:1)
+	DELCHARA CHARANUM-1
+	DRAWLINE
+	PRINTFORML 　　　・
+	PRINTFORML 　　　・
+	PRINTFORMW 　　　・
+	PRINTFORMW 「そこまでッ」
+	PRINTFORMW どうやら審査が終わったようだ
+	PRINTL
+	PRINTFORM 審査員たちは立ち上がり
+IF RESULT>0
+;勝ち
+	PRINTFORML こちらに向かって拍手をし始めた！
+	PRINTFORMW %CALLNAME:LOCAL%の勝ちだ！
+	PRINTL 
+	PRINTFORML 勝利の余韻に浸る間もなく収録が始まった
+	PRINTFORML この放送が公開されれば、さらに多くのファンがつくだろう
+	LOCAL:6=正規分布(300*(1+LOCAL:3))
+	PRINTFORML 収録代${LOCAL:6}を手に入れた
+	MONEY+=LOCAL:6
+	POWER LOCAL:6, 3 , (LOCAL:3+1)
+	LOCAL:6=正規分布(LOCAL:6+10)
+	PRINTFORML 新規ファンを約{LOCAL:6}人手に入れた
+	PRINTFORML %CALLNAME:MASTER%への好感度が{LOCAL:6*4}上がった
+		EXP:(LOCAL:0):アイドル活動経験++
+		CFLAG:(LOCAL:0):ファン人数 += LOCAL:6/3
+		CFLAG:(LOCAL:0):好感度 += LOCAL:6*4
+		IF LOCAL:3 > CFLAG:(LOCAL:0):アイドルランク
+			PRINTFORML %CALLNAME:(LOCAL:0)%はアイドルランクが上昇した
+			CFLAG:(LOCAL:0):アイドルランク++
+		ENDIF
+
+	CALL MAKE_AUDITION(LOCAL:3)
+ELSE
+;負け
+	PRINTFORML あちらに向かって拍手をし始めた！
+	PRINTFORMW こちらの負けだ…
+	PRINTL 
+	PRINTFORML 喜ぶライバルを尻目に%CALLNAME:MASTER%たちは帰り支度を始めた……
+	IF !GETBIT(FLAG:オーディション情報, 1)
+		PRINTFORML 「おや、残念な結果だったみたいだな」
+		PRINTFORML この前説明してくれた男が再び話しかけてきた。
+		PRINTFORML 「ところでさっき座っていた審査員を覚えているかい？」
+		PRINTFORML 「そう、あの中でもいかにも好色そうなおっさんがこの前言ってた奴さ」
+		PRINTFORMW 「抱いた女を贔屓して高めに採点するってもっぱらの噂だぜ」
+		SETBIT FLAG:オーディション情報, 1
+	ENDIF
+ENDIF
+TIME += 60
+
+
+	IF BASE:(LOCAL:0):体力 > MAXBASE:(LOCAL:0):体力*3/4
+		BASE:(LOCAL:0):体力 -= MAXBASE:(LOCAL:0):体力*3/4
+		BASE:(LOCAL:0):気力 -= MAXBASE:(LOCAL:0):気力*3/4
+	ENDIF
+
+RETURN 1
+
+[SKIPSTART]
+PRINTFORML %CALLNAME:TARGET%が受けられるオーディションは．．．
+	REPEAT (MIN(2+CFLAG:アイドルランク,7))
+		PRINTFORML [{COUNT}] - %IDOLRANK(COUNT)%ランクオーディション 参加費:${100*(COUNT+1)}
+		PRINTFORM        └
+		IF GETBIT(FLAG:オーディション情報, COUNT)
+			PRINTFORML %AUDITION_STATE(COUNT)%
+		ELSE
+			PRINTFORML ？？？
+		ENDIF
+	REND
+INPUT
+IF !INRANGE(RESULT,0, 1+CFLAG:アイドルランク)
+	PRINTL 入力が不正です。
+	RESTART
+ENDIF
+IF INRANGE(RESULT,0, 1+CFLAG:アイドルランク)
+	挑戦=RESULT
+	CLEARBIT (FLAG:オーディション情報), 挑戦
+	MONEY -= 100*(挑戦+1)
+	$OMOMI
+	PRINTFORML アイドルにアドバイスをしてください
+	PRINTFORML [ 0] - ビジュアル重視で
+	PRINTFORML [ 1] - ボーカル重視で
+	PRINTFORML [ 2] - ダンス重視で
+INPUT
+SIF !INRANGE(RESULT,0, 2)
+	GOTO OMOMI
+	;ここから、アイドルの能力計算
+	LOCAL:0 = ABL:ビジュアル技能*100*ランク:挑戦:0
+	LOCAL:1 = ABL:ボーカル技能*100*ランク:挑戦:1
+	LOCAL:2 = ABL:ダンス技能*100*ランク:挑戦:2
+	LOCAL:RESULT += EXP:(94+RESULT)/(挑戦+1)*ランク:挑戦:RESULT
+	;クリアに必要な値の計算
+	LOCAL:3=(ランク:挑戦:0*ランク:挑戦:0+ランク:挑戦:1*ランク:挑戦:1+ランク:挑戦:2*ランク:挑戦:2)*100
+;	PRINTFORML {LOCAL} {LOCAL:1} {LOCAL:2} {LOCAL:3}
+		PRINTFORMW 　　　　　　　・
+		PRINTFORMW 　　　　　　　・
+		PRINTFORMW 　　　　　　　・　　
+		PRINTFORMW 「では次の{RAND:((挑戦+1)*10)+2}番%NAME:TARGET%さん、アピールおねがいします」
+		PRINTFORMW 　　　　　　　・
+		PRINTFORMW 　　　　　　　・
+		PRINTFORMW 　　　　　　　・　　
+	
+	PRINTFORML オーディションが終わって、暫く待機しているとアナウンスが先ほどのオーディションの合格者を読み上げ始めた。
+	IF LOCAL:3>(LOCAL:0+LOCAL:1+LOCAL:2)
+		PRINTFORMW %CALLNAME:TARGET%の名前は呼ばれなかった．．．
+
+		;口上の分岐
+
+	ELSE
+			SOURCE:歓楽 = 400
+	;ABL:従順をみる
+	IF ABL:従順 <= 1
+		SOURCE:歓楽 += (ABL:従順 * 60)
+	ELSEIF ABL:従順 <= 3
+		SOURCE:歓楽 += 200 + (ABL:従順 * 60)
+	ELSEIF ABL:従順 <= 5
+		SOURCE:歓楽 += 500 + (ABL:従順 * 60)
+	ELSEIF ABL:従順 <= 8
+		SOURCE:歓楽 += 750 + (ABL:従順 * 75)
+	ELSEIF ABL:従順 <= 11
+		SOURCE:歓楽 += 1000 + (ABL:従順 * 75)
+	ELSE
+		SOURCE:歓楽 += 2000 + (ABL:従順 * 30)
+	ENDIF
+
+	;好感度をみる
+	IF CFLAG:好感度 <= 500
+		SOURCE:歓楽 += CFLAG:2
+	ELSEIF CFLAG:好感度 <= 5000
+		SOURCE:歓楽 += 500 + (CFLAG:好感度 - 500) / 3
+	ELSE
+		SOURCE:歓楽 += 2000 + (CFLAG:好感度 - 5000) / 5
+	ENDIF
+	SIF SOURCE:歓楽 < 0
+		SOURCE:歓楽 = 0
+		PRINTFORML %CALLNAME:TARGET%の名前が読み上げられた！
+		PRINTFORML 喜ぶ暇もなく収録が始まった．．．
+		PRINTFORML この放送が公開されれば、さらに多くのファンが%CALLNAME:TARGET%につくだろう
+		TIME += 30
+
+		
+		
+		;ファン
+		LOCAL:5=1
+		;10^nの作成
+;		REPEAT (挑戦+1)
+;			LOCAL:5 *=10
+;		REND
+	;POWERあるやんけ
+		POWER LOCAL:5, 10 , (挑戦+1)
+		LOCAL:6=0
+		DO
+			LOCAL:6 += RAND:(LOCAL:5)
+		LOOP LOCAL:6<LOCAL:5
+		;金 イメージ的にはもっともいい舞台(挑戦=6),最高アイドル(アイドルランク6)で$5000ぐらいをイメージ
+		LOCAL:5=0
+		REPEAT 100
+			LOCAL:5 += RAND:100
+		REND
+		;正規分布…にはなってないよなあ
+		;50前後に収束したはず
+		LOCAL:5 /= 100
+		;2~16
+		POWER LOCAL:7, 2 , (MAX(0, 挑戦/2)+1)
+		;2~8
+		POWER LOCAL:8, 2 , (MAX(0, CFLAG:アイドルランク/3)+1)
+		
+		LOCAL:4 = 100*(挑戦+1) + LOCAL:5*LOCAL:7*LOCAL:8*2/3
+;		IF !TALENT:アイドル && !TALENT:ＡＶ女優
+;			PRINTFORML %CALLNAME:TARGET%は[アイドル]になった！
+;			TALENT:アイドル=1
+;		ENDIF
+		EXP:アイドル活動経験++
+		PRINTFORML 収録代${LOCAL:4}を手に入れた
+		PRINTFORML ファンが{LOCAL:6}人増えた
+		CFLAG:ファン人数 += LOCAL:6
+		MONEY += LOCAL:4
+		IF 挑戦>CFLAG:アイドルランク && CFLAG:アイドルランク<6
+			CFLAG:アイドルランク ++
+			PRINTFORML %CALLNAME:TARGET%はアイドルランクが上昇した
+		ENDIF
+	ENDIF
+		
+
+ENDIF
+	CALL MAKE_AUDITION(挑戦)
+	DOWNBASE:気力 == MAXBASE:気力*7/10
+	DOWNBASE:体力 == MAXBASE:体力*7/10
+	TIME += 30
+RETURN 1
+[SKIPEND]
+
+
+
+
+@LIVEBATTLE_BASE(ARG, ARG:1, ARG:2, ARG:3, ARG:4)
+;ARG0~2:味方の参照番号
+;ARG3:敵(直前に生成)
+;ARG4:オプション(回転方向)
+#DIM TURN
+#DIM TURNATK
+#DIM LIFE,2
+#DIM LINE
+#DIM ATK
+#DIM DEF
+#DIM 基礎,2 ,3
+#DIM IX1
+#DIM IX2
+#DIMS バフ,10
+#DIM バフ処理,2
+#DIM バフカウント
+#DIM B_COUNT
+LIFE:0=0
+LIFE:1=0
+;抽出しといたほうが可視性高い?
+IF ARG:4==1
+;Vi→Vo→Da→Vi
+	基礎:0:0=ABL:(ARG:0):ビジュアル技能*100
+	基礎:0:1=ABL:(ARG:1):ボーカル技能*100
+	基礎:0:2=ABL:(ARG:2):ダンス技能*100
+	基礎:1:0=ABL:(ARG:3):ビジュアル技能*100
+	基礎:1:1=ABL:(ARG:3):ボーカル技能*100
+	基礎:1:2=ABL:(ARG:3):ダンス技能*100
+ELSE
+;Vi→Da→Vo→Vi
+	基礎:0:0=ABL:(ARG:0):ビジュアル技能*100
+	基礎:0:1=ABL:(ARG:1):ダンス技能*100
+	基礎:0:2=ABL:(ARG:2):ボーカル技能*100
+	基礎:1:0=ABL:(ARG:3):ビジュアル技能*100
+	基礎:1:1=ABL:(ARG:3):ダンス技能*100
+	基礎:1:2=ABL:(ARG:3):ボーカル技能*100
+ENDIF
+FOR COUNT,0,2
+	FOR COUNT:1,0,3
+;		PRINTFORML 基礎:{COUNT}:{COUNT:1}={基礎:COUNT:(COUNT:1)}	
+	NEXT
+NEXT
+
+TURN=0
+;必要な値をあらかじめ抽出
+
+WHILE 1
+	バフカウント=0
+	バフ処理:0=1
+	バフ処理:1=1
+	;ぐう:味方ターン
+	;き:敵ターン
+	IX1=TURN%2
+	IX2=TURN%3
+	ATK=正規分布(基礎:IX1:IX2)
+	IX1=(TURN+1)%2
+	IX2=(TURN+1)%3
+	DEF=正規分布(基礎:IX1:IX2)
+	;バフ処理
+	;審査員の贔屓
+	SIF TURN%2==0
+		IX2=TURN%3
+	IF CFLAG:(ARG:IX2):審査員枕
+		バフ処理:0*=15
+		バフ処理:1*=10
+		LOCALS:バフカウント=審査員の贔屓　×1.5
+		バフカウント++
+	ENDIF
+	;0420 勘違いにつき一時停止
+	[SKIPSTART]
+	;仲間
+	IX1=(IX2+RAND:3)%3
+	;3人とも違うとき2/3*2/3で発動
+	IF ARG:IX1 != ARG:IX2 && RAND:3
+		バフ処理:1*=10
+		LOCALS:バフカウント=%CALLNAME:(ARG:IX2)%と%CALLNAME:(ARG:IX1)%のコンビネーション
+		SELECTCASE RELATION:IX2:(NO:IX1)
+			CASE IS >= 200
+				バフ処理:0*=15
+				LOCALS:バフカウント+="　×1.5"
+			CASE IS >= 180
+				バフ処理:0*=13
+				LOCALS:バフカウント+="　×1.3"
+			CASE IS >= 160
+				バフ処理:0*=12
+				LOCALS:バフカウント+="　×1.2"
+			CASE IS >= 140
+				バフ処理:0*=11
+				LOCALS:バフカウント+="　×1.1"
+			CASE IS >= 120
+				バフ処理:0*=10
+				LOCALS:バフカウント+="　×1.0"
+			CASEELSE
+				バフ処理:0*=9
+				LOCALS:バフカウント+="　×0.9"
+		ENDSELECT
+		バフカウント++
+	ENDIF
+	[SKIPEND]
+	;バフ最終処理
+	IF TURN%2
+		DEF=DEF*バフ処理:0/バフ処理:1
+	ELSE
+		ATK=ATK*バフ処理:0/バフ処理:1
+	ENDIF
+	
+	
+	;ダメージ処理		;超えている分ATK側のLIFEが増える
+	IX1=TURN%2
+	SIF ATK-DEF > 0
+		LIFE:IX1+=ATK-DEF
+		
+		
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;DISP
+		;DISP1
+	SIF TURN != 0
+		CLEARLINE LINECOUNT-LINE
+	LINE=LINECOUNT
+	PRINTL 
+	DRAWLINE
+	DRAWLINE
+	PRINTFORML ターン{TURN+1}
+	IX1=TURN%2
+	IX2=(TURN+1)%2
+	;誰がどれか
+	SIF (TURN+IX1)*(1+ARG:4)%3==0
+		SETCOLORBYNAME Aqua
+	SIF (TURN+IX2)*(1+ARG:4)%3==0
+		SETCOLORBYNAME Red
+	PRINTFORML 　　　　　　　　　　　 　　　　Vi
+	RESETCOLOR
+	IF ARG:4
+		PRINTFORML 　　　　　　　　　　　　　　　%UNICODE(0x2197)%　%UNICODE(0x2198)%
+		
+	ELSE
+		PRINTFORML 　　　　　　　　　　　　　　　%UNICODE(0x2199)%　%UNICODE(0x2196)%
+	ENDIF
+	SIF (TURN+IX1)*(1+ARG:4)%3==1
+		SETCOLORBYNAME Aqua
+	SIF (TURN+IX2)*(1+ARG:4)%3==1
+		SETCOLORBYNAME Red
+	PRINTFORM 　　　　　　　　　　　　　　Da
+	RESETCOLOR
+	IF ARG:4
+		PRINTFORM  ←
+		
+	ELSE
+		PRINTFORM  →
+	ENDIF
+	SIF (TURN+IX1)*(1+ARG:4)%3==2
+		SETCOLORBYNAME Aqua
+	SIF (TURN+IX2)*(1+ARG:4)%3==2
+		SETCOLORBYNAME Red
+	PRINTFORML  Vo
+	RESETCOLOR
+
+	SETCOLORBYNAME Aqua
+	PRINTFORM 　　　　 　　YOUR IDOL   \@ TURN%2 ?守#攻\@    　　　
+	RESETCOLOR
+	SETCOLORBYNAME Red
+	PRINTFORML \@ TURN%2 ?攻#守\@　RIVAL IDOL
+	RESETCOLOR
+	BAR LIFE:0,1000,20
+	IF TURN%2
+		PRINTFORM  {DEF,4}        {ATK,4}　
+	ELSE
+		PRINTFORM  {ATK,4}        {DEF,4}　
+	ENDIF
+	
+	BAR LIFE:1,1000,20
+	PRINTL
+	SETCOLORBYNAME LightGreen
+	FOR B_COUNT,0, 3
+		IF B_COUNT<バフカウント
+			PRINTFORML %LOCALS:B_COUNT%
+		ELSE
+			PRINTL
+		ENDIF
+	NEXT
+	RESETCOLOR
+	PRINTL
+	TURNATK=TURN%3
+	SIF TURN%2
+		TURNATK=3
+		PRINTFORML %CALLNAME:(ARG:TURNATK)%のアピール！
+		IF ATK-DEF >0
+			PRINTFORML \@ TURN%2 ?敵は#味方は\@{ATK-DEF}アピールポイントを得た！
+		ELSE
+			PRINTFORML しかし審査員たちの反応はいまいちだ
+		ENDIF
+	IF LIFE:0 >= 1000
+		PRINTL 味方は1000ポイント先取した！
+	ELSEIF LIFE:1 >= 1000
+		PRINTL 敵に1000ポイント先取されてしまった……
+	ENDIF
+	DRAWLINE
+	DRAWLINE
+	PRINTW
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;終了処理
+	;勝ち
+	SIF LIFE:0 >= 1000
+		RETURN 1
+	;負け
+	SIF LIFE:1 >= 1000
+		RETURN -1
+	;それ以外→NEXTTURN
+	TURN ++
+WEND
+
+
+
+
+
+@正規分布(SEED_B)
+#FUNCTION
+#DIM SEED_B
+#DIM SEP,2
+#DIM LOOP_COUNT
+#DIM VAL
+VAL=0
+;「もどき」だけどね
+;バグ避け
+SIF SEED_B==0
+	RETURNF 0
+SEP:1=SEED_B%100
+SEP:0=SEED_B-SEP:1
+;100以上
+FOR LOOP_COUNT,0, 20+1
+	VAL+=RAND:MAX(1, (SEP:0/10))
+NEXT
+;100以下
+FOR LOOP_COUNT,0, SEP:1*2
+	VAL+=RAND:2
+NEXT
+
+
+RETURNF VAL
+
+
+;オーディション可能
+@オーディション可能(ARG,ARG:1)
+;ARGのキャラがオーディション受けられるかどうかの確認
+;ARG:1はアイドルランク関連
+#FUNCTION
+SIF !所属(ARG)
+	RETURNF 0
+SIF !TALENT:ARG:アイドル
+	RETURNF 0
+SIF CFLAG:ARG:現在位置 != CFLAG:MASTER:現在位置
+	RETURNF 0
+SIF BASE:ARG:体力*4 < MAXBASE:ARG:体力*3 || BASE:ARG:気力*4 < MAXBASE:ARG:気力*3
+	RETURNF 0
+SIF ARG:1 > CFLAG:ARG:アイドルランク+1
+	RETURNF 0
+RETURNF 1
+
+@JANKEN_MAIN(P1, P2 , AUTO=0 )
+;g...0 c...1 p...2
+;~JANKENABLE...残りとれる回数(初期値全2)
+#DIM JANKENABLE_1P,3
+#DIM JANKENABLE_2P,3
+#DIM JANKEN,2
+#DIM RENSHO,2
+#DIM POINT,2
+#DIM LOOPCOUNT
+#DIM LCOUNT
+#DIM RET
+#DIM AUTO
+#DIM P1
+#DIM P2
+#DIM TMP
+#DIM ターン
+VARSET JANKENABLE_1P,2
+VARSET JANKENABLE_2P,2
+VARSET RENSHO,0
+VARSET POINT,1
+VARSET JANKEN,-1
+RET=0
+ターン=1
+DRAWLINE
+$JANKEN_TOP
+LCOUNT=LINECOUNT
+;	PRINTFORML Vi
+;	PRINT_RECT POINT:0
+;	PRINTFORML  {POINT:0}
+;	PRINT_RECT POINT:1
+;	PRINTFORML  {POINT:1}
+;	PRINTL
+;ここら辺表示システム
+	ALIGNMENT CENTER
+		PRINTFORML %NUMTOViVoDa(0)%
+		;右上矢印　左下矢印
+		PRINTFORML %UNICODE(0x2197)%　%UNICODE(0x2198)%
+		
+		PRINTFORML %NUMTOViVoDa(2)% ← %NUMTOViVoDa(1)%
+	PRINTL 
+	
+	PRINTFORM %CALLNAME:P2,10,RIGHT% 
+	FOR LOOPCOUNT,0, 3
+		SIF JANKEN:1!=-1
+			SETCOLOR 0x0F0F0F
+		SIF JANKEN:1==LOOPCOUNT
+			SETCOLOR 0x00FF00
+		PRINTFORM  [%NUMTOViVoDa(LOOPCOUNT)%]{NUMTOABLViVoDa(P2,LOOPCOUNT),2} 
+		PRINT_RECT 0 ,100-MAX(1, 100*JANKENABLE_2P:LOOPCOUNT/2) ,100 , MAX(1, 100*JANKENABLE_2P:LOOPCOUNT/2)
+
+		RESETCOLOR
+	NEXT
+	IF RENSHO:1>0
+		PRINTFORML  {RENSHO:1}連勝
+	ELSE
+		PRINTFORML   　　
+	ENDIF
+	ALIGNMENT LEFT
+	SETCOLOR 0xFF0000
+	PRINT_RECT POINT:1
+	SIF POINT:1>1
+		PRINTFORM  {POINT:1-1}
+	PRINTL
+	SETCOLOR 0x00FFFF
+	PRINT_RECT POINT:0
+	SIF POINT:0>1
+		PRINTFORM  {POINT:0-1}
+	PRINTL
+	RESETCOLOR
+	ALIGNMENT CENTER
+	PRINTFORM %CALLNAME:P1,10,RIGHT% 
+	FOR LOOPCOUNT,0, 3
+		SIF JANKEN:0!=-1
+			SETCOLOR 0x0F0F0F
+		SIF JANKEN:0==LOOPCOUNT
+			SETCOLOR 0x00FF00
+		PRINTBUTTON @" [%NUMTOViVoDa(LOOPCOUNT)%]", LOOPCOUNT
+		PRINTFORM {NUMTOABLViVoDa(P1,LOOPCOUNT),2} 
+		PRINT_RECT 0 ,100-MAX(1, 100*JANKENABLE_1P:LOOPCOUNT/2) ,100 , MAX(1, 100*JANKENABLE_1P:LOOPCOUNT/2)
+;		PRINTFORM %NUMTOViVoDa(LOOPCOUNT)% {NUMTOABLViVoDa(P1,LOOPCOUNT),2}/{JANKENABLE_1P:LOOPCOUNT} 
+		RESETCOLOR
+	NEXT
+	IF RENSHO:0>0
+		PRINTFORML  {RENSHO:0}連勝
+	ELSE
+		PRINTFORML   　　
+	ENDIF
+	ALIGNMENT LEFT
+	
+;終了チェック
+IF RENSHO:0==3
+;あなたが三連勝:大勝利
+	RETURN 2
+ELSEIF RENSHO:1==3
+;相手が産卵床:大敗北
+	RETURN -2
+ELSEIF ターン>6
+;ターン6経過
+	IF POINT:0>POINT:1
+		;勝利
+		RETURN 1
+	ELSEIF POINT:0<POINT:1
+		;敗北
+		RETURN -1
+	ELSE
+	;まずないけど引き分けはabl差で
+		SIF ABL:P1:ビジュアル技能+ABL:P1:ボーカル技能+ABL:P1:ダンス技能>ABL:P2:ビジュアル技能+ABL:P2:ボーカル技能+ABL:P2:ダンス技能
+			RETURN 1
+		RETURN -1
+	ENDIF
+ENDIF
+;すでに手が決まっている場合は結果処理へ なんでこんなややこしいコードにしたんだっけ・・・
+SIF JANKEN:0 != -1 && JANKEN:1 != -1
+	GOTO JANKEN_ROUTINE_END
+$JANKEN_ROUTINE_TOP
+;じゃんけんの手 自動非自動
+IF AUTO != 0
+	RESULT=RAND:3
+ELSE
+	INPUT
+ENDIF
+JANKEN:0=RESULT
+SIF JANKENABLE_1P:(JANKEN:0)==0
+	GOTO JANKEN_ROUTINE_TOP
+;JANKEN:1の考え方 3連勝がかかっているときだけ思考
+;あとはランダム
+;...めんどいからあとで!いずれやるから！
+;IF RENSHO:0==2
+;	;負けしかない手は打たない
+;	IF 
+;	
+;ELSEIF RENSHO:1==2
+;	;勝ちに行く
+;	
+;ENDIF
+$JANKEN_ROUTINE_RAND
+JANKEN:1=RAND:3
+SIF JANKENABLE_2P:(JANKEN:1)==0
+	GOTO JANKEN_ROUTINE_RAND
+;一週目の処理
+CLEARLINE LINECOUNT-LCOUNT
+GOTO JANKEN_TOP
+$JANKEN_ROUTINE_END
+
+PRINTFORML あなた %NUMTOViVoDa(JANKEN:0,1)%
+PRINTFORML 相手 %NUMTOViVoDa(JANKEN:1,1)%
+
+JANKENABLE_1P:(JANKEN:0)-=1
+JANKENABLE_2P:(JANKEN:1)-=1
+ターン=ターン+1
+;勝敗チェック
+SELECTCASE (3+JANKEN:0-JANKEN:1)%3
+	CASE 0
+		;引き分け
+		PRINTL 引き分け
+		TMP=正規分布(100*NUMTOABLViVoDa(P1, JANKEN:0))-正規分布(100*NUMTOABLViVoDa(P2, JANKEN:1))
+		CALL PRINT_JANKEN_DRAW( TMP>0 ? P1 # P2 )
+		VARSET RENSHO,0
+		POINT:(TMP>0 ? 0 # 1)+=ABS(TMP)
+	CASE 1
+		;負け
+		PRINTL 負け
+		RENSHO:0=0
+		RENSHO:1+=1
+		CALL PRINT_JANKEN_WIN(P2, JANKEN:1)
+		TMP=正規分布(100*NUMTOABLViVoDa(P2, JANKEN:1))
+		POINT:1+=TMP
+	CASE 2
+		;勝ち
+		PRINTL 勝ち
+		RENSHO:0+=1
+		RENSHO:1=0
+		CALL PRINT_JANKEN_WIN(P1, JANKEN:0)
+		TMP=正規分布(100*NUMTOABLViVoDa(P1, JANKEN:0))
+		IF CFLAG:P1:審査員枕
+			PRINTL 
+			PRINTFORM どうやら審査員は%CALLNAME:P1%をひいきして評価(×１．２)しているようだ
+			TMP=TMP*120/100
+			CFLAG:P1:審査員枕=0
+		ENDIF
+		POINT:0+=TMP
+ENDSELECT
+PRINTFORMW (+{ABS(TMP)})
+;終了処理 
+VARSET JANKEN,-1
+DRAWLINE
+GOTO JANKEN_TOP
+
+@PRINT_JANKEN_DRAW(ARG)
+PRINTFORML 同じパフォーマンス同士のぶつかり合いだと技量の差が素直に表れる…！
+PRINTFORM どうやら審査員は%CALLNAME:ARG%の方が勝っていると判断したようだ
+@PRINT_JANKEN_WIN(ARG, ARG:1)
+;じゃんけん時の口上表示ARGに勝ったユニットが入る
+PRINTFORM %CALLNAME:ARG%の
+;TALENTで分岐させてもいいかも
+PRINTDATA
+	DATA 華麗な
+	DATA 美しい
+	DATA 魅惑の
+	DATA かわいらしい
+	DATA 愛らしい
+	DATA 凛々しい
+	DATA 素晴らしい
+	DATA 比類なき
+	DATA 綺麗な
+	DATA 夢のような
+ENDDATA
+SELECTCASE ARG:1
+	CASE 0
+		;Viで勝利
+		PRINTFORM ルックスに審査員は魅了されている
+	CASE 1
+		;Voで勝利
+		PRINTFORM 歌声に審査員は聞きほれている
+	CASE 2
+		;Daで勝利
+		PRINTFORM ダンスステップが審査員の関心をかっている
+ENDSELECT
+RETURN 1
+
+@NUMTOViVoDa(ARG, KEY=0)
+#FUNCTIONS
+#DIM KEY
+IF KEY==0
+	SELECTCASE ARG
+		CASE 0
+			RETURNF "Vi"
+		CASE 1
+			RETURNF "Vo"
+		CASE 2
+			RETURNF "Da"
+	ENDSELECT
+ELSE
+	SELECTCASE ARG
+		CASE 0
+			RETURNF "ビジュアル"
+		CASE 1
+			RETURNF "ボーカル"
+		CASE 2
+			RETURNF "ダンス"
+	ENDSELECT
+ENDIF
+RETURNF "エラー"
+@NUMTOABLViVoDa(ARG, ARG:1)
+#FUNCTION
+;0,1,2をViVoDaに対応させリターン
+SELECTCASE ARG:1
+	CASE 0
+		RETURNF ABL:ARG:ビジュアル技能
+	CASE 1
+		RETURNF ABL:ARG:ボーカル技能
+	CASE 2
+		RETURNF ABL:ARG:ダンス技能
+ENDSELECT

@@ -1,0 +1,108 @@
+@ENKOU_START_K314(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「プロデューサー。よろしければ、少し私にお付き合い下さい。2人で歓喜の世界に浸りましょう。ふふっ♪」
+ELSE
+	PRINTFORML 「故あって、日夜レッスンに励んでおります。しかし恥ずかしながら、私は世間知らずで……」
+	PRINTFORML 「私を導いて下さいませんか？」
+ENDIF
+
+@ENKOU_FINISH_K314(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「爺やには身の恥をさらすなと教えられてきました。ですがプロデューサーになら、己が全てを見せられる気がします」
+ELSE
+	PRINTFORML 「満足して頂けましたか？　私もまだまだ精進せねばなりません」
+ENDIF
+@SORP_START_K314(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「このような場でプロデューサーと出会うのも縁ですね」
+	PRINTFORML 「衆人に私の肌に触れることを許しましたが、心に触れる事は許しておりません。プロデューサーも私との交合を思う存分楽しんでくださいませ」
+ELSE
+	PRINTFORML 「全力で参ります」
+ENDIF
+@SORP_FINISH_K314(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「%CALLNAME:MASTER%様と一緒にいると夢を見たくなります。不相応な夢を」
+ELSE
+	PRINTFORML 「いかがでしたか？」
+ENDIF
+
+
+@KOJO_MESSAGE_COM_K314_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「私には、頂点を目指し故郷の者達を勇気づけるという使命があります」
+PRINTFORML 「その使命のためには、時には意に染まぬ方々との交合もいといません……。　軽蔑、なさいますか？」
+
+@KOJO_MESSAGE_COM_K314_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「私には、頂点を目指し故郷の者達を勇気づけるという使命があります」
+PRINTFORML 「その使命のためには、時には意に染まぬ方々との交合もいといません……。　軽蔑、なさいますか？」
+
+@KOJO_MESSAGE_COM_K314_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「私は負けられないのです！　彼の地に、胸を張って帰るためにも」
+			PRINTFORML 「……ですが、あなた様からのお言葉は、月の光のように私の心を揺さぶります」
+			PRINTFORML 「私も新たな道を見出せるのでしょうか……？」
+			PRINTFORML 「これもまた修練の一つなのかもしれませんね」
+		ELSE
+			PRINTFORML 「そこまで言われるのでしたら仕方ありません。一先ず様子見ということでどうでしょうか」
+		ENDIF
+	CASE 2
+		PRINTFORML 「私は負けられないのです！
+	CASE 3
+		PRINTFORML 「負ける訳には参りません」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K314(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORML 「あなた様の指示ならば、私、どのような方とでもいたしましょう」
+	PRINTFORMW 「ですが、私の心に触れることを許したのは、%CALLNAME:MASTER%様だけだということを、覚えていてくださいませ」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「かはっ！　あなた様、んぉっ %MSG_HEART()%　お許しくださいませ……ふぅっ！！	」　
+	PRINTFORML 「どれだけ体を許したとしても……心は心は、――んはぁっ%MSG_HEART()%」
+	PRINTFORML 体液まみれになりながら%NTR_NAME_SEX(奴隷,他人)%と絡み合い続ける貴音は、自分に言い聞かせるように嬌声とともにそう言葉を続けるものの、
+	PRINTFORMW 正常位で貫かれるその姿は、%NTR_NAME_SEX(奴隷,他人)%を離さないように両足を絡みつかせ、突き上げをねだるかのように淫靡に腰を揺らしていた。
+
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「交合とは不思議なものですね。毎日のように%NTR_NAME_SEX(奴隷,他人)%様としているのに、する度に素晴らしい喜びへと導いて頂けます」
+	PRINTFORMW 「これがアイドルの仕事なのですね、プロデューサー。ああ…歓喜があふれてしまいます %MSG_HEART()%」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K314(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「不思議なことをおっしゃるのですね。これはそのように危険なものではありませんよ」
+ELSE
+	PRINTFORML 「真、人の世は儚きものですね…」
+	PRINTFORML そういってどこか虚空を見上げる%CALLNAME:奴隷%の瞳は、どこか引き込まれるような怪しげな輝きをはなっている。
+ENDIF

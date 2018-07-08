@@ -1,0 +1,51 @@
+;--------------------------------------------------
+;汎用メッセージ関数群
+;何か引数から文字列を取得できる関数など
+;--------------------------------------------------
+
+;ハートマーク
+@MSG_HEART
+	#FUNCTIONS
+	RETURNF UNICODE(0x2764)
+
+;壁または木取得
+@MSG_WALL_OR_TREE
+	#FUNCTIONS
+	IF FLAG:訪問者の現在位置 == 0
+		RETURNF "木"
+	ELSE
+		RETURNF "壁"
+	ENDIF
+
+;割れ目描写文字列取得
+@MSG_SLIT(奴隷)
+	#FUNCTIONS
+	#DIM 奴隷
+	IF TALENT:奴隷:体型 < 0
+		IF RAND:2 == 0
+			RETURNF "可憐なスリット"
+		ELSE
+			RETURNF "幼いワレメ"
+		ENDIF
+	ELSE
+		IF RAND:2 == 0
+			RETURNF "秘めやかな花弁"
+		ELSE
+			RETURNF "秘裂"
+		ENDIF
+	ENDIF
+
+;分単位の数値を時間、分文字列に変換
+@MSG_HOUR_MIN(時間_分)
+	#FUNCTIONS
+	#DIM 時間_分
+	#DIMS 時間分文字列
+	IF 時間_分 >= 60 && 時間_分 % 60 == 0
+		時間分文字列 = {時間_分/60}時間
+	ELSEIF 時間_分 > 60
+		時間分文字列 = {時間_分/60}時間{時間_分%60}分
+	ELSE
+		時間分文字列 = {時間_分%60}分
+	ENDIF
+	RETURNF 時間分文字列
+

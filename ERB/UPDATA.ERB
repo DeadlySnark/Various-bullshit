@@ -1,0 +1,85 @@
+;自動でデータを変換するための関数です
+;SHOP.ERBで、起床画面に入った時に呼び出しています
+@UPDATA
+	#DIM キャラ番号
+
+	CALL UPDATA_MAP
+
+	;所属フラグの設定（本体の更新で旧セーブデータ不可になったら消す）
+	;所属１はシンデレラガールズ事務所を想定している
+	FOR キャラ番号,1,CHARA_ACTIVE
+		SIF TALENT:キャラ番号:事務員 == 1 || TALENT:キャラ番号:アイドル == 1 || TALENT:キャラ番号:トレーナー == 2
+			CFLAG:キャラ番号:所属 = 1
+	NEXT
+
+;マップ追加による色々な位置のずれを調べて修正する処理
+;自動化のため可視部分をコメントアウト
+@UPDATA_MAP
+	#DIM キャラ番号
+
+;	DRAWLINE
+;	PRINTL (この処理は暫定的なものです)
+;	PRINTL マップの追加により位置番号がずれた場合、修正します
+;	PRINTL 修正で数字がおかしくなった場合は、セーブせずにスレに報告をお願いします
+;	PRINTL 報告しないで直してくれても良いです
+;	PRINTL 
+;	PRINTFORML 場所番号最大値初期数：{場所番号最大値初期数}
+;	PRINTFORML 場所番号最大値現在数：{場所番号最大値}
+;	PRINTL 
+;	PRINTFORMLC あなたの家の番号：{場所_あなたの家}
+;	PRINTFORMLC あなたの開始位置：{CFLAG:MASTER:開始位置}
+;	PRINTL 
+;	PRINTFORMLC 事務員の部屋番号：{場所_あなたの家 + 1}
+;	PRINTFORMLC 事務員の開始位置：{CFLAG:1:開始位置}
+;	PRINTL 
+;	PRINTFORMLC アイドル部屋番号：{場所_あなたの家 + 2}から
+;	IF CFLAG:2:開始位置 != 895 && CFLAG:2:開始位置 != 場所_あなたの家
+;		PRINTFORMLC アイドル開始位置：{CFLAG:2:開始位置}から
+;	ELSE
+;		PRINTFORMLC アイドル開始位置：アイドルがいません
+;	ENDIF
+;	PRINTL 
+;	PRINTL 
+;	PRINTFORML 所属アイドル：{場所番号最大値 - 場所番号最大値初期数}人 
+;	PRINTL 
+;	PRINTL 
+;	PRINTFORML [0] - 修正する（暫定）
+;	PRINTL [100] - 戻る
+;	INPUT
+;	IF RESULT == 100
+;		RETURN 0
+;	ELSEIF RESULT == 0
+		;あなたと事務員の修正
+		CFLAG:MASTER:開始位置 = 場所_あなたの家
+		CFLAG:MASTER:現在位置 = CFLAG:MASTER:開始位置
+		CFLAG:1:開始位置 = (場所_あなたの家 + 1)
+		CFLAG:1:現在位置 = CFLAG:1:開始位置
+
+		;トレーナーは所属を判断する方法がないので素質を変更する
+		FOR キャラ番号,1,CHARA_ACTIVE
+			SIF CFLAG:キャラ番号:開始位置 <= 場所番号最大値 && TALENT:キャラ番号:トレーナー == 1
+				TALENT:キャラ番号:トレーナー = 2
+		NEXT
+
+		;一度、場所番号を初期値に戻す
+		場所番号最大値 = 場所番号最大値初期数
+
+		;スカウトしていれば素質があるので、素質を見て私室登録をやり直す
+		;未所属同棲もここで位置を直す
+		FOR キャラ番号,1,CHARA_ACTIVE
+			IF TALENT:キャラ番号:アイドル == 1 || TALENT:キャラ番号:トレーナー >= 2
+				場所番号最大値 += 1
+				CFLAG:キャラ番号:開始位置 = 場所番号最大値
+			ELSEIF CFLAG:キャラ番号:同棲 >= 1
+				CFLAG:キャラ番号:開始位置 = 場所_あなたの家
+			ENDIF
+		NEXT
+
+		;ずれた位置にいる子を自宅に戻す
+		FOR キャラ番号,1,CHARA_ACTIVE
+			SIF CFLAG:キャラ番号:現在位置 <= 場所番号最大値 && CFLAG:キャラ番号:同行 == 0
+				CFLAG:キャラ番号:現在位置 = CFLAG:キャラ番号:開始位置
+		NEXT
+;		PRINTFORMW マップ追加による位置番号のずれを修正しました
+;	ENDIF
+;	RESTART

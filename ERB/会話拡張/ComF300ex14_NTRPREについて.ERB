@@ -1,0 +1,157 @@
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - NTRPREについて 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM300_14_ENABLE
+	RESULTS:0 = %"[14]-"+CALLNAME:(TARGET:0)+"の援助交際について"%
+	IF TCVAR:(TARGET:0):会話不能
+		RETURN 0
+	;皆援交設定有効の場合
+	ELSEIF GETBIT(FLAG:皆援交設定,1) == 1 && CFLAG:TARGET:あなた援交金額合計 > 0
+		RETURN 1
+	ELSEIF !PRENTR(TARGET, 人物_パパ, NTRPRE_職) || !PRENTR(TARGET, 人物_パパ, NTRPRE_職既知)
+	;あなたが知らない
+		RETURN 0
+	ELSE
+		RETURN 1
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 売春について話す
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM300_14
+#DIM お値段
+TIME += 20
+TCVAR:会話累積値 += 200 / (3 + ABL:MASTER:話術技能)
+EXP:MASTER:会話経験 ++
+
+TRYCCALLFORM KOJO_MESSAGE_COM_K{NO:TARGET}_300_14_01((TARGET:0), (PLAYER:0))
+CATCH
+	TRYCCALLFORM KOJO_MESSAGE_COM_KU_300_14_01((TARGET:0), (PLAYER:0))
+	CATCH
+	;専用、汎用口上ともにないとき
+	PRINTFORM %CALLNAME:(TARGET:0)%は
+	;理由
+	SELECTCASE (FLAG:共通ランダム数+NO:TARGET) % 8
+		CASE 0
+			PRINTFORM 借金返済のために
+		CASE 1
+			PRINTFORM 気持ちよくなるために
+		CASE 2
+			PRINTFORM 疼く体を治めるために
+		CASE 3
+			PRINTFORM 赤ちゃんのママになるために
+		CASE 4
+			PRINTFORM 友達の輪からハブられないために
+		CASE 5
+			PRINTFORM スリルを味わうために
+		CASE 6
+			PRINTFORM オトナな女性になるために
+		CASEELSE
+			PRINTFORM 遊ぶ金欲しさに
+	ENDSELECT
+	PRINTFORM これまでに
+	SELECTCASE EXP:(TARGET:0):援助交際経験-1
+		CASE IS <= 5
+			PRINTFORML 片手で数えられるくらいの数の相手と寝たと言った。
+		CASE IS <= 10
+			PRINTFORML 両手で数えられるくらいの数の相手と寝たと言った。
+		CASE IS <= 20
+			PRINTFORML 両手でも数えられないくらいの数の相手と寝たと言った。
+		CASEELSE
+			PRINTFORML 寝た相手の数はもう覚えていないと言った。
+			
+	ENDSELECT
+	ENDCATCH
+ENDCATCH
+$SENTAKUSHI
+	PRINTL [0] - 別の話をする
+	PRINTL [1] - ぜひ抱きたい
+	PRINTL [2] - やめるよう説得する
+	INPUT
+IF !INRANGE(RESULT,0, 2)
+	GOTO SENTAKUSHI
+ELSEIF RESULT == 0
+	PRINTFORML 気まずくなった%CALLNAME:MASTER%は普通の雑談へと話題を切り替えた
+ELSEIF RESULT == 1
+	IF (CFLAG:MASTER:現在位置==場所_裏路地 || CFLAG:MASTER:現在位置==場所_ラブホ ) && CFLAG:MASTER:現在位置==CFLAG:現在位置
+		お値段=MIN(MONEY/2 , 500)
+		PRINTFORMW 抱きたいと伝えると、%CALLNAME%は${お値段}を%CALLNAME:MASTER%の財布から抜き取ってラブホへと進んでいった
+		MONEY=MONEY-お値段
+		FLAG:従順一時保存=1+ABL:従順
+		ABL:従順=5		
+		EXP:援助交際経験+=1
+		CALL ラブホ_移動処理(TARGET)
+		TRYCALLFORM ENKOU_START_K{NO:TARGET}(TARGET)
+	ELSE
+		IF  GETBIT(FLAG:皆援交設定,1) == 1 && GETBIT(FLAG:皆援交設定,2) == 1 && CFLAG:TARGET:現在位置 == CFLAG:MASTER:現在位置
+			CALL 皆援交判定(TARGET, 1)
+		ELSE
+			PRINTFORMW 抱きたいと伝えると、裏路地近辺で待ってますよ、と%CALLNAME%は囁いた
+		ENDIF
+	ENDIF
+ELSEIF RESULT == 2
+	;状況で変わる
+	IF (所属(TARGET) && !TALENT:NTR) || (TALENT:恋慕) || (CFLAG:(屈服IX+人物_パパ-人物_訪問者)) < CFLAG:好感度
+	;説得に応じる
+		IF GETBIT(FLAG:皆援交設定,1) == 1
+			PRINTFORML そういうにお誘いするのは%CALLNAME:MASTER%だけですよ、と%CALLNAME%は淫らな声色で囁いた…
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%が言うならばもうしない、と%CALLNAME%は約束した
+		ENDIF
+		CLEARBIT TALENT:TARGET:NTRPRE, (人物_パパ-人物_訪問者)
+		RESULT:1=1
+		;好感度/2減少。
+		CFLAG:(屈服IX+人物_パパ-人物_訪問者)=MAX(0, CFLAG:(屈服IX+人物_パパ-人物_訪問者)-CFLAG:好感度/2)
+		;好感度が低い場合
+		SIF (CFLAG:(屈服IX+人物_パパ-人物_訪問者)) > CFLAG:好感度
+			PRINTFORML しかしながら、彼女にその誓いを守り抜く自信はないのだろう、どこか不安げな様子だ
+;	ELSEIF CFLAG:円光==3
+;	;買った事あると怒る(そりゃそうだ)
+;		PRINTFORML %CALLNAME:MASTER%はやめさせようとしたが、買ったことのある身では説得力は０だ…
+;		PRINTFORML %CALLNAME%は呆れた様子で取り合ってくれなかった
+;		TFLAG:97 -= 10
+;		RESULT:1=2
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%には関係ない、とそっけなく返されてしまった
+		RESULT:1=3
+	ENDIF
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{NO:TARGET}_300_14_02((TARGET:0), (PLAYER:0), RESULT:1)
+		FUNC KOJO_MESSAGE_COM_KU_300_14_02((TARGET:0), (PLAYER:0), RESULT:1)
+	ENDFUNC
+	RESULT:1=0
+ENDIF
+	;前回の売春時に寝た人数
+;	IF EXP:(TARGET:0):前回経験人数 > 0
+;		PRINTL
+;		PRINTFORML この前は{EXP:(TARGET:0):前回経験人数}人と寝たと言った。
+;		TRYCALLLIST
+;			FUNC KOJO_MESSAGE_COM_K{CFLAG:(TARGET:0):297}_300_13_01_3((TARGET:0), (PLAYER:0))
+;			FUNC KOJO_MESSAGE_COM_KU_300_13_01_3((TARGET:0), (PLAYER:0))
+;		ENDFUNC
+;	ENDIF
+;	PRINTL
+	;恋慕、鍵の有無で分岐
+;	IF TALENT:(TARGET:0):恋慕
+;		IF FLAG:貞操帯鍵購入フラグ == TARGET:0
+;			PRINTFORML %CALLNAME:(TARGET:0)%は%MSG_LOVER(TARGET:0)%である%CALLNAME:(PLAYER:0)%が自分を買ってくれて嬉しいと言った。
+;		ELSE
+;			PRINTFORML %CALLNAME:(TARGET:0)%はたとえ%MSG_LOVER(TARGET:0)%でも、鍵を買わないと自分とはセックスできないと言った。
+;		ENDIF
+;	ELSE
+;		IF FLAG:貞操帯鍵購入フラグ == TARGET:0
+;			PRINTFORML %CALLNAME:(TARGET:0)%は%CALLNAME:(PLAYER:0)%が自分を買ってくれて嬉しいと言った。
+;		ELSE
+;			PRINTFORML %CALLNAME:(TARGET:0)%は鍵を買わないと自分とはセックスできないと言った。
+;		ENDIF
+;	ENDIF
+
+;	TRYCALLLIST
+;		FUNC KOJO_MESSAGE_COM_K{NO:TARGET}_300_14_02((TARGET:0), (PLAYER:0))
+;		FUNC KOJO_MESSAGE_COM_KU_300_14_02((TARGET:0), (PLAYER:0))
+;	ENDFUNC
+RETURN 1
+;RETURN 0

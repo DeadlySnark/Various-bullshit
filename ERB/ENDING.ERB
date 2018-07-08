@@ -1,0 +1,135 @@
+;個別エンド
+@END_地の文(ARG)
+;アイドルとしてのEND→個別要素
+SELECTCASE CFLAG:ARG:アイドルランク
+	CASE IS >5
+		;スーパーアイドル
+		LOCAL=1
+		PRINTFORML この時代を代表する、誰もが知ってるアイドル。
+		PRINTFORML そんな存在となった%CALLNAME:ARG%の突然の引退宣言に多くのファンが驚愕した。
+		PRINTFORML あらゆる憶測が流れたが、彼女は決してその真意を語らず、最後のライブツアーへと挑んだ。
+		PRINTFORMW そのツアーには延べ{CFLAG:ARG:ファン人数}人ものファンが訪れたという。
+	CASE IS >3
+		;結構アイドル
+		LOCAL=2
+		PRINTFORML %CALLNAME:ARG%は記者会見を開き、報道陣の前で引退宣言を行った。
+		PRINTFORML 芸能記者たちは、そこそこ売れてるだろうにもったいないことをする、と互いに囁きあった。
+		PRINTFORMW 熱心なファンの立ち上げた引退撤回を求める署名サイトには、{CFLAG:ARG:ファン人数}人の署名が集まったらしい。
+	CASEELSE
+		;微妙アイドル
+		LOCAL=3
+		PRINTFORML %CALLNAME:ARG%にこの業界は向いていなかったのだろう。
+		PRINTFORMW 結局たいした痕跡を残すことなく、霞のように%CALLNAME:ARG%はアイドルを辞めた。
+ENDSELECT
+LOCAL:1=WHICH_ENDING(ARG)
+		PRINTFORML 　　　・
+		PRINTFORML 　　　・
+		PRINTFORMW 　　　・
+
+SELECTCASE LOCAL:1
+	CASE END_恋慕肉便器
+		PRINTFORML %CALLNAME:MASTER%がかかってきた電話を取ると相手は近所の警察署だった。
+		PRINTFORML どうやら、%CALLNAME:ARG%を“保護”しているので引き取りに来て欲しい、とのことだ。
+		PRINTFORML %CALLNAME:MASTER%が警察署に着くと警官が仔細を説明し始めた。
+		PRINTFORML なんと、%CALLNAME:ARG%は白昼堂々と繁華街のど真ん中で全裸になり%CALLNAME:MASTER%の名前を叫びながら自慰をしていたらしい。
+		PRINTFORML 保護されている部屋に直接出向き会話を試みたが、%CALLNAME:ARG%の言動は支離滅裂で意思疎通ができなかった。
+		PRINTFORML %CALLNAME:ARG%は、%CALLNAME:MASTER%への想いと、誰にでも体を許してしまう現実のギャップに耐えられず、錯乱してしまったようだ。
+		PRINTFORMW %CALLNAME:MASTER%はちひろさんに病院の手配を頼むと、どこで間違えてしまったのだろうか、と後悔した。
+	CASE END_肉便器
+		PRINTFORML %CALLNAME:MASTER%は通勤中、前の大学生風の男二人組の噂話が耳に入った。
+		PRINTFORML 「なんでも、ここらへんには精通直後のガキからホームレスの老人まで誰にでもヤラせるとんでもないヤリマンがいるらしいぜ」
+		PRINTFORML 「うわあ、きっととんでもない化け物なんだろうなあ」
+		PRINTFORM 「いやいや、
+		IF LOCAL==3
+		;無名
+			PRINTFORML 結構イケてる顔らしいんだよ。確か特徴は…」
+			PRINTFORML その男の述べる特徴はまさに%CALLNAME:ARG%そのものだった。
+		ELSEIF LOCAL==2
+		;そこそこ
+			PRINTFORML えーと、名前忘れたなあ、何とかってアイドル似って話だぜ、確か特徴は…」
+			PRINTFORML その男の述べる特徴はまさに%CALLNAME:ARG%そのものだった。
+		ELSEIF LOCAL==1
+		;有名
+			PRINTFORML なんとあの%CALLNAME:ARG%クリソツらしいぜ」
+		ENDIF
+		PRINTFORML 「マジかよ！ってゆーか詳しくね？」
+		PRINTFORML 「…実は、俺もお世話になったの」
+		PRINTFORML 「ひゃははは、ウケるー！今度俺にも紹介頼むぜ」
+		PRINTFORML 「おうよ、何なら二人いっぺんに…」
+		PRINTFORMW %CALLNAME:MASTER%はどこで間違えてしまったのだろうか、と後悔した。
+	CASE END_あなた
+		PRINTFORML %CALLNAME:ARG%は実家に帰った。といっても%CALLNAME:ARG%自身の実家ではない。%CALLNAME:MASTER%の実家だ。
+		PRINTFORML そこで帰ってくるのを待つ、という。
+		PRINTFORMW 説得を試みたがその硬い意思を変える事はできず、%CALLNAME:MASTER%は苦笑しつつも親に今度どう説明しようか、と考え始めた。
+	CASE END_アイドル
+		PRINTFORML %CALLNAME:ARG%は実家に帰った。今でも時々連絡が来る。
+		PRINTFORMW 第二の人生を楽しそうに歩んでいることが電話越しからも伝わってくるので、%CALLNAME:MASTER%は安心した。
+	CASE 人物_訪問者
+		PRINTFORML %NTR_NAME(LOCAL:1)%にとって%CALLNAME:ARG%は都合のいい存在だった。
+		PRINTFORML マンションの一室で飼われ、そこで時に性欲処理、時に性接待要因としてこき使われた。
+		PRINTFORMW このままではいけないと時々頭の片隅で思うのだが、ひとたび快楽を与えられるとどうでもよくなり忘れてしまうのだった。
+	CASE 人物_審査員
+		PRINTFORML %NTR_NAME(LOCAL:1)%の仲間内の秘密のパーティ。
+		PRINTFORML そこは互いの所有物の優劣を競い合う会場だった。
+		PRINTFORML 今回のお題はそれぞれの奴隷の性技披露、その出場者の一人が%CALLNAME:ARG%であった。
+		PRINTFORML %CALLNAME:ARG%は優勝したときのご褒美のため、他の奴隷ですらあきれるほど必死に精液を搾り取った。
+		PRINTFORMW %NTR_NAME(LOCAL:1)%たちの間でその卑しい姿は当分の間物笑いの種となるのだった。
+	CASE 人物_風俗オーナー
+		PRINTFORML 暇つぶしのために週刊誌を買った%CALLNAME:MASTER%は風俗特集のコーナーに目を引かれた。
+		PRINTFORML 写真に写る仰向けに寝た男の上で騎乗位をしている女は、目線隠しこそ入っているが間違いなく%CALLNAME:ARG%だろう。
+		PRINTFORML その顔は快楽でだらしなく歪み、お腹周りは幾度もの父親のわからない子の妊娠の影響か弛みが目立つ。
+		PRINTFORML そして、全身に卑猥な刺青が所狭しと彫られている。
+		PRINTFORMW これではもはや%NTR_NAME(LOCAL:1)%の元を離れて普通の生活を送ることはかなわないだろう…
+	CASE 人物_教師
+		PRINTFORML %CALLNAME:ARG%と%NTR_NAME(LOCAL:1)%の爛れた関係はあっという間に学校中の噂になった…
+		PRINTFORMW 我慢の限界が来たのか二人は同じ日に退職届と転校届を提出し、それ以降行方知れずとなった…
+	CASE 人物_AV男優
+		PRINTFORML 最近よく%CALLNAME:ARG%の顔を見るようになった。
+		PRINTFORML それはネット上のＡＶを宣伝するアダルト広告バナーでだ。
+		PRINTFORM 彼女が出演するものは
+		PRINTDATA
+			DATAFORM 妊婦プレイ
+			DATAFORM ＳＭプレイ
+			DATAFORM 獣姦プレイ
+			DATAFORM キメセクプレイ
+			DATAFORM 拡張プレイ
+		ENDDATA
+		PRINTFORML 等マニアックなジャンルの作品が多かった。
+		PRINTFORML しかしながら、その類のＡＶにあるまじき顔面偏差値故に多くのファンに愛好されているそうだ。
+		PRINTFORMW 特に、募集して集まったファン{CFLAG:ARG:ファン人数}人全員と連続性交した輪姦物は伝説として語り告がれるだろう…
+	CASE 人物_彼氏
+		PRINTFORML 伝え聞いたところによると、どうやらデビュー前から付き合っている人にアイドルをし続けることを反対されてやめたらしい。
+	CASE IS >人物_訪問者-1
+	;NTR汎用
+		PRINTFORML 結局%CALLNAME:ARG%は%NTR_NAME(LOCAL:1)%の元へと去って行った。
+		PRINTFORMW %CALLNAME:MASTER%はそれを黙ってみていることしかできなかった…
+	CASEELSE
+		PRINTFORMW エラー
+ENDSELECT
+
+
+
+
+
+@WHICH_ENDING(ARG)
+;ARGのキャラがゲーム終了条件を満たしているか否か、かつ条件分岐としても使用
+;何も満たしていないとき0を返す
+;優先順位の高いものから返す
+#FUNCTION
+;肉便器:あなた恋慕
+SIF TALENT:ARG:公衆便所 && TALENT:ARG:恋慕
+	RETURNF END_恋慕肉便器
+
+;肉便器
+SIF TALENT:ARG:公衆便所 && !TALENT:ARG:恋慕
+	RETURNF END_肉便器
+;あなた親愛
+SIF TALENT:ARG:恋慕 == 2
+	RETURNF END_あなた
+;個別NTR
+SIF NTR_WHO(ARG)!=-1
+	RETURNF NTR_WHO(ARG)
+
+SIF CFLAG:ARG:アイドルランク>4
+	RETURNF END_アイドル
+RETURNF 0

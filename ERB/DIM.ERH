@@ -1,0 +1,503 @@
+;-------------------------------------------------------------------------------
+
+#DIM 霊夢移動フラグ
+
+#DIMS 依頼内容, 8
+
+;-------------------------------------------------------------------------------
+;保存するものは #DIM SAVEDATA
+#DIM SAVEDATA 親別出産数,400, 1100
+
+#DIM SAVEDATA 訪問者_髪の長さ
+#DIM SAVEDATA 訪問者_髪の長さ指定
+#DIM SAVEDATA 訪問者_髪オプション１
+#DIM SAVEDATA 訪問者_髪オプション２
+#DIM SAVEDATA 訪問者_髪原色
+#DIM SAVEDATA 訪問者_髪色
+#DIM SAVEDATA 訪問者_目色右
+#DIM SAVEDATA 訪問者_目色左
+#DIM SAVEDATA 訪問者_目つき
+#DIM SAVEDATA 訪問者_瞳オプション１
+#DIM SAVEDATA 訪問者_瞳オプション２
+#DIM SAVEDATA 訪問者_肌原色
+#DIM SAVEDATA 訪問者_肌色
+		
+#DIM SAVEDATA 訪問者_体オプション１
+#DIM SAVEDATA 訪問者_体オプション２
+#DIM SAVEDATA 訪問者_体オプション３
+#DIM SAVEDATA 訪問者_体オプション４
+
+#DIM SAVEDATA 訪問者_Ｖ位置
+#DIM SAVEDATA 訪問者_Ｖオプション１
+#DIM SAVEDATA 訪問者_Ｖオプション２
+#DIM SAVEDATA 訪問者_Ｐ大きさ
+#DIM SAVEDATA 訪問者_Ｐオプション１
+#DIM SAVEDATA 訪問者_Ｐオプション２
+;オーディション関連
+#DIM SAVEDATA ランク,10,4		;7~ランク毎、0~2にビジュアルなどの必要値、3にオーディションパターン
+;誰がNTR行為を働いているか、これがあるといろいろ便利なので。
+#DIM 他人
+
+;-------------------------------------------------------------------------------
+;読み替えは #DEFINE
+#DEFINE 天候値 TIME:1
+#DEFINE 暦法月 DAY:1
+#DEFINE 暦法日 DAY:2
+#DEFINE 暦法曜 DAY:3
+#DEFINE 暦法年 DAY:4
+#DEFINE 告白成功済 既成事実&1p0
+
+;-------------------------------------------------------------------------------
+;固定値は #DIM CONST で定義しようね
+#DIM CONST 要睡眠経過時間 = 960
+#DIM CONST 睡眠可経過時間 = 720
+
+#DIM CONST 時間_1WEEK		= 10080
+#DIM CONST 時間_1DAY		= 1440
+
+;固定の人物コード
+#DIM CONST CSVキャラ数		= 352
+#DIM CONST 開始時人数		= 13
+#DIM CONST 人物_A		= 1
+#DIM CONST 人物_B		= 2
+#DIM CONST 人物_C	= 3
+#DIM CONST 人物_D		= 4
+#DIM CONST 人物_E	= 5
+#DIM CONST 人物_フラン		= 6
+#DIM CONST 人物_子悪魔		= 7
+#DIM CONST 人物_チルノ		= 8
+#DIM CONST 人物_大妖精		= 9
+#DIM CONST 人物_魔理沙		= 10
+#DIM CONST 人物_霊夢		= 11
+#DIM CONST 人物_ルーミア	= 12
+#DIM CONST 人物_あなた		= 0
+
+#DIM CONST 人物_息子		= 501
+#DIM CONST 人物_娘			= 502
+;NTR関連人物を1000以降に
+#DIM CONST 人物_訪問者		= 1000
+#DIM CONST 人物_審査員      = 1001
+#DIM CONST 人物_風俗オーナー     = 1002
+#DIM CONST 人物_犬			= 1003
+#DIM CONST 人物_教師		= 1004
+#DIM CONST 人物_AV男優		= 1005
+#DIM CONST 人物_彼氏		= 1006
+#DIM CONST 人物_パパ		= 1007
+#DIM CONST 人物_ヤク売人	= 1008
+#DIM CONST 人物_村人		= 1098
+#DIM CONST 人物_客			= 1099
+
+
+;精子主コード
+;通常人物コードと同一だが、村人、訪問者、客は異なる
+;これはもう使わない
+;#DIM CONST 精子主_村人		= 298
+;#DIM CONST 精子主_客		= 299
+;#DIM CONST 精子主_訪問者	= 300
+;精子主のループ時にCHARA_ACTIVE到達時にスキップする先
+;これはCSVキャラ数で置き換え
+;#DIM CONST 精子主_スキップ	= 298
+
+;場所番号最大値は手動で調整してください。
+#DIM CONST 場所_大浴場           =  18
+
+#DIM SAVEDATA 場所番号最大値        	;私室の処理のため流動的にする
+#DIM CONST 場所番号最大値初期数        =  60
+;事務所内部
+;シャワー室が最大番号
+#DIM CONST 場所_事務所玄関             =   1
+#DIM CONST 場所_事務所オフィス         =   2
+#DIM CONST 場所_事務所休憩室           =   3
+#DIM CONST 場所_事務所キッチン         =   4
+#DIM CONST 場所_事務所廊下             =   5
+#DIM CONST 場所_事務所レッスン室       =   6
+#DIM CONST 場所_事務所衣装ルーム       =   7
+#DIM CONST 場所_事務所応接室           =   8
+#DIM CONST 場所_事務所宿泊室           =   9
+#DIM CONST 場所_事務所トイレ           =   10
+#DIM CONST 場所_事務所倉庫             =   11
+#DIM CONST 場所_事務所更衣室           =   12
+#DIM CONST 場所_シャワールーム	       =   13
+;住宅街
+#DIM CONST 場所_住宅街	       =   14
+#DIM CONST 場所_公園           =   15
+#DIM CONST 場所_公園茂み       =   16
+#DIM CONST 場所_公園トイレ     =   17
+#DIM CONST 場所_駄菓子屋       =   18
+#DIM CONST 場所_コンビニ       =   19
+#DIM CONST 場所_スーパー       =   20
+;大通り_西
+#DIM CONST 場所_大通り西       =   21
+#DIM CONST 場所_レストラン     =   22
+#DIM CONST 場所_書店           =   23
+#DIM CONST 場所_文房具屋       =   24
+#DIM CONST 場所_家電店         =   25
+;大通り_東
+#DIM CONST 場所_大通り東       =   26
+#DIM CONST 場所_ライバル事務所 =   27
+#DIM CONST 場所_役所           =   28
+#DIM CONST 場所_ジム           =   29
+#DIM CONST 場所_収録スタジオ   =   30
+#DIM CONST 場所_出版社         =   31
+;繁華街
+;駅が最大番号
+;カラオケから学校までが繁華街
+#DIM CONST 場所_繁華街         =   32
+#DIM CONST 場所_繁華街南       =   33
+#DIM CONST 場所_花屋           =   34
+#DIM CONST 場所_喫茶店         =   35
+#DIM CONST 場所_服屋           =   36
+#DIM CONST 場所_ゲームセンター =   37
+#DIM CONST 場所_カラオケ       =   38
+#DIM CONST 場所_居酒屋         =   39
+#DIM CONST 場所_フードショップ =   40
+#DIM CONST 場所_音楽店         =   41
+#DIM CONST 場所_ビデオ屋       =   42
+#DIM CONST 場所_交番所         =   43
+#DIM CONST 場所_駅             =   44
+;学校
+#DIM CONST 場所_学校           =   45
+#DIM CONST 場所_学校初等部     =   46
+#DIM CONST 場所_学校中等部     =   47
+#DIM CONST 場所_学校高等部     =   48
+;裏通り
+;AV事務所が最大番号
+#DIM CONST 場所_裏路地         =   49
+#DIM CONST 場所_ラブホ         =   50
+#DIM CONST 場所_雑貨屋         =   51
+#DIM CONST 場所_ソープ待合室   =   52
+#DIM CONST 場所_AV事務所       =   53
+;寮
+#DIM CONST 場所_寮玄関         =   54
+#DIM CONST 場所_寮ホール       =   55
+;寮じゃないけどここに
+;あなたの家以上、で処理している部分があるので最大値になるようにする
+#DIM CONST 場所_あなたの家玄関         =   56
+#DIM CONST 場所_あなたの家風呂         =   57
+#DIM CONST 場所_あなたの家居間         =   58
+#DIM CONST 場所_あなたの家             =   59
+;~以下、各個人の私室
+
+;NTRじゃないけど特殊なやつ
+#DIM CONST 場所_アイドル長屋           =   895
+#DIM CONST 場所_カラオケあなた用       =   896
+#DIM CONST 場所_ソープあなた用         =   897
+#DIM CONST 場所_ラブホあなた用	       =   898
+#DIM CONST 場所_ダミー                 =   899
+;通常の「移動(400)」コマンドでは辿り着けない場所 - NTR専用
+#DIM CONST 場所_訪問者宅       = 900
+#DIM CONST 場所_審査員宅       = 901
+#DIM CONST 場所_ソープ         = 902
+#DIM CONST 場所_動物小屋       = 903
+#DIM CONST 場所_生徒指導室     = 904
+#DIM CONST 場所_薄暗い撮影所   = 905
+#DIM CONST 場所_彼氏の家       = 906
+#DIM CONST 場所_ラブホ内部     = 907
+#DIM CONST 場所_阿片窟         = 908
+#DIM CONST 場所_間男長屋       = 909
+#DIM CONST 場所_売春宿         = 999
+;通常の「移動(400)」コマンドでは辿り着けない場所 - 固有の建物
+#DIM CONST 場所_永琳診療所     = 950
+#DIM CONST 場所_凍結用         = 951
+;通常の「移動(400)」コマンドでは辿り着けない場所 - 地域
+#DIM CONST 場所_人間の里周辺   = 981
+#DIM CONST 場所_薄暗い路地裏   = 990
+
+; 特殊な衣装コード
+#DIM CONST 衣装_アクセサリ_結婚指輪    = 1
+#DIM CONST 衣装_アクセサリ_チョーカー  = 100
+#DIM CONST 衣装_アクセサリ_首輪        = 101
+#DIM CONST 衣装_下半身下着１_貞操帯    = 100
+
+; 訪問者のムード
+#DIM CONST NTR_MOOD_会話 = 0
+#DIM CONST NTR_MOOD_キス = 1
+#DIM CONST NTR_MOOD_愛撫 = 2
+#DIM CONST NTR_MOOD_奉仕 = 3
+#DIM CONST NTR_MOOD_性交 = 4
+#DIM CONST NTR_MOOD_同伴 = 5
+
+#DIM CONST NTR_CNT_なし                 =  0
+#DIM CONST NTR_CNT_色っぽいしぐさ       =  1
+#DIM CONST NTR_CNT_見つめる             =  2
+#DIM CONST NTR_CNT_身体摺り寄せ         =  3
+#DIM CONST NTR_CNT_耳元に息             =  4
+#DIM CONST NTR_CNT_キス                 =  5
+#DIM CONST NTR_CNT_背面抱擁             =  6
+#DIM CONST NTR_CNT_対面抱擁             =  7
+#DIM CONST NTR_CNT_胸を揉ませる         =  8
+#DIM CONST NTR_CNT_股間をまさぐる       =  9
+#DIM CONST NTR_CNT_スカートの中を見せる = 10
+#DIM CONST NTR_CNT_ディープキス         = 11
+
+#DIM CONST NTR_行為_なし           =  0
+#DIM CONST NTR_行為_キス           =  1
+#DIM CONST NTR_行為_愛撫           =  2
+#DIM CONST NTR_行為_胸愛撫         =  3
+#DIM CONST NTR_行為_フェラチオ     =  4
+#DIM CONST NTR_行為_シックスナイン =  5
+#DIM CONST NTR_行為_素股           =  6
+#DIM CONST NTR_行為_Ｖ正常位       =  7
+#DIM CONST NTR_行為_Ｖ後背位       =  8
+#DIM CONST NTR_行為_Ｖ騎乗位       =  9
+#DIM CONST NTR_行為_Ｖ対面座位     = 10
+#DIM CONST NTR_行為_Ｖ背面座位     = 11
+#DIM CONST NTR_行為_Ｖ対面立位     = 12
+#DIM CONST NTR_行為_Ｖ背面立位     = 13
+
+#DIM CONST NTR_行為_Ａ正常位       = 14
+#DIM CONST NTR_行為_Ａ後背位       = 15
+#DIM CONST NTR_行為_Ａ騎乗位       = 16
+#DIM CONST NTR_行為_Ａ対面座位     = 17
+#DIM CONST NTR_行為_Ａ背面座位     = 18
+#DIM CONST NTR_行為_Ａ対面立位     = 19
+#DIM CONST NTR_行為_Ａ背面立位     = 20
+
+#DIM CONST 写真_普段               =  1
+#DIM CONST 写真_着替え             =  2
+#DIM CONST 写真_入浴               =  3
+#DIM CONST 写真_寝顔               =  4
+#DIM CONST 写真_トレーニング       =  5
+#DIM CONST 写真_居眠り             =  6
+#DIM CONST 写真_収録               =  7
+#DIM CONST 写真_トイレ             =  8
+#DIM CONST 写真_NTR_キス           =  9
+#DIM CONST 写真_NTR_愛撫           = 10
+#DIM CONST 写真_NTR_胸愛撫         = 11
+#DIM CONST 写真_NTR_フェラチオ     = 12
+#DIM CONST 写真_NTR_シックスナイン = 13
+#DIM CONST 写真_NTR_素股           = 14
+#DIM CONST 写真_NTR_Ｖセックス     = 15
+#DIM CONST 写真_NTR_Ａセックス     = 16
+#DIM CONST 写真_自慰               = 17
+#DIM CONST 写真_NTR_接触           = 18		; 住人からの身体摺り寄せ等の親密な接触
+#DIM CONST 写真_NTR_抱擁           = 19		; 住人からの対面抱擁、背面抱擁
+#DIM CONST 写真_住人同士_会話	   = 100
+#DIM CONST 写真_住人同士_お茶	   = 101
+#DIM CONST 写真_住人同士_接触      = 102
+#DIM CONST 写真_住人同士_抱擁      = 103
+#DIM CONST 写真_住人同士_キス      = 104
+#DIM CONST 写真_住人同士_愛撫      = 105
+#DIM CONST 写真_住人同士_Ａ愛撫    = 106
+#DIM CONST 写真_住人同士_胸愛撫    = 107
+#DIM CONST 写真_住人同士_Ｖ性交    = 108
+#DIM CONST 写真_住人同士_Ａ性交    = 109
+
+#DIM CONST 輪姦_1V				   = 0
+#DIM CONST 輪姦_1A				   = 1
+#DIM CONST 輪姦_2MV				   = 2
+#DIM CONST 輪姦_2MA				   = 3
+#DIM CONST 輪姦_2VA				   = 4
+#DIM CONST 輪姦_2VV				   = 10
+#DIM CONST 輪姦_2AA				   = 11
+#DIM CONST 輪姦_3MAV			   = 20
+#DIM CONST 輪姦_0				   = -1
+
+;関数NTR_CHK_FAVORABLY()で使用する訪問者との好感度レベル
+#DIM CONST FAV_寝取り返し寸前	   = 10
+#DIM CONST FAV_寝取り返し中		   = 9
+#DIM CONST FAV_寝取られ			   = 8
+#DIM CONST FAV_寝取られ寸前		   = 7
+#DIM CONST FAV_寝取られそう		   = 6
+#DIM CONST FAV_主人より高い		   = 5
+#DIM CONST FAV_うふふする程度	   = 4
+#DIM CONST FAV_奉仕する程度		   = 3
+#DIM CONST FAV_体を触らせる程度	   = 2
+#DIM CONST FAV_キスする程度		   = 1
+
+;STAINとビット判定する汚れ
+#DIM CONST 汚れ_なし				= 0 
+#DIM CONST 汚れ_愛液				= 1
+#DIM CONST 汚れ_ペニス				= 2
+#DIM CONST 汚れ_精液				= 4
+#DIM CONST 汚れ_アナル				= 8
+#DIM CONST 汚れ_母乳				= 16
+#DIM CONST 汚れ_粘液				= 32
+#DIM CONST 汚れ_破瓜の血			= 64
+
+#DIM CONST 汚れ_母乳_愛液			= 17
+#DIM CONST 汚れ_母乳_ペニス			= 18
+#DIM CONST 汚れ_母乳_ペニス_愛液	= 19
+
+;STAINとビット判定する汚れ(SETBIT,GETBIT用)
+#DIM CONST 汚れB_愛液				= 0
+#DIM CONST 汚れB_ペニス				= 1
+#DIM CONST 汚れB_精液				= 2
+#DIM CONST 汚れB_アナル				= 3
+#DIM CONST 汚れB_母乳				= 4
+#DIM CONST 汚れB_粘液				= 5
+#DIM CONST 汚れB_破瓜の血			= 6
+
+;STAIN部位(Stain.csvと同一であること)
+#DIM CONST 部位_口 = 0
+#DIM CONST 部位_手 = 1
+#DIM CONST 部位_Ｐ = 2
+#DIM CONST 部位_Ｖ = 3
+#DIM CONST 部位_Ａ = 4
+#DIM CONST 部位_Ｂ = 5
+#DIM CONST 部位_膣内 = 6
+#DIM CONST 部位_腸内 = 7
+
+;住人→あなたのカウンターセクハラ
+#DIM CONST CNT_色っぽい仕草			= 10
+#DIM CONST CNT_見つめる				= 11
+#DIM CONST CNT_体を摺り寄せる		= 12
+#DIM CONST CNT_スカートを捲る		= 13
+#DIM CONST CNT_耳元に息を吹きかける	= 14
+#DIM CONST CNT_尻を撫でる			= 15
+#DIM CONST CNT_乳搾り手コキ			= 29
+#DIM CONST CNT_キス					= 30
+#DIM CONST CNT_背面抱擁				= 31
+#DIM CONST CNT_対面抱擁				= 32
+#DIM CONST CNT_胸を揉ませる			= 33
+#DIM CONST CNT_股間をまさぐる		= 34
+#DIM CONST CNT_スカートの中を見せる	= 35
+#DIM CONST CNT_胸を揉む				= 36
+#DIM CONST CNT_手淫					= 50
+#DIM CONST CNT_フェラチオ			= 51
+#DIM CONST CNT_素股					= 52
+#DIM CONST CNT_パイズリ				= 53
+#DIM CONST CNT_足コキ				= 54
+#DIM CONST CNT_アナル愛撫			= 55
+#DIM CONST CNT_アナル舐め			= 56
+#DIM CONST CNT_指挿入				= 57
+#DIM CONST CNT_胸愛撫				= 58
+#DIM CONST CNT_乳首吸い				= 59
+#DIM CONST CNT_ディープキス			= 60
+#DIM CONST CNT_クンニ強制			= 70
+#DIM CONST CNT_フェラチオ強制		= 71
+#DIM CONST CNT_アナル奉仕			= 72
+#DIM CONST CNT_ぱふぱふ				= 73
+#DIM CONST CNT_乳合わせ				= 74
+#DIM CONST CNT_タワシ洗い			= 75
+#DIM CONST CNT_正常位挿入される		= 80
+#DIM CONST CNT_騎乗位A挿入される	= 81
+#DIM CONST CNT_後背位A挿入される	= 82
+#DIM CONST CNT_背面座位A挿入される	= 83
+#DIM CONST CNT_騎乗位逆レイプ		= 91
+
+;マスターカウンター制御ビット
+;(ビット 0=尻を撫でる不可 1=抱き付く 2=キスする 3=胸愛撫 4=アナル愛撫 5=クリ愛撫 6=指挿入れ)
+#DIM CONST MCC_尻を撫でる不可		= 0 
+#DIM CONST MCC_抱き付く不可			= 1
+#DIM CONST MCC_キスする不可			= 2
+#DIM CONST MCC_胸愛撫不可			= 3
+#DIM CONST MCC_アナル愛撫不可		= 4
+#DIM CONST MCC_クリ愛撫不可			= 5
+#DIM CONST MCC_指挿入れ不可			= 6
+
+;訪問者宅監禁状況フラグ(ビット演算)
+#DIM CONST 訪問者宅_牢屋解錠済 = 1p1
+#DIM CONST 訪問者宅_通路解錠済 = 1p2
+#DIM CONST 訪問者宅_床扉解錠済 = 1p3
+#DIM CONST 訪問者宅_玄関解錠済 = 1p4
+#DIM CONST 訪問者宅_便所使用済 = 1p5
+
+;客口上用客種別
+#DIM CONST 客種別_擬音系				= 0
+#DIM CONST 客種別_DQN・口悪い系			= 1
+#DIM CONST 客種別_紳士のような変態系	= 2
+#DIM CONST 客種別_おっさん系			= 3
+#DIM CONST 客種別_キモデブ系			= 4
+#DIM CONST 客種別_性経験少ない系		= 5
+
+;娼婦紋ビット番号
+#DIM CONST 娼婦紋_恥丘				= 0
+#DIM CONST 娼婦紋_太股				= 1
+#DIM CONST 娼婦紋_左尻				= 2
+#DIM CONST 娼婦紋_胸元				= 3
+#DIM CONST 娼婦紋_右頬				= 4
+
+;特殊娼婦紋ビット番号
+#DIM CONST 特殊娼婦紋_恥丘			= 0
+#DIM CONST 特殊娼婦紋_太股			= 1
+#DIM CONST 特殊娼婦紋_左尻			= 2
+#DIM CONST 特殊娼婦紋_胸元			= 3
+#DIM CONST 特殊娼婦紋_右頬			= 4
+
+;PRENTR番号
+#DIM CONST NTRPRE_職				= 0
+#DIM CONST NTRPRE_職履歴			= 1
+#DIM CONST NTRPRE_職既知			= 2
+
+
+;TFLAG:1で使用する射精箇所ビット番号
+#DIM CONST 射精箇所_コンドーム		= 0
+#DIM CONST 射精箇所_膣内			= 1
+#DIM CONST 射精箇所_アナル			= 2 
+#DIM CONST 射精箇所_手淫			= 3
+#DIM CONST 射精箇所_口淫			= 4
+#DIM CONST 射精箇所_パイズリ		= 5
+#DIM CONST 射精箇所_素股			= 6
+#DIM CONST 射精箇所_足コキ			= 7 
+#DIM CONST 射精箇所_体表			= 8
+#DIM CONST 射精箇所_アナル奉仕		= 9
+#DIM CONST 射精箇所_愛撫			= 10
+#DIM CONST 射精箇所_手淫フェラ		= 20
+#DIM CONST 射精箇所_パイズリフェラ	= 21
+#DIM CONST 射精箇所_シックスナイン	= 22
+#DIM CONST 射精箇所_イラマチオ		= 23
+#DIM CONST 射精箇所_子宮口責め		= 24
+#DIM CONST 射精箇所_授乳手コキ		= 25
+
+;野外調教用閾値
+#DIM CONST 野外調教閾値_放置プレイ	= 35
+
+;住人同士の交流：行為
+#DIM CONST 住人同士行為_なし		= 0
+#DIM CONST 住人同士行為_会話		= 300
+#DIM CONST 住人同士行為_お茶		= 301
+#DIM CONST 住人同士行為_スキンシップ = 302
+#DIM CONST 住人同士行為_尻を撫でる	= 310
+#DIM CONST 住人同士行為_抱きつく	= 311
+#DIM CONST 住人同士行為_キスする	= 312
+#DIM CONST 住人同士行為_胸愛撫		= 313
+#DIM CONST 住人同士行為_アナル愛撫	= 314
+#DIM CONST 住人同士行為_クリ愛撫	= 315
+#DIM CONST 住人同士行為_指挿れ		= 316
+#DIM CONST 住人同士行為_Ｖ性交Ｎ	= 350
+#DIM CONST 住人同士行為_Ｖ性交Ｃ	= 351
+#DIM CONST 住人同士行為_Ａ性交Ｎ	= 352
+#DIM CONST 住人同士行為_Ａ性交Ｃ	= 353
+#DIM CONST 住人同士行為_Ｖ後戯Ｎ	= 354
+#DIM CONST 住人同士行為_Ｖ後戯Ｃ	= 355
+#DIM CONST 住人同士行為_Ａ後戯Ｎ	= 356
+#DIM CONST 住人同士行為_Ａ後戯Ｃ	= 357
+
+;前回売春フラグ
+#DIM CONST 前回売春_初売春			= 1
+#DIM CONST 前回売春_処女喪失		= 2
+
+;TA変数用
+;0～4は子宮内精液管理に使用
+;住人同士の処理用
+#DIM CONST TA_好感度	= 5
+;TB変数用
+;0～4は子宮内精液管理に使用
+#DIM CONST TB_客番号	= 5
+#DIM CONST TB_客種別	= 6
+
+#DIM CONST 屈服IX					= 800
+
+;なんちゃってエンディング用
+#DIM CONST END_あなた				= 1
+#DIM CONST END_アイドル				= 2
+#DIM CONST END_肉便器				= 3
+#DIM CONST END_恋慕肉便器			= 4
+;ちひろさん専用
+#DIM CONST END_事務員				= -1
+;1000~はＮＴＲ対象に対応
+
+#DIM SAVEDATA 履歴_IX
+#DIM SAVEDATA 履歴_DAY,1000,2
+#DIM SAVEDATA 履歴_NO,1000
+#DIM SAVEDATA 履歴_CO,1000,2
+
+#DIM SAVEDATA CHARA_ACTIVE			;アクティブなキャラ数 CHARANUMの代わりに使用
+#DIM SAVEDATA PHONE,500				;電話番号 登録NOで管理
+#DIM SAVEDATA PHONEABLE,500			;諸般の事情で強すぎるので電話を一日一回に限定する
+
+#DIM SAVEDATA 出現率,500			;ゲーム内に出現する確率の操作、0はフラグ代わりに使用
+
+#DIM SAVEDATA ＮＴＲ追加処理, 9 		;ＮＴＲ系イベントの制御用、0は猶予期間設定、1は猶予期間の残り
+

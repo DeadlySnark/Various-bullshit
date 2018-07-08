@@ -1,0 +1,8 @@
+;今のところこれだけ
+
+@INHABITANT_SETTINGS
+IF GETBIT(FLAG:住人同士イベント設定,0)
+	CLEARBIT FLAG:住人同士イベント設定,0
+ELSE
+	SETBIT FLAG:住人同士イベント設定,0
+ENDIF

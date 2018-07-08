@@ -1,0 +1,146 @@
+@アイドル出現確率オプション
+PRINTL アイドルの出現確率を操作しますか？
+PRINTL [0] はい [1] いいえ
+INPUT
+IF RESULT == 0
+	PRINTW アイドルの出現確率を操作します。
+	CALL アイドル確率制御
+ELSE
+	出現率:0 = 0
+	PRINTL 出現率の操作をしません。
+ENDIF
+PRINTL
+
+@アイドル確率制御
+#DIM Min_num
+#DIM Max_num
+#DIM C_chara
+#DIM LINENUM
+
+	LINENUM=LINECOUNT
+	Min_num = 1
+	Max_num = 100
+	C_chara = CHARA_ACTIVE
+	LOCAL = 0
+	$TOP_KAKURITSU
+	CLEARLINE LINECOUNT-LINENUM
+	LINENUM=LINECOUNT
+	PRINTFORM 出現確率上昇中のキャラ：
+	SETCOLOR 0xffff00
+	PRINT 黄
+	RESETCOLOR
+	PRINTFORM 　　　　出現確率低下中のキャラ：
+	SETCOLOR 0x666666
+	PRINTL 灰
+	RESETCOLOR
+	;PRINTFORML {Min_num} {Max_num}
+	PRINTFORM 現在表示
+	IF Min_num==1
+		SETCOLOR 0xff00ff
+		PRINTFORML  キュート
+		RESETCOLOR
+	ELSEIF Min_num==101
+		SETCOLOR 0x0088ff
+		PRINTFORML  クール
+		RESETCOLOR
+	ELSEIF Min_num==201
+		SETCOLOR 0xff8800
+		PRINTFORML  パッション
+		RESETCOLOR
+	ELSEIF Min_num==301
+		SETCOLOR 0x00ff00
+		PRINTFORML  その他
+		RESETCOLOR
+	ENDIF
+	LOCAL=0
+	FOR COUNT, Min_num, Max_num+1
+		EXISTCSV COUNT
+		IF RESULT==1
+			LOCALS'=CSVNAME(COUNT)
+			SELECTCASE 出現率:COUNT
+				CASE 0
+					;DO NOTHING
+				CASE 1
+					SETCOLOR 0xffff00
+				CASE 2
+					SETCOLOR 0x666666
+			ENDSELECT
+			PRINTFORM [{COUNT}] %LOCALS%　
+			RESETCOLOR
+			LOCAL ++
+			;１行５人表示
+			IF LOCAL % 5 == 0
+				PRINTL
+			ENDIF
+		ENDIF
+	NEXT
+	PRINTL
+	PRINTL
+	DRAWLINE
+	PRINTL [991] 選択画面全上昇
+	PRINTL [992] 選択画面全低下
+	PRINTL [993] 選択画面全解除
+	DRAWLINE
+;	PRINTL [995] 初心者向けセットアップ
+;	PRINTL [996] ＣＰ
+	DRAWLINE
+	PRINT [-1] 前のページ　
+	PRINTL [-2] 次のページ
+	PRINTL [999] 選択を終了する
+	INPUT
+	
+	IF RESULT == -1
+		IF Min_num-100 < 1
+			Min_num = 1
+			Max_num = 100
+		ELSE
+			IF Max_num == CSVキャラ数
+				Max_num = Min_num
+			ELSE
+				Max_num = Max_num-100
+			ENDIF
+			Min_num = Min_num-100
+		ENDIF
+	ELSEIF RESULT == -2
+		IF Min_num+100 >= CSVキャラ数
+			Min_num = Min_num
+			Max_num = Max_num
+		ELSE
+			Min_num = Min_num+100
+			Max_num = Max_num+100
+		ENDIF
+	ELSEIF INRANGE(RESULT,1,CSVキャラ数)
+		出現率:RESULT ++
+		SIF 出現率:RESULT > 2
+			出現率:RESULT = 0
+	ELSEIF RESULT == 991
+		;全上昇
+		FOR COUNT, Min_num, Max_num+1
+			出現率:COUNT = 1
+		NEXT
+	ELSEIF RESULT == 992
+		;全低下
+		FOR COUNT, Min_num, Max_num+1
+			出現率:COUNT = 2
+		NEXT
+	ELSEIF RESULT == 993
+		;全解除
+		FOR COUNT, Min_num, Max_num+1
+			出現率:COUNT = 0
+		NEXT
+	ELSEIF RESULT == 999
+		出現率:0 = 0
+		FOR COUNT, 1, CSVキャラ数
+			SIF !GETBIT(出現率:0, 0) && GETBIT(出現率:COUNT, 0)
+				SETBIT 出現率:0, 0
+			SIF !GETBIT(出現率:0, 1) && GETBIT(出現率:COUNT, 1)
+				SETBIT 出現率:0, 1
+		NEXT
+		RETURN 1
+	ELSEIF RESULT == 995
+	
+	ELSEIF RESULT == 996
+	;CP
+	;SETBIT 出現率:COUNT, 0
+	ENDIF
+GOTO TOP_KAKURITSU

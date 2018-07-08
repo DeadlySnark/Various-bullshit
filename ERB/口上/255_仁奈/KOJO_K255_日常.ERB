@@ -1,0 +1,446 @@
+;-------------------------------------------------
+;市原仁奈　口上　作者：
+;-------------------------------------------------
+;※※※※※※他者による修正、加筆、改変についての但し書き※※※※※※
+;前提としてオリジナル作者以外が手を入れる場合は、オリジナル作者の許可を求めること
+;オリジナル作者とコンタクトが取れない場合には以下の但し書きに従ってUPできるかどうか判断してください。
+
+;◎修正（誤字、脱字、条件分岐等ERB構文のバグ修正、本体のバージョンアップ、ダウン対応など）
+;（　許可　）※どちらかを選択してください
+;
+;◎加筆（未記入箇所、ランダム分岐、条件分岐等の増補）
+;（　許可　）※どちらかを選択してください
+;
+;◎改変（オリジナル作者によって書かれた部分に対しての上書き、消去を含む）
+;（　許可　）※どちらかを選択してください
+;
+;記　紅い人
+;基本的に作者の意思を確認出来ない場合、加筆改変は可能ということにします
+
+
+@KOJO_K255(ARG)
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;日常系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;300,会話
+;==================================================
+@KOJO_MESSAGE_COM_K255_300
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_300_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_300_1
+	IF RAND:5 == 0
+		PRINTFORMW 「仁奈、市原仁奈でごぜーます！」
+	ELSEIF RAND:5 == 1
+		PRINTFORMW 「おはようごぜーます！」
+	ELSEIF RAND:5 == 2
+		PRINTFORMW 「キグルミは好きでごぜーます！」
+	ELSEIF RAND:5 == 3
+		PRINTFORMW 「もふもふするですよ！」
+	ELSE
+		PRINTFORMW 「淋しいのはイヤでごぜーます」
+	ENDIF
+RETURN 1
+;==================================================
+;301,お茶を淹れる
+;==================================================
+@KOJO_MESSAGE_COM_K255_301
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_301_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_301_1
+	IF RAND:2 == 0
+		PRINTFORMW 「ありがてーです！」
+	ELSE
+		PRINTFORMW 「にげーけど、うめーですよ」
+	ENDIF
+RETURN 1
+;==================================================
+;302,スキンシップ
+;==================================================
+@KOJO_MESSAGE_COM_K255_302
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_302_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_302_1
+	IF RAND:2 == 0
+		PRINTFORMW 「なんでごぜーますか？」
+	ELSE
+		PRINTFORMW 「くすぐってーですよ」
+	ENDIF
+RETURN 1
+;==================================================
+;310,尻を撫でる
+;==================================================
+@KOJO_MESSAGE_COM_K255_310
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_310_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_310_1
+	IF RAND:3 == 0
+		PRINTFORMW 「ひゃっ！」
+	ELSEIF RAND:3 == 1
+		PRINTFORMW 「しっぽもふもふしてーですか？」
+	ELSE
+		PRINTFORMW 「触り方がやらしーですよ・・」
+	ENDIF
+RETURN 1
+;==================================================
+;311,抱き付く
+;==================================================
+@KOJO_MESSAGE_COM_K255_311
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_311_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_311_1
+	IF RAND:2 == 0
+		PRINTFORMW 「もふもふでごぜーます！」
+	ELSE
+		PRINTFORMW 「そんなにもふもふしてーですか？」
+	ENDIF
+RETURN 1
+;==================================================
+;312,キスする
+;==================================================
+@KOJO_MESSAGE_COM_K255_312
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_312_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_312_1
+	IF RAND:2 == 0
+		PRINTFORMW 「んちゅ・・」
+	ELSE
+		PRINTFORMW 「ちゅっ、ちゅっ・・」
+	ENDIF
+RETURN 1
+;==================================================
+;313,胸愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K255_313
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_313_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_313_1
+	IF RAND:2 == 0
+		PRINTFORMW 「んっ・・」
+	ELSE
+		PRINTFORMW 「そこは、もふもふじゃねーですよ・・」
+	ENDIF
+RETURN 1
+;-------------------------------------------------
+;314,アナル愛撫
+;-------------------------------------------------
+@KOJO_MESSAGE_COM_K255_314
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_314_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_314_1
+	IF RAND:2 == 0
+		PRINTFORMW 「や、やめてくだせー！」
+	ELSE
+		PRINTFORMW 「うう・・」
+	ENDIF
+RETURN 1
+;==================================================
+;315,クリ愛撫
+;==================================================
+@KOJO_MESSAGE_COM_K255_315
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_315_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_315_1
+	IF RAND:2 == 0
+		PRINTFORMW 「んっ・・」
+	ELSE
+		PRINTFORMW 「変な気持ちでごぜーます・・」
+	ENDIF
+RETURN 1
+;==================================================
+;315,指挿れ
+;==================================================
+@KOJO_MESSAGE_COM_K255_316
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_316_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_316_1
+	IF TALENT:処女
+		IF RAND:4 == 0
+			PRINTFORMW 「あっ、あっ」
+		ELSEIF RAND:4 == 1
+			PRINTFORMW 「んあ・・！」
+		ELSEIF RAND:4 == 2
+			PRINTFORMW 「入ってやがるです・・んっ」
+		ELSE
+			PRINTFORMW 「んあ、ちょっとこえーです・・」
+		ENDIF
+	ELSE
+		IF RAND:4 == 0
+			PRINTFORMW 「あっ、あっ」
+		ELSEIF RAND:4 == 1
+			PRINTFORMW 「んあ・・！」
+		ELSEIF RAND:4 == 2
+			PRINTFORMW 「入ってやがるです・・んっ」
+		ELSE
+			PRINTFORMW 「んあ、もっとしてくだせー・・」
+		ENDIF
+	ENDIF
+RETURN 1
+;==================================================
+;320,手淫
+;==================================================
+@KOJO_MESSAGE_COM_K255_320
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_320_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_320_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 9
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORML 「・・こうでやがりますか？」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを躊躇いがちに撫でた。
+		RETURN 0
+	ENDIF
+	;基本セット
+	IF RAND:2 == 0
+		PRINTFORML 「仁奈の手がいいでごぜーますか？」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを両手に包んで扱いている。
+	ELSE
+		PRINTFORML 「ピクピクしてるでごぜーます・・」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを小さな手で一生懸命に扱いている。
+	ENDIF
+	RETURN 0
+ENDIF
+RETURN 1
+;==================================================
+;321,フェラチオ
+;==================================================
+@KOJO_MESSAGE_COM_K255_321
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_321_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_321_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORML 「・・な、舐めるでごぜーますか」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスにおそるおそる口をつけた。
+		RETURN 0
+	ENDIF
+	;基本セット
+	IF RAND:2 == 0
+		PRINTFORML 「ほーへごへーまふは・・？」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを口いっぱいに咥えている。
+	ELSE
+		PRINTFORML 「んむ・・んっ・・」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを口いっぱいにしゃぶっている。
+	ENDIF
+	RETURN 0
+ENDIF
+RETURN 1
+;==================================================
+;325,イラマチオ
+;==================================================
+@KOJO_MESSAGE_COM_K255_325
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_325_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_325_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORML 「おご・・ごっ・・！？」
+		PRINTFORMW %CALLNAME:TARGET%は喉を貫かれ、手足をばたばたと振り回し抵抗している。
+		RETURN 0
+	ENDIF
+	;基本セット
+	IF RAND:2 == 0
+		PRINTFORML 「んぐっ、おご・・！」
+		PRINTFORMW %CALLNAME:TARGET%は頭を掴まれ、小さな口を奥まで貫かれている。
+	ELSE
+		PRINTFORML じゅぽっ、じゅぽっ、じゅぽっ。
+		PRINTFORMW %CALLNAME:TARGET%はイラマチオの暴力的な苦しみに、涙を零しながら耐えている。
+	ENDIF
+	RETURN 0
+ENDIF
+RETURN 1
+;==================================================
+;328,素股
+;==================================================
+@KOJO_MESSAGE_COM_K255_328
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_328_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_328_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORML 「いけねーことしてるみてーです・・」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%に身を任せている。
+		RETURN 0
+	ENDIF
+	;基本セット
+	IF NOWEX:TARGET:Ｃ絶頂
+		PRINTFORML 「はっ・・ああっ！」
+		PRINTFORMW %CALLNAME:TARGET%は上り詰める快感に身を震わて喘いでいる。
+		RETURN 0
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORML 「んっ・・はあ・・」 
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%に寄り添うように身を任せている。
+		RETURN 0
+	;屈服3
+	ELSEIF MARK:屈服刻印 == 3
+		PRINTFORML 「んっ・・はあ・・」 
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスに身を任せている。
+		RETURN 0
+	;それ以外
+	ELSE
+		PRINTFORML 「んっ・・はあ・・」 
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%に身を任せている。
+		RETURN 0
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;350,押し倒す
+;==================================================
+@KOJO_MESSAGE_COM_K255_350
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_350_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_350_1
+	;基本セット
+	;初回
+	IF FIRSTTIME(350, 1)
+		PRINTFORMW 「仁奈はまだ眠くねーですよ・・？」
+	;2回目以降
+	ELSE
+		PRINTFORMW 「優しくしてくだせー」
+	ENDIF
+RETURN 1
+;==================================================
+;351,連れ出す
+;==================================================
+@KOJO_MESSAGE_COM_K255_351
+CALL TRAIN_MESSAGE
+CALL KOJO_MESSAGE_COM_K255_351_1
+RETURN RESULT
+
+@KOJO_MESSAGE_COM_K255_351_1
+	IF RAND:2 == 0
+		PRINTFORMW 「どこに行くでやがりますか？」
+	ELSE
+		PRINTFORMW 「しかたねーでやがりますね！」
+	ENDIF
+RETURN 1
+
+;-------------------------------------------------
+;奴隷の絶頂時の口上
+;NOWEX:0～3 CVAB絶頂
+;NOWEX:4 二重絶頂
+;NOWEX:5 三重絶頂
+;NOWEX:6 四重絶頂
+;NOWEX:10 噴乳
+;NOWEX:11 射精
+;NOWEX:12 放尿
+;適当に組み合わせて使ってください
+;-------------------------------------------------
+@KOJO_MESSAGE_PALAMCNG_B_K255
+CALL PALAM_MESSAGE_B
+;-------------------------------------------------
+;射精
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL && NOWEX:射精
+	PRINTFORMW 
+ENDIF
+;-------------------------------------------------
+;絶頂
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF NOWEX:Ｃ絶頂 || NOWEX:Ｖ絶頂 || NOWEX:Ａ絶頂 || NOWEX:Ｂ絶頂
+		;強絶頂
+		IF CFLAG:うふふ >= 1 && (NOWEX:Ｃ絶頂 == 2 || NOWEX:Ｖ絶頂 == 2 || NOWEX:Ａ絶頂 == 2 || NOWEX:Ｂ絶頂 == 2)
+				IF RAND:2 == 0
+					PRINTFORML 「気持ちいーでごぜーます・・仁奈、気持ちいーでごぜーます！」
+					PRINTFORMW %CALLNAME:TARGET%は絶頂のあまり、よだれを垂らして悦んでいる。
+				ELSE
+					PRINTFORML 「あー、あー！」
+					PRINTFORMW %CALLNAME:TARGET%は言葉も忘れて、ひたすらに嬌声を上げている。
+				ENDIF
+				RETURN 0
+		;絶頂
+		ELSE
+				IF RAND:2 == 0
+					PRINTFORML 「仁奈は、仁奈は・・！あっ、あっ・・！」
+					PRINTFORMW %CALLNAME:TARGET%は顔を真っ赤に染めて快感に喘いでいる。
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%・・%CALLNAME:MASTER%！」
+					PRINTFORMW %CALLNAME:TARGET%は顔を真っ赤に染めて快感に喘いでいる。
+				ENDIF
+				RETURN 0
+		ENDIF
+	ENDIF
+ENDIF

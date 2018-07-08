@@ -1,0 +1,142 @@
+;sorp
+@COM459
+#DIM 興味=0
+#DIM 金銭
+#DIM LOOP_CHR
+PRINTFORML 気分転換のためソープへと入店してみた%CALLNAME:MASTER%は店員に薦められるがままに待合室に飾られている写真を眺めてみた
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTFORMW 　　　・
+PRINTW
+FOR LOOP_CHR,1, CHARA_ACTIVE
+;今ソープにいるキャラが
+	SIF CFLAG:LOOP_CHR:現在位置!=場所_ソープ
+		CONTINUE
+	PRINTFORM %CSTR:LOOP_CHR:源氏名%と書かれた名札のかかったプレート
+	IF CFLAG:LOOP_CHR:名前フラグ==2
+	;偽名は知っている
+		PRINTFORML には、この前知り合った娘が写っていた
+	;既知フラグを立てる
+		SETBIT CFLAG:LOOP_CHR:NTRPREKNOW, 人物_風俗オーナー-人物_訪問者
+	ELSEIF CFLAG:LOOP_CHR:名前フラグ==1
+	;本名を知っている
+		PRINTFORML に写っているのは、目線を手で隠しているとは言え明らかに%CALLNAME:LOOP_CHR%だった…
+		SETBIT CFLAG:LOOP_CHR:NTRPREKNOW, 人物_風俗オーナー-人物_訪問者
+	ELSE
+		PRINTFORML には、なかなかレベルの高い娘が写っていた。
+	ENDIF
+	興味=1
+	PRINTL
+NEXT
+IF 興味==0
+	PRINTFORML 特に惹かれる娘はいなかったので、%CALLNAME:MASTER%は店から出た
+	RETURN 0
+ENDIF
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTW
+PRINTFORML 
+PRINTFORML さて、どうしようか  所持金:${MONEY}
+PRINTL [0] - やめる
+PRINTL [-1] - 契約解除交渉
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:現在位置!=場所_ソープ
+		CONTINUE
+	金銭=MAX(1, 5000 +NTR_COST_UNLOCK(LOOP_CHR)*(1+MAX(1, TALENT:LOOP_CHR:アイドル)+TALENT:LOOP_CHR:恋慕)*3 - 5*(MIN(1, TALENT:LOOP_CHR:NTR)+TALENT:LOOP_CHR:公衆便所)*(CFLAG:LOOP_CHR:(屈服IX+人物_風俗オーナー-人物_訪問者)))/10+1
+	IF CFLAG:LOOP_CHR:名前フラグ == 1
+	;実名を知っている
+		PRINTFORML [{LOOP_CHR}] - %CSTR:LOOP_CHR:源氏名%（%CSTR:LOOP_CHR:フルネーム%）を指名する ${金銭}
+	ELSE
+		PRINTFORML [{LOOP_CHR}] - %CSTR:LOOP_CHR:源氏名%を指名する ${金銭}
+	ENDIF
+NEXT
+INPUT
+IF RESULT==0
+	RETURN 0
+ELSEIF RESULT!=-1
+	
+	LOOP_CHR=RESULT
+	金銭=MAX(1, 5000 +NTR_COST_UNLOCK(LOOP_CHR)*(1+MAX(1, TALENT:LOOP_CHR:アイドル)+TALENT:LOOP_CHR:恋慕)*3 - 5*(MIN(1, TALENT:LOOP_CHR:NTR)+TALENT:LOOP_CHR:公衆便所)*(CFLAG:LOOP_CHR:(屈服IX+人物_風俗オーナー-人物_訪問者)))/10+1
+	IF MONEY<金銭
+		PRINTFORML お金が足らない……
+		RETURN 0
+	ENDIF
+	SIF CFLAG:LOOP_CHR:名前フラグ!=1
+		CALL 偽名(LOOP_CHR)
+	他人=人物_風俗オーナー
+	
+	PRINTFORML %CALLNAME:LOOP_CHR%を指名すると伝えると、個室へと案内された
+	PRINTFORML しばらくすると%CALLNAME:LOOP_CHR%がやってきた
+	PRINTFORMW 今まで別の客に抱かれていたのであろう、体からは洗ってあっても隠しきれない性臭がした……
+	;多分別の場所では記述しないのでここに直接移動を書く
+	CALL NTR_RESET_VISITOR_ACTION(LOOP_CHR)
+	CFLAG:LOOP_CHR:自主性=0
+	TRYCALLFORM SORP_START_K{NO:LOOP_CHR}(LOOP_CHR)
+	CFLAG:LOOP_CHR:現在位置= 場所_ソープあなた用
+	CFLAG:MASTER:現在位置= 場所_ソープあなた用
+		;服対策でここで前ターン偽造
+	CFLAG:LOOP_CHR:前ターン位置=場所_ソープあなた用
+	CALL CLOTHES_Preset_NUDE(LOOP_CHR)
+	CFLAG:LOOP_CHR:うふふ=1
+	;体力気力を無理やり回復
+	BASE:LOOP_CHR:体力=MAXBASE:LOOP_CHR:体力
+	BASE:LOOP_CHR:気力=MAXBASE:LOOP_CHR:気力
+	FLAG:従順一時保存=1+ABL:LOOP_CHR:従順
+	;寝てる場合があるのでたたき起こす
+	CFLAG:LOOP_CHR:睡眠=0
+	ABL:LOOP_CHR:従順=5
+	MONEY-=金銭
+	TIME+=10
+	他人=人物_訪問者
+	RETURN 1
+ENDIF
+
+
+
+
+
+
+
+
+
+
+
+PRINTFORML 風俗店オーナー「相応の金銭を払ってくれればこちらから契約解除はするぜ」
+PRINTFORML 風俗店オーナー「もっとも彼女たち自身からもう一度契約してくれといわれれば断る理由はないがな、くひひ」
+PRINTFORML
+PRINTFORML   所持金:${MONEY}
+PRINTL [0] - やめる
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CFLAG:LOOP_CHR:現在位置!=場所_ソープ || !PRENTR(LOOP_CHR, 人物_風俗オーナー, NTRPRE_職)
+		CONTINUE
+	金銭=MAX(1, 5000 +NTR_COST_UNLOCK(LOOP_CHR)*(1+MAX(1, TALENT:LOOP_CHR:アイドル)+TALENT:LOOP_CHR:恋慕)*3 - 5*(MIN(1, TALENT:LOOP_CHR:NTR)+TALENT:LOOP_CHR:公衆便所)*(CFLAG:LOOP_CHR:(屈服IX+人物_風俗オーナー-人物_訪問者)))
+	IF CFLAG:LOOP_CHR:名前フラグ == 1
+	;実名を知っている
+		PRINTFORML [{LOOP_CHR}] - %CSTR:LOOP_CHR:源氏名%（%CSTR:LOOP_CHR:フルネーム%）の契約解除 ${金銭}
+	ELSE
+		PRINTFORML [{LOOP_CHR}] - %CSTR:LOOP_CHR:源氏名%の契約解除 ${金銭}
+	ENDIF
+NEXT
+INPUT
+SIF RESULT == 0
+	RETURN 0
+LOOP_CHR=RESULT
+金銭=MAX(1, 5000 +NTR_COST_UNLOCK(LOOP_CHR)*(1+MAX(1, TALENT:LOOP_CHR:アイドル)+TALENT:LOOP_CHR:恋慕)*3 - 5*(MIN(1, TALENT:LOOP_CHR:NTR)+TALENT:LOOP_CHR:公衆便所)*(CFLAG:LOOP_CHR:(屈服IX+人物_風俗オーナー-人物_訪問者)))
+IF MONEY<金銭
+	PRINTFORML お金が足らない……
+	RETURN 0
+ENDIF
+MONEY-=金銭
+CALL NTR_RESET_VISITOR_ACTION(LOOP_CHR)
+CFLAG:LOOP_CHR:自主性=0
+CFLAG:LOOP_CHR:現在位置=場所_ダミー
+CLEARBIT TALENT:LOOP_CHR:NTRPRE, (人物_風俗オーナー-人物_訪問者)
+CFLAG:LOOP_CHR:(屈服IX+人物_風俗オーナー-人物_訪問者)=MAX(0, CFLAG:LOOP_CHR:(屈服IX+人物_風俗オーナー-人物_訪問者)-CFLAG:LOOP_CHR:好感度/2)
+PRINTFORML 指定された金額を払うとオーナーはほくほく顔で%CALLNAME:MASTER%の前で彼女との契約書を破り捨てた
+PRINTFORML これで問題は解決したのだろうか……？
+RETURN 1
+
+
+
+

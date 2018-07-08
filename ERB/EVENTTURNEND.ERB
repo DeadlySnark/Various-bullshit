@@ -1,0 +1,552 @@
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@EVENTTURNEND
+	;CALL ソープ通常処理
+	CALL AV通常処理
+	CALL ソープ通常処理
+	CALL DRAG_TURNEND
+	FLAG:侵入者の現在位置 = 0
+	;各キャラ毎の処理
+	FOR LOCAL,1, CHARA_ACTIVE
+		IF CFLAG:LOCAL:凍結
+			CFLAG:LOCAL:現在位置=場所_凍結用
+			CONTINUE
+		ENDIF
+		;test
+		;PRINTFORML {LOCAL} %CSTR:LOCAL:フルネーム%%CSTR:LOCAL:セックスした相手%
+		;恋慕獲得閾値
+		;通常時は好感度1000以上が必要
+		;[淫乱]であれば好感度は1500以上が必要
+		;[娼婦]であれば好感度は2000以上が必要
+		;[浮気癖]があれば1/3で済む
+		;NTR陥落経験１回につき5%上昇(寝取り返しは徐々に難しくなる)
+		LOCAL:2 = (1000+(500*TALENT:LOCAL:淫乱)+(2000*TALENT:PLAYER:肉便器))*(100+EXP:LOCAL:NTR陥落経験*5)/100
+		IF TALENT:LOCAL:浮気癖
+			LOCAL:2 /= 3
+		ENDIF
+		;恋慕獲得条件
+		;好感度が閾値を超えている
+		;経験:奉仕快楽経験が30以上
+		;能力:従順が3以上
+		;	IF CFLAG:LOCAL:好感度 > LOCAL:2 && EXP:LOCAL:奉仕快楽経験 >= 30 && ABL:LOCAL:従順 >= 3 && !TALENT:LOCAL:恋慕
+		IF CFLAG:LOCAL:好感度 > LOCAL:2 &&ABL:LOCAL:親密 >= 8 && !TALENT:LOCAL:恋慕
+			PRINTFORML %CALLNAME:LOCAL%は%CALLNAME:MASTER%と過ごす時間に悦びを感じているようだ…
+			PRINTFORML %CALLNAME:LOCAL%は[恋慕]を得た
+			PRINTFORMW %CALLNAME:LOCAL%の部屋の合鍵を貰った
+			TRYCALLLIST
+				FUNC GETLOVE_K{NO:LOCAL}_00(LOCAL)
+				FUNC GETLOVE_KU_00(LOCAL)
+			ENDFUNC
+			FLAG:陥落人数 ++
+			TALENT:LOCAL:恋慕 = 1
+			FOR COUNT, 屈服IX, 屈服IX+50
+				CFLAG:LOCAL:COUNT = 0
+			NEXT
+			CFLAG:LOCAL:NTR陥落イベントフラグ = 1
+			IF TALENT:LOCAL:NTR
+				PRINTL
+				IF EXP:LOCAL:NTR陥落経験 < 10
+					PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(NTR_WHO(LOCAL))%への依存を断ち切った
+					PRINTFORML %CALLNAME:LOCAL%は涙を浮かべて微笑んだ
+					PRINTFORMW %CALLNAME:LOCAL%は[NTR]ではなくなった
+					TRYCALLLIST
+						FUNC GETLOVE_K{NO:LOCAL}_01(LOCAL)
+						FUNC GETLOVE_KU_01(LOCAL)
+					ENDFUNC
+				ELSE
+					PRINTFORML %"もう何度目かも分からないが、"+CALLNAME:LOCAL+"は再び"+CALLNAME:MASTER+"の元へ戻ってきた"%
+					PRINTFORML %"どうやら"+CALLNAME:LOCAL+"は優しくされれば、誰にでも気を許してしまうようだ……"%
+					PRINTFORMW %CALLNAME:LOCAL+"は[NTR]ではなくなったが、もうその[浮気癖]が治ることはないのだろう"%
+					TALENT:LOCAL:浮気癖 = 1
+					TRYCALLLIST
+						FUNC GETLOVE_K{NO:LOCAL}_02(LOCAL)
+						FUNC GETLOVE_KU_02(LOCAL)
+					ENDFUNC
+				ENDIF
+				;浮気公認は消えます
+				IF TALENT:LOCAL:浮気公認 > 0
+					PRINTFORML %CALLNAME:LOCAL%は「もう二度と浮気して欲しいなんて言わないで」と泣きながら抱きついた。
+					PRINTFORMW %CALLNAME:LOCAL%との[浮気公認]を失った。
+					TALENT:LOCAL:浮気公認 = 0
+					TRYCALLLIST
+						FUNC GETLOVE_K{NO:LOCAL}_03(LOCAL)
+						FUNC GETLOVE_KU_03(LOCAL)
+					ENDFUNC
+				ENDIF
+				TALENT:LOCAL:NTR = 0
+			ENDIF
+			;主人の屈服度減算ボーナス
+			CFLAG:MASTER:屈服度 = MAX(CFLAG:MASTER:屈服度 - 20 - RAND:20, 0)
+			IF TALENT:LOCAL:公衆便所
+				PRINTL
+				PRINTFORML %CALLNAME:LOCAL%は肉便器から開放された
+				IF TALENT:LOCAL:淫乱 == 2
+					PRINTFORML しかし今まで数多くの男達に買われその身体を抱かれてきた過去が消えるはずもなく
+					PRINTFORMW %CALLNAME:LOCAL%は娼婦の汚名をぬぐうことはできなかった
+				ENDIF
+				TALENT:LOCAL:公衆便所 = 0
+				TRYCALLLIST
+					FUNC GETLOVE_K{NO:LOCAL}_04(LOCAL)
+					FUNC GETLOVE_KU_04(LOCAL)
+				ENDFUNC
+			ENDIF
+		ENDIF
+		;親愛獲得条件
+		;好感度が閾値を越えている
+		;恋慕、愛情経験200以上
+		;寝取られなくなる
+		IF CFLAG:LOCAL:好感度 > 10000 && EXP:LOCAL:愛情経験 >= 200 && TALENT:LOCAL:恋慕 && !TALENT:LOCAL:親愛 && !TALENT:LOCAL:浮気癖
+			PRINTFORML %CALLNAME:LOCAL%は%CALLNAME:MASTER%に心からの愛情を抱いているようだ…
+			PRINTFORML %CALLNAME:LOCAL%は［親愛］を得た
+			TRYCALLLIST
+				FUNC GETLOVE_K{NO:LOCAL}_05(LOCAL)
+				FUNC GETLOVE_KU_05(LOCAL)
+			ENDFUNC
+			TALENT:LOCAL:親愛 = 1
+			FOR COUNT,屈服IX,屈服IX+100
+				CFLAG:LOCAL:COUNT = 0
+			NEXT
+		ENDIF
+		;子供による最低好感度保障
+		IF 親別出産数:(NO:LOCAL):(NO:MASTER)
+			LOCAL:1=300*親別出産数:(NO:LOCAL):(NO:MASTER)
+			SIF 親別出産数:(NO:LOCAL):(NO:MASTER)>3
+				LOCAL:1=900+(親別出産数:(NO:LOCAL):(NO:MASTER)-3)*100
+			IF CFLAG:LOCAL:好感度 < LOCAL:1
+				PRINTFORML %CALLNAME:LOCAL%はふと%CALLNAME:MASTER%との間に産まれた子供に思いを馳せた…
+				PRINTFORMW 好感度が{LOCAL:1-CFLAG:LOCAL:好感度}上昇した
+				CFLAG:LOCAL:好感度=LOCAL:1
+			ENDIF
+		ENDIF
+		;ここからは見える条件を満たしていないと見えないことにする
+		;条件=恋慕 or 所属
+		SKIPDISP 1
+		SIF 所属(LOCAL) || TALENT:LOCAL:恋慕 || IS_NTR_SHOW_ALL()
+			SKIPDISP 0
+		;肉体改造
+		;0...C
+		;1...B
+		;2...A
+		;3...V
+		;4...快感応答
+		IF FLAG:素質変動onoff==1
+			IF EXP:LOCAL:Ｃ絶頂経験 >= 50 && ABL:LOCAL:Ｃ感覚 >=3 && TALENT:LOCAL:Ｃ感度 == -1
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けクリトリスが少し敏感になったようだ
+				TALENT:LOCAL:Ｃ感度 = 0
+			ENDIF
+			IF EXP:LOCAL:Ｂ絶頂経験 >= 50 && ABL:LOCAL:Ｂ感覚 >=3 && TALENT:LOCAL:Ｂ感度 == -1
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果バストが少し敏感になったようだ
+				TALENT:LOCAL:Ｂ感度 = 1
+			ENDIF
+			IF EXP:LOCAL:Ｖ絶頂経験 >= 50 && ABL:LOCAL:Ｖ感覚 >=3 && TALENT:LOCAL:Ｖ感度 == -1
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果ヴァギナが少し敏感になったようだ
+				TALENT:LOCAL:Ｖ感度 = 1
+			ENDIF
+			IF EXP:LOCAL:Ａ絶頂経験 >= 50 && ABL:LOCAL:Ａ感覚 >=3 && TALENT:LOCAL:Ａ感度 == -1
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果アナルが少し敏感になったようだ
+				TALENT:LOCAL:Ａ感度 = 1
+			ENDIF
+			IF EXP:LOCAL:Ｃ絶頂経験 >= 100 && ABL:LOCAL:Ｃ感覚 >=5 && TALENT:LOCAL:Ｃ感度 == 0
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果豆の部分が敏感になったようだ
+				TALENT:LOCAL:Ｃ感度 = 1
+			ENDIF
+			IF EXP:LOCAL:Ｂ絶頂経験 >= 100 && ABL:LOCAL:Ｂ感覚 >=5 && TALENT:LOCAL:Ｂ感度 == 0
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果雌の象徴が敏感になったようだ
+				TALENT:LOCAL:Ｂ感度 = 1
+			ENDIF
+			IF EXP:LOCAL:Ｖ絶頂経験 >= 100 && ABL:LOCAL:Ｖ感覚 >=5 && TALENT:LOCAL:Ｖ感度 == 0
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果おマンコが敏感になったようだ
+				TALENT:LOCAL:Ｖ感度 = 1
+			ENDIF
+			IF EXP:LOCAL:Ａ絶頂経験 >= 100 && ABL:LOCAL:Ａ感覚 >=5 && TALENT:LOCAL:Ａ感度 == 0
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽を受けた結果ケツマンコが敏感になったようだ
+				TALENT:LOCAL:Ａ感度 = 1
+			ENDIF
+			IF TALENT:LOCAL:Ｃ感度 == 1 && TALENT:LOCAL:Ｂ感度 == 1 && TALENT:LOCAL:Ｖ感度 == 1 && TALENT:LOCAL:Ａ感度 == 1 && EXP:LOCAL:Ｃ絶頂経験 >= 100 && EXP:LOCAL:Ｂ絶頂経験 >= 100 && EXP:LOCAL:Ｖ絶頂経験 >= 100 && EXP:LOCAL:Ａ絶頂経験 >= 100 && TALENT:LOCAL:快感応答 <= 0
+				PRINTFORML %CALLNAME:LOCAL%は度重なる快楽の虜となり快感に対して逆らえなくなったようだ
+				TALENT:LOCAL:快感応答 = 1
+			ENDIF
+			;ここから　妊娠関連;;;;;;;;;;
+			;多生児強度フラグ強化1　1 2 3 4
+			IF !TALENT:LOCAL:不妊 && CFLAG:LOCAL:多生児強度フラグ < CFLAG:LOCAL:子供の人数 && CFLAG:LOCAL:多生児強度フラグ<4
+				CFLAG:LOCAL:多生児強度フラグ=MIN(CFLAG:LOCAL:多生児強度フラグ+1 , 10)
+			ENDIF
+			;多生児強度フラグ強化2　 7 9 11
+			IF !TALENT:LOCAL:不妊 && MAX(7, 3*(CFLAG:LOCAL:多生児強度フラグ-2)) < CFLAG:LOCAL:子供の人数 && CFLAG:LOCAL:多生児強度フラグ<7
+				CFLAG:LOCAL:多生児強度フラグ=MIN(CFLAG:LOCAL:多生児強度フラグ+1 , 10)
+			ENDIF
+			;多生児強度フラグ強化3　 15 20 25
+			IF !TALENT:LOCAL:不妊 && MAX(15, 5*(CFLAG:LOCAL:多生児強度フラグ-4)-1) < CFLAG:LOCAL:子供の人数 && CFLAG:LOCAL:多生児強度フラグ<10
+				CFLAG:LOCAL:多生児強度フラグ=MIN(CFLAG:LOCAL:多生児強度フラグ+1 , 10)
+			ENDIF
+			;多産体質
+			IF !TALENT:LOCAL:多産体質 && CFLAG:LOCAL:多生児強度フラグ > 3
+				PRINTFORML 度重なる出産によって%CALLNAME:LOCAL%の子宮は活発化し、双子や三つ子等になる確率が上昇したようだ……
+				PRINTFORML %CALLNAME:LOCAL%は[多産体質]を得た
+				TALENT:LOCAL:多産体質=1
+			ENDIF
+			;繁殖母体
+			IF !TALENT:LOCAL:繁殖母体 && CFLAG:LOCAL:多生児強度フラグ > 6
+				PRINTFORML 度重なる出産によって%CALLNAME:LOCAL%の子宮はさらに活発化し、いつでも妊娠できるようになったようだ……
+				PRINTFORML %CALLNAME:LOCAL%は[繁殖母体]を得た
+				TALENT:LOCAL:繁殖母体=1
+			ENDIF
+			;真繁殖母体
+			IF TALENT:LOCAL:繁殖母体==1 && CFLAG:LOCAL:多生児強度フラグ > 9 && TALENT:LOCAL:NTR
+				他人=NTR_WHO(LOCAL)
+				PRINTFORML %CALLNAME:LOCAL%の子宮の特異体質に目をつけた%NTR_NAME(他人)%は、
+				PRINTFORML どこからか怪しい薬を入手してきて%CALLNAME:LOCAL%に飲むように命じた
+				PRINTFORML 飲んだ瞬間お腹の奥に強烈な熱さを感じ悶絶する%CALLNAME:LOCAL%に
+				PRINTFORML それはお前の子宮のリミッターをはずすための薬だ、と説明した
+				PRINTFORML %CALLNAME:LOCAL%の子宮は限界まで活発化し、百発百中で妊娠するようになったようだ……
+				PRINTFORML %CALLNAME:LOCAL%は[真・繁殖母体]を得た
+				TALENT:LOCAL:繁殖母体=2
+				他人=人物_訪問者
+			ENDIF
+			;不妊…発生するんですかね、これ
+			IF TALENT:LOCAL:繁殖母体 && CFLAG:LOCAL:子供の人数 > 1000 && !ISSKIP()
+				PRINTFORML 度重なる過酷な出産によって%CALLNAME:LOCAL%の子宮は限界を迎えてしまったようだ……
+				PRINTFORML %CALLNAME:LOCAL%は[繁殖母体][多産体質]を失い、[不妊]を得た
+				TALENT:LOCAL:繁殖母体=0
+				TALENT:LOCAL:多産体質=0
+				TALENT:LOCAL:不妊=1
+				CFLAG:LOCAL:多生児強度フラグ=-10
+			ENDIF
+			;不妊治療
+			IF TALENT:LOCAL:不妊 && CFLAG:LOCAL:多生児強度フラグ > -1
+				PRINTFORML 橙色の薬の効果で%CALLNAME:LOCAL%の子宮は活動を再開したようだ……
+				PRINTFORML %CALLNAME:LOCAL%は[不妊]を失った
+			ENDIF
+		ENDIF
+		;寝取られ判定
+		;浮気癖があると寝取られやすくなる
+		;浮気を公認している場合は寝取られにくくなる
+		;一番高い値が誰かを読む
+		IF TALENT:LOCAL:親愛
+			;親愛があれば寝取られない
+			LOCAL:2 = 0
+		ELSEIF TALENT:LOCAL:NTR
+			;寝取られている場合はそれ以上寝取られない（今のところは）
+			LOCAL:2 = 0
+		ELSEIF TALENT:LOCAL:浮気公認 > 0
+			;浮気を公認している場合、屈服度がよほど高くなければ寝取られない
+			;ここの式はNTR_CHK_FAVORABLY()と同一であること
+			LOCAL:2 = MAX屈服(LOCAL) > (CFLAG:LOCAL:好感度 * TALENT:LOCAL:浮気公認 * 10 )
+		ELSEIF TALENT:LOCAL:浮気癖
+			;浮気癖があると逆条件（屈服度が2000/1500/1000以上かどうか）であっさり寝取られる（好感度を確認しない）
+			;ここの式はNTR_CHK_FAVORABLY()と同一であること
+			LOCAL:2 = MAX屈服(LOCAL)> (2000-(500*TALENT:LOCAL:淫乱))
+		ELSE
+			;通常は、好感度が1000未満で屈服度が2000以上、さらに屈服度が好感度より高くなければダメ
+			;	LOCAL:2 = CFLAG:LOCAL:好感度 < 1000 &&MAX屈服(LOCAL)> CFLAG:LOCAL:好感度 && MAX屈服(LOCAL)> 2000
+			;0540 変更 好感度の2~1倍以上かつ2000以上
+			LOCAL:2 = MAX屈服(LOCAL) > CFLAG:LOCAL:好感度*MAX(10, 20-EXP:LOCAL:NTR陥落経験)/10 && MAX屈服(LOCAL)> 2000
+		ENDIF
+		IF LOCAL:2
+			;恋慕＋告白済みの状態でNTRを取得
+			SIF CFLAG:LOCAL:NTR陥落イベントフラグ == 1 && GETBIT(CFLAG:LOCAL:既成事実 , 0)
+				TRYCALL NTR陥落イベント, LOCAL
+			;初回
+			IF EXP:LOCAL:NTR陥落経験 == 0
+				;対象が訪問者のペニスを前の穴or後ろの穴から体内に受け入れた事が無い
+				IF EXP:LOCAL:浮気Ｖ性交経験 == 0 || EXP:LOCAL:浮気Ａ性交経験 == 0
+					PRINTFORMW %CALLNAME:LOCAL%は%NTR_NAME(MAX屈服_WHO(LOCAL))%が与える快楽に逆らえないようだ・・・
+				ELSE
+					PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(MAX屈服_WHO(LOCAL))%のペニスに逆らえないようだ・・・
+				ENDIF
+				IF TALENT:LOCAL:恋慕
+					PRINTFORMW %CALLNAME:LOCAL%は[恋慕]を失った
+				ENDIF
+				; 2回目以降
+			ELSE
+				;対象が訪問者のペニスを前の穴or後ろの穴から体内に受け入れた事が無い
+				IF EXP:LOCAL:浮気Ｖ性交経験 == 0 || EXP:LOCAL:浮気Ａ性交経験 == 0
+					PRINTFORMW %CALLNAME:LOCAL%は%NTR_NAME(MAX屈服_WHO(LOCAL))%が与える快楽を忘れられなかったようだ・・・
+				ELSE
+					PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(MAX屈服_WHO(LOCAL))%のペニスの快楽を忘れられなかったようだ・・・
+				ENDIF
+				IF TALENT:LOCAL:恋慕
+					PRINTFORMW %CALLNAME:LOCAL%は[恋慕]を失った
+				ENDIF
+			ENDIF
+			IF TALENT:LOCAL:人妻
+				PRINTFORMW %CALLNAME:LOCAL%は[人妻]を失った
+			ENDIF
+			TRYCALLLIST
+				FUNC NTR_KOJO_K{NO:LOCAL}_12(LOCAL)
+				FUNC NTR_KOJO_K_12(LOCAL)
+			ENDFUNC
+			PRINTFORML %CALLNAME:LOCAL%は虚ろな眼で微笑みながら%NTR_NAME(MAX屈服_WHO(LOCAL))%の雌奴隷になる事を伝えた
+			PRINTFORMW %CALLNAME:LOCAL%は寝取られてしまった
+			PRINTFORMW %CALLNAME:LOCAL%は[NTR]を得た
+			PRINTFORML %NTR_NAME(MAX屈服_WHO(LOCAL))%は隷属の証として%CALLNAME:LOCAL%に細い黒革のチョーカーを与え、毎日それを着用することを義務付けた。
+			TALENT:LOCAL:恋慕 = 0
+			TALENT:LOCAL:人妻 = 0
+			LOCAL:5=MAX屈服_WHO(LOCAL)-1000
+			SETBIT TALENT:LOCAL:NTR, LOCAL:5
+			EXP:LOCAL:NTR陥落経験 ++
+			CFLAG:LOCAL:好感度 = MAX(0, CFLAG:LOCAL:好感度-MAX屈服(LOCAL))
+			CFLAG:LOCAL:既成事実 = 0
+			CFLAG:LOCAL:馴れ合い強度度 = 0
+			IF ABL:LOCAL:従順 > 20
+				ABL:LOCAL:従順 = 10
+			ELSEIF ABL:LOCAL:従順 > 10
+				ABL:LOCAL:従順 = 5
+			ELSEIF ABL:LOCAL:従順 > 5
+				ABL:LOCAL:従順 = 3
+			ENDIF
+			IF ABL:LOCAL:親密 > 20
+				ABL:LOCAL:親密 = 10
+			ELSEIF ABL:LOCAL:親密 > 10
+				ABL:LOCAL:親密 = 5
+			ELSEIF ABL:LOCAL:親密 > 5
+				ABL:LOCAL:親密 = 3
+			ENDIF
+			;浮気公認時ペナルティ
+			IF TALENT:LOCAL:浮気公認 > 0
+				ABL:LOCAL:従順 /= 2
+				ABL:LOCAL:親密 /= 2
+			ENDIF
+		ENDIF
+		;寝取られchange
+		;最大屈服とＮＴＲ先が一致していないときに発生
+		IF TALENT:LOCAL:NTR && MAX屈服_WHO(LOCAL) !=NTR_WHO(LOCAL)
+			PRINTFORML どうやら%CALLNAME:LOCAL%は今までと違う人物に心を奪われているようだ…
+			LOCAL:1=NTR_WHO(LOCAL)-1000
+			TALENT:LOCAL:NTR=0
+			SETBIT TALENT:LOCAL:NTR, (MAX屈服_WHO(LOCAL)-1000)
+			EXP:LOCAL:NTR陥落経験 ++
+			CFLAG:LOCAL:(屈服IX+LOCAL:1)/=2
+		ENDIF
+		;公衆便所判定
+		;0340 とりあえず訪問者のみで発生
+		;0419 勿体ので結構頻繁に起こるようにしてみた。
+		;430 いくらなんでも頻繁すぎるので改造
+		;	IF MAX屈服(LOCAL)> 5000 && EXP:LOCAL:経験人数 > 5+TALENT:LOCAL:貞操 && !TALENT:LOCAL:公衆便所 && NTR_WHO(LOCAL) == 人物_訪問者
+		IF MAX屈服(LOCAL)> MAX(2500, 6000-EXP:LOCAL:公衆便所陥落経験*500) && !TALENT:LOCAL:公衆便所 && NTR_WHO(LOCAL) == 人物_訪問者 && EXP:LOCAL:経験人数>30
+			; 初回
+			IF EXP:LOCAL:公衆便所陥落経験 == 0
+				PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(NTR_WHO(LOCAL))%から蹂躙される快楽をその身に刻まれた
+				PRINTFORM %CALLNAME:LOCAL%は
+				IF TALENT:LOCAL:恋慕
+					PRINTFORM %MSG_LOVER(LOCAL)%のいる身でありながら
+				ENDIF
+				PRINTFORML %NTR_NAME(NTR_WHO(LOCAL))%から肉便器として客を取らされることになった
+				; 2回目以降
+			ELSE
+				PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(NTR_WHO(LOCAL))%から蹂躙される快楽を忘れることができなかった
+				PRINTFORM %CALLNAME:LOCAL%は
+				IF TALENT:LOCAL:恋慕
+					PRINTFORM %MSG_LOVER(LOCAL)%のいる身でありながら
+				ENDIF
+				PRINTFORML 再び%NTR_NAME(NTR_WHO(LOCAL))%から肉便器として客を取らされることになった
+			ENDIF
+			TRYCALLLIST
+				FUNC NTR_KOJO_K{NO:LOCAL}_13(LOCAL)
+				FUNC NTR_KOJO_K_13(LOCAL)
+			ENDFUNC
+			IF TALENT:LOCAL:恋慕
+				PRINTFORML %CALLNAME:LOCAL%は%MSG_LOVER(LOCAL)%である%CALLNAME:MASTER%に肉便器になる事を宣言した
+			ELSE
+				PRINTFORML %CALLNAME:LOCAL%は暗く濁った眼で肉便器になる事を宣言した
+			ENDIF
+			PRINTFORMW %CALLNAME:LOCAL%は[公衆便所]を得た
+			PRINTFORML %NTR_NAME(NTR_WHO(LOCAL))%は隷属の証として%CALLNAME:LOCAL%に首輪を与え、毎日それを着用することを義務付けた。
+			PRINTFORML 首輪のバックルには彼女の名前と、娼婦の証である淫らな紋様が彫られている。
+			IF TALENT:LOCAL:淫乱 == 2
+				PRINTFORML %CALLNAME:LOCAL%が娼婦として復帰するという噂は瞬く間にかつての客たちの間に広まった
+				PRINTFORMW すでに多数の客が%CALLNAME:LOCAL%の身体を買おうと予約をしているようだ
+			ENDIF
+			PRINTFORML %NTR_NAME(他人)%は%CALLNAME:LOCAL%を管理するため、彼女に貞操帯の着用を義務付けた。
+			EQUIP:LOCAL:下半身下着１ = 100
+			EQUIP:LOCAL:下半身下着２ = 0
+			TALENT:LOCAL:公衆便所 = 1
+			EXP:LOCAL:公衆便所陥落経験 ++
+			IF !TALENT:LOCAL:恋慕
+				CFLAG:LOCAL:好感度 = 0
+				CFLAG:LOCAL:既成事実 = 0
+				CFLAG:LOCAL:馴れ合い強度度 = 0
+			ENDIF
+			IF ABL:LOCAL:従順 > 20
+				ABL:LOCAL:従順 = 10
+			ELSEIF ABL:LOCAL:従順 > 10
+				ABL:LOCAL:従順 = 5
+			ELSEIF ABL:LOCAL:従順 > 5
+				ABL:LOCAL:従順 = 3
+			ENDIF
+			IF ABL:LOCAL:親密 > 20
+				ABL:LOCAL:親密 = 10
+			ELSEIF ABL:LOCAL:親密 > 10
+				ABL:LOCAL:親密 = 5
+			ELSEIF ABL:LOCAL:親密 > 5
+				ABL:LOCAL:親密 = 3
+			ENDIF
+			;浮気公認時ペナルティ
+			IF TALENT:LOCAL:浮気公認 > 0
+				ABL:LOCAL:従順 /= 2
+				ABL:LOCAL:親密 /= 2
+			ENDIF
+		ENDIF
+		;淫乱取得判定
+		;LOCAL:3 = EXP:LOCAL:浮気絶頂経験 + EXP:LOCAL:浮気Ｖ性交経験 + EXP:LOCAL:浮気Ａ性交経験
+		IF TALENT:LOCAL:NTR && EXP:LOCAL:経験人数 >= 100 && TALENT:LOCAL:淫乱 == 0
+			TRYCALLLIST
+				FUNC NTR_KOJO_K{NO:LOCAL}_13_1(LOCAL)
+				FUNC NTR_KOJO_K_13_1(LOCAL)
+			ENDFUNC
+			PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(NTR_WHO(LOCAL))%に与えられる快楽に溺れているようだ…
+			PRINTFORMW %CALLNAME:LOCAL%は[淫乱]を得た
+			TALENT:LOCAL:淫乱 = 1
+			MAXBASE:LOCAL:満足 = MAX(MAXBASE:LOCAL:満足, 5000)
+		ENDIF
+		;娼婦取得判定
+		IF TALENT:LOCAL:公衆便所 && EXP:LOCAL:売春経験 >= 200 && TALENT:LOCAL:淫乱 == 1
+			TRYCALLLIST
+				FUNC NTR_KOJO_K{NO:LOCAL}_13_2(LOCAL)
+				FUNC NTR_KOJO_K_13_2(LOCAL)
+			ENDFUNC
+			PRINTFORML %CALLNAME:LOCAL%は名も知らぬ男たちとの交わりの快楽に溺れているようだ…
+			PRINTFORMW %CALLNAME:LOCAL%は[娼婦]を得た
+			TALENT:LOCAL:淫乱 = 2
+		ENDIF
+		;浮気な蜜壷取得判定
+		IF TALENT:LOCAL:NTR && EXP:LOCAL:浮気Ｖ性交経験 >= 200 && TALENT:LOCAL:浮気な蜜壷 == 0
+			PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(NTR_WHO(LOCAL))%のペニスの虜になっているようだ…
+			PRINTFORMW %CALLNAME:LOCAL%は[浮気な蜜壷]を得た
+			TALENT:LOCAL:浮気な蜜壷 = 1
+		ENDIF
+		;浮気な尻穴取得判定
+		IF TALENT:LOCAL:NTR && EXP:LOCAL:浮気Ａ性交経験 >= 200 && TALENT:LOCAL:浮気な尻穴 == 0
+			PRINTFORML %CALLNAME:LOCAL%は%NTR_NAME(NTR_WHO(LOCAL))%にアヌスを抉られる快楽の虜になっているようだ…
+			PRINTFORMW %CALLNAME:LOCAL%は[浮気な尻穴]を得た
+			TALENT:LOCAL:浮気な尻穴 = 1
+		ENDIF
+		;不機嫌であれば反発
+		IF CFLAG:LOCAL:不機嫌
+			CFLAG:LOCAL:不機嫌 --
+			IF !CFLAG:LOCAL:不機嫌
+				SIF MARK:LOCAL:反発刻印
+					CFLAG:LOCAL:不機嫌 = -- MARK:LOCAL:反発刻印
+			ENDIF
+		ENDIF
+		;傷心消滅判定
+		IF TALENT:LOCAL:傷心>0 && (TALENT:LOCAL:親愛 || TALENT:LOCAL:淫乱 || TALENT:LOCAL:NTR || TALENT:LOCAL:公衆便所)
+			PRINTFORMW %CALLNAME:LOCAL%は傷心状態から回復した
+			TALENT:LOCAL:傷心 = 0
+		ENDIF
+		;満足度の変動
+		IF CFLAG:LOCAL:満足度上昇
+			MAXBASE:LOCAL:満足 += RAND(50, 100)
+			CFLAG:LOCAL:満足度上昇 = 0
+		ELSE
+			IF TALENT:LOCAL:淫乱
+				MAXBASE:LOCAL:満足 = MAX(MAXBASE:LOCAL:満足 - RAND(1, 10), 5000)
+			ELSE
+				MAXBASE:LOCAL:満足 = MAX(MAXBASE:LOCAL:満足 - RAND(1, 10), 1000)
+			ENDIF
+		ENDIF
+		;気力の回復
+		BASE:LOCAL:気力 = MAXBASE:LOCAL:気力
+		LOCAL:1 = MAXBASE:LOCAL:体力 / 3
+		;回復早い、回復遅い
+		LOCAL:1 = LOCAL:1 * 3 / (3 - TALENT:LOCAL:回復速度)
+		BASE:LOCAL:体力 = MIN(MAXBASE:LOCAL:体力, BASE:LOCAL:体力 + LOCAL:1)
+		;CFLAG:LOCAL:衰弱 = 0
+		;表示の初期化
+		SKIPDISP 0
+	NEXT
+	FOR LOCAL,0, CHARA_ACTIVE
+		;こちらはマスターも含む処理	
+		;締り具合
+		CALL CHK_TIGHTNESS_CHANGE(LOCAL)
+		BASE:LOCAL:精力 = MIN(MAXBASE:LOCAL:精力, BASE:LOCAL:精力 + MAXBASE:LOCAL:精力 * BASE:LOCAL:体力 / MAXBASE:LOCAL:体力)
+		;ついでに性欲
+		IF TALENT:LOCAL:淫乱
+			CFLAG:LOCAL:性欲 += RAND:(((ABL:LOCAL:欲望 + 1)*2) + 5)
+		ELSEIF !TALENT:LOCAL:妊娠
+			CFLAG:LOCAL:性欲 += RAND:(ABL:LOCAL:欲望 + 1) + 1
+		ENDIF
+		CFLAG:LOCAL:自慰中 = 0
+	NEXT
+	FLAG:休憩フラグ = 0
+	CALL TURNEND_EVENT
+	BEGIN SHOP
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@RANK_POINT
+	;好感度ボーナスなど、ターン終了前に終わらせる処理
+	;鬼!悪魔！5だと本当に稼げへん。。。
+	LOCAL:1 = FLAG:(100+場所_事務所オフィス)*12
+	PRINTFORML 仕事による収入 {LOCAL:1}$
+	PRINTFORML 好感度上昇ボーナス {FLAG:好感度上昇の累積値 * 5}$
+	;今までの状態だと借金取りに一人預けてるだけで圧倒的勝利だったので改変
+	PRINTFORML 屈服度上昇ボーナス {FLAG:屈服度上昇の累積値 * 2}$
+	LOCAL:2=0
+	LOCAL:2 += LOCAL:1 +  LOCAL:2 + ( FLAG:好感度上昇の累積値*5 +FLAG:屈服度上昇の累積値 * 2) 
+	FLAG:好感度上昇の累積値 = 0
+	FLAG:屈服度上昇の累積値 = 0
+	MONEY += LOCAL:2
+	FLAG:(100+場所_事務所オフィス)=0
+
+;-------------------------------------------------------------------------------
+;令嬢が事務所にいるときボーナス
+@TURNEND_EVENT
+	;ターンエンド時のイベントをまとめる。
+	CALL 汎用イベント_ALL
+	CALL 個別イベント_ALL
+	CALL RANK_POINT
+	CALL 事務所知名度計算
+	SIF GETBIT(FLAG:ＮＴＲパッチ設定,13)
+		CALL REMOVE_IDOL
+	CALL 登録キャラ調整
+	SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+		GOTO NON_NTR
+	IF ＮＴＲ追加処理 == 0 && RESULT == 1
+		CALL 登録時ＮＴＲ処理
+	ELSEIF ＮＴＲ追加処理:1 > 0
+		ＮＴＲ追加処理:1 -= 1
+		DEBUGPRINTFORM ＮＴＲ処理まで、あと{ＮＴＲ追加処理:1}日
+		SIF ＮＴＲ追加処理:1 == 0
+			CALL 登録時ＮＴＲ処理
+	ENDIF
+	$NON_NTR
+	;サンプル 令嬢さまさま
+	FOR LOCAL,1, CHARA_ACTIVE
+		IF 所属(LOCAL) && TALENT:LOCAL:令嬢 && !RAND:20
+			PRINTFORML %CALLNAME:LOCAL%が実家から不必要な仕送りが来てしまったので一部を事務所で処分して欲しいと頼んできた…
+			LOCAL:1=MAX(10, RAND:(MONEY/4+1)+RAND:(MONEY/4+1))
+			PRINTFORMW ${LOCAL:1}の臨時収入を得た
+			MONEY += LOCAL:1
+		ENDIF
+	NEXT
+	;警告:見世物小屋
+	IF DAY > 60 && FLAG:退場フラグ==0 && GETBIT(FLAG:ＮＴＲパッチ設定,9)
+		PRINTFORML 家に帰るとビラが投函されていた・・・
+		PRINTFORML 「公園ニ見世物小屋来タル！
+		PRINTFORML 　人体ノ不思議ニ驚愕セヨ！
+		PRINTFORML 　開催：不定期　　　　　」
+		PRINTFORMW ただのいたずらであろうが、時代錯誤の禍々しさに%CALLNAME:MASTER%は胸騒ぎを覚えた。
+		FLAG:退場フラグ = 50
+	ENDIF
+
+;-------------------------------------------------------------------------------
+;緩んだ括約筋を少し締め直す処理
+;基本的には一度緩んでしまうとなかなか戻らない。
+@CHK_TIGHTNESS_CHANGE(奴隷)
+	#DIM 奴隷
+	#DIM 回復力
+	;Ａ締め
+	;回復力は拡張経験から決定(1%～20%)。拡張経験400以上の場合は常に1%。
+	回復力 = MAX(1,RAND(MAX(21-SQRT(EXP:奴隷:Ａ拡張経験),1))) * BASE:奴隷:Ａ緩さ / 100
+	BASE:奴隷:Ａ緩さ = MAX(MAXBASE:奴隷:Ａ緩さ/2, BASE:奴隷:Ａ緩さ - 回復力)
+	MAXBASE:奴隷:Ａ緩さ = MAX(MAXBASE:奴隷:Ａ緩さ,BASE:奴隷:Ａ緩さ)
+	;Ｖ締め
+	;回復力は拡張経験から決定(1%～20%)。拡張経験400以上の場合は常に1%。
+	回復力 = MAX(1,RAND(MAX(21-SQRT(EXP:奴隷:Ｖ拡張経験),1))) * BASE:奴隷:Ｖ緩さ / 100
+	BASE:奴隷:Ｖ緩さ = MAX(MAXBASE:奴隷:Ｖ緩さ/2, BASE:奴隷:Ｖ緩さ - 回復力)
+	MAXBASE:奴隷:Ｖ緩さ = MAX(MAXBASE:奴隷:Ｖ緩さ,BASE:奴隷:Ｖ緩さ)
+RETURN 0
+;-------------------------------------------------------------------------------

@@ -1,0 +1,412 @@
+;-------------------------------------------------------------------------------
+;１日の開始時の処理
+@EVENTTRAIN
+	#PRI
+	#DIM キャラ番号
+	VARSET TARGET
+	VARSET PHONEABLE
+	;test
+;	CFLAG:2:アイドルランク=9
+;	ABL:2:ボーカル技能=9
+
+;	MONEY+=100000
+
+	FOR LOCAL,1, CHARA_ACTIVE
+	;	SIF !CFLAG:LOCAL:好感度
+	;		CFLAG:LOCAL:好感度=200
+;		CFLAG:LOCAL:乙女の秘密=1
+;		PRINTFORML %CALLNAME:LOCAL%
+;		PRINTFORML Ｖ　%CSTR:LOCAL:Ｖ初体験の相手%
+;		PRINTFORML Ａ　%CSTR:LOCAL:Ａ初体験の相手%
+;		PRINTFORML Ｍ　%CSTR:LOCAL:Ｍ初体験の相手%
+;		CFLAG:LOCAL:アイドルランク=RAND:7
+;		EXP:LOCAL:AV女優経験=RAND:60
+;		CFLAG:LOCAL:AV路線=RAND:4
+;		PRINTFORML %AVタイトル生成(LOCAL)%
+;		PRINTFORML %CSTR:LOCAL:セックスした相手%
+	NEXT
+;	IF DAY==2 && GETBIT(FLAG:ゲームモード,0)
+;		PRINTFORML 電話に出るといきなりドスの聞いた声が聞こえてきた。
+;		PRINTFORML 「おうおう、てめえいつ金返すんだよ！」
+;		PRINTFORML 興奮する相手を宥めながら状況を聞くと、どうやらこの事務所は多数の借金を抱えているらしい…
+;		PRINTFORML 「毎月末に$10000徴収しに行くからな、もし揃えてなかったらアイドルを担保として預かるからな！」
+;		PRINTFORML 相手は間違いなく堅気ではない。預けたアイドルはお風呂屋にでも沈められてしまうだろう…
+;		PRINTFORMW %CALLNAME:MASTER%は何とかしてそれだけは回避しなければ、と決心した。
+;	ENDIF
+;	IF DAY==7
+;		PRINTFORML ちひろさんから電話だ。
+;		PRINTFORML 『もしもし、プロデューサーさんですか』
+;		PRINTFORML 『ひとつお伝えし忘れていたことがありました』
+;		PRINTFORML 『実はこの事務所を立ち上げるときにですね、資金援助してくださったスポンサーさんがいらっしゃるんですよ』
+;		PRINTFORML 『その彼が、たまに様子を見にきたい、といってらっしゃったので、これから見かけるかもしれません』
+;		PRINTFORML 『よろしくお願いしますね』
+;		PRINTFORMW %NAME:MASTER%は妙な胸騒ぎがした…
+;		PRINTL
+;	ENDIF
+;	SIF !TALENT:MASTER:小○生 && !TALENT:MASTER:中○生 && !TALENT:MASTER:高○生
+;		FLAG:(300 + 場所_学校) = 1
+	;各種数値の初期化
+	CFLAG:MASTER:乙女の秘密 = 1
+	
+	FOR キャラ番号,0, CHARANUM
+		;衣装設定
+		;この処理だと寝間着のキャラがあなた起床一時間後までパジャマなので、ここで起床後時間を０にしたい。
+		;通常箇所にいる場合は強制的にもとの位置に
+		SIF (CFLAG:キャラ番号:現在位置 <= 場所番号最大値 || CFLAG:キャラ番号:現在位置 == 場所_ラブホあなた用)&& キャラ番号!=MASTER
+			CFLAG:キャラ番号:現在位置=GET_PRIVATE_ROOM(キャラ番号,0)
+		CALL CLOTHES_SETTING(キャラ番号,!CFLAG:キャラ番号:睡眠)
+		CALL CLOTHES_SETTING_TRAIN(キャラ番号)
+		;BASEの初期化
+		CALL BEFORETRAIN_ResetBases(キャラ番号)
+		;CFLAGの初期化
+		CFLAG:キャラ番号:勃起度 = 0
+		;TCVARSの初期化
+		CALL BEFORETRAIN_ResetTCVars(キャラ番号)
+		;性交フラグ
+		TEQUIP:キャラ番号:Ｖセックス = -1
+		TEQUIP:キャラ番号:Ａセックス = -1
+		;射精処理用文字列変数
+		CSTR:キャラ番号:10 = /
+		CSTR:キャラ番号:11 = /
+	NEXT
+	SIF SAVESTR:10 == ""
+		SAVESTR:10 = /
+	;料理
+	FLAG:料理 = 0
+
+	;AFTERTRA.ERBに移動（起床画面を正常にするため、起床時ではなく就寝時に翌日になるように変更）
+	;IF TIME > CFLAG:MASTER:通常起床時間
+	;	DAY ++
+	;	TIME -= 1440
+	;	CALL 日付変更
+	;	CALL 日間気温設定
+	;ENDIF
+	;CALL 天候状態
+
+	;20分毎に館内のキャラを移動させる
+	LOCAL = 1
+	WHILE LOCAL
+		IF TIME + 20 < CFLAG:MASTER:通常起床時間
+			TFLAG:300 = DATETIME()
+			TIME += 20
+			CALL CHARA_MOVEMENT
+		ELSE
+			FOR キャラ番号,0,CHARA_ACTIVE
+				;事務員ワープ
+				SIF CFLAG:キャラ番号:現在位置==GET_PRIVATE_ROOM(キャラ番号,0) && TALENT:キャラ番号:事務員
+					CFLAG:キャラ番号:現在位置=場所_事務所オフィス
+				;現在位置の保存
+				CFLAG:キャラ番号:前ターン位置 = CFLAG:キャラ番号:現在位置
+			NEXT
+			TIME =  CFLAG:MASTER:通常起床時間
+			TFLAG:300 = DATETIME()
+			CALL CHARA_MOVEMENT
+			BREAK
+		ENDIF
+	WEND
+	CALL GOODMORNING
+	CALL 目的地初期設定
+
+	;CALL 焦りイベント
+	;FOR キャラ番号,0,CHARA_ACTIVE
+	;	学校フラグの用意
+	;	SIF (TALENT:キャラ番号:小○生 || TALENT:キャラ番号:中○生 || TALENT:キャラ番号:高○生) && DAY%7 < 5
+	;		SETBIT CFLAG:キャラ番号:登校管理, 暦法日
+	;NEXT
+	GOTO IDOUFEND
+	;霊夢の移動可能判定
+	IF 霊夢移動フラグ == 0
+		霊夢移動フラグ = MAX(10 - ( CFLAG:人物_霊夢:好感度 > 0 ? CFLAG:人物_霊夢:好感度 / 300 # 0) - ( CFLAG:人物_霊夢:屈服度 > 0 ? CFLAG:人物_霊夢:屈服度 / 300 # 0), 0)
+		;元の場所へ戻す
+		SIF CFLAG:人物_霊夢:現在位置 <= 場所番号最大値
+			CFLAG:人物_霊夢:現在位置 = CFLAG:人物_霊夢:開始位置
+		;PRINTFORMW テスト 霊夢移動OFF {霊夢移動フラグ}
+	ELSE
+		;PRINTFORMW テスト 霊夢移動ON1 {霊夢移動フラグ}
+		IF RAND(1, 11) > 霊夢移動フラグ
+			;霊夢移動可能
+			霊夢移動フラグ = 0
+			;PRINTFORMW テスト 霊夢移動ON2 {霊夢移動フラグ} CLEAR
+		ELSE
+			霊夢移動フラグ --
+			;PRINTFORMW テスト 霊夢移動ON3 {霊夢移動フラグ} NOT
+		ENDIF
+	ENDIF
+	$IDOUFEND
+	TRYCALL 子供訪問_1
+	;NTR関連フラグの日毎クリア
+	CALL NTR_CLEAR_FLG
+	CALL VISITER_APPEARANCE
+
+	;起床時間の記録
+	CFLAG:MASTER:起床時間 = DATETIME()
+	;体力気力の回復
+	BASE:MASTER:体力 += MAXBASE:MASTER:体力 * (CFLAG:MASTER:起床時間 - CFLAG:MASTER:就寝時間 ) / 2 * (480 -120 * TALENT:MASTER:回復速度)
+	BASE:MASTER:気力 += MAXBASE:MASTER:気力 * (CFLAG:MASTER:起床時間 - CFLAG:MASTER:就寝時間 ) / (480 -120 * TALENT:MASTER:回復速度)
+	BASE:MASTER:体力 = MIN(MAXBASE:MASTER:体力,BASE:MASTER:体力)
+	BASE:MASTER:気力 = MIN(MAXBASE:MASTER:気力,BASE:MASTER:気力)
+	BASE:MASTER:勃起 = MIN(1000 * BASE:MASTER:体力 / MAXBASE:MASTER:体力,1500)
+	
+	;勃起ペナルティ判定
+	CALL SOJI_SexHara_ErectPunishment(MASTER)
+	;調教者は誰か
+	IF ASSIPLAY == 0
+		PLAYER = MASTER
+	ELSE
+		PLAYER = ASSI
+	ENDIF
+	;MASTER寝間着変更(ここを通る時は睡眠フラグが立っているので一度0にして着替えてからフラグを戻す)
+	CFLAG:MASTER:睡眠 = 0
+	CALL CLOTHES_SETTING(MASTER,1)
+	CFLAG:MASTER:睡眠 = 1
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@BEFORETRAIN_ResetBases(キャラ番号)
+	#DIM キャラ番号
+
+	;CSVの記述ミスがあった場合のフォロー
+	IF MAXBASE:キャラ番号:理性 == 0
+		MAXBASE:キャラ番号:理性 = 1000
+	ENDIF
+	IF MAXBASE:キャラ番号:精力 == 0
+		MAXBASE:キャラ番号:精力 = 1000
+	ENDIF
+	;射精、勃起、ムード、理性、怒り
+	BASE:キャラ番号:射精 = 0
+	BASE:キャラ番号:ムード = 0
+	BASE:キャラ番号:理性 = MAXBASE:キャラ番号:理性
+	BASE:キャラ番号:怒り = 0
+	BASE:キャラ番号:勃起 = 0
+	BASE:キャラ番号:満足 = 0
+	BASE:(キャラ番号):精力 = 0
+	IF HAS_PENIS(キャラ番号)
+		IF CFLAG:(キャラ番号):精力一時保存 > 0
+			MAXBASE:(キャラ番号):精力 = CFLAG:(キャラ番号):精力一時保存
+			CFLAG:(キャラ番号):精力一時保存 = 0
+		ENDIF
+		MAXBASE:キャラ番号:精力 = LIMIT(MAXBASE:キャラ番号:精力,200,1000)
+		BASE:キャラ番号:精力 = MAXBASE:キャラ番号:精力
+	ENDIF
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@BEFORETRAIN_ResetCFlags(ARG:0)
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;FIXME:関数の説明を書いてください
+;@return 1:xxx,0:xxx
+@BEFORETRAIN_ResetTCVars(キャラ番号)
+	#DIM キャラ番号
+	;経験表示用
+	FOR LOCAL:1,0,100
+		TCVAR:キャラ番号:(400 + LOCAL:1) = EXP:キャラ番号:(LOCAL:1)
+	NEXT
+	TCVAR:キャラ番号:100 = -1
+	TCVAR:キャラ番号:101 = -1
+	;中出し表示用フラグ
+	TCVAR:キャラ番号:103 = -1
+	TCVAR:キャラ番号:105 = -1
+RETURN 1
+
+;-------------------------------------------------------------------------------
+;起床処理
+;@return 1:xxx,0:xxx
+@GOODMORNING
+	#DIM 仮変数
+	VARSET LOCAL
+	TARGET = 0
+	FOR LOCAL,1,CHARA_ACTIVE
+		;ヤクザ君のNTRブースと
+;		IF CFLAG:LOCAL:現在位置 == 場所_ソープ && CFLAG:LOCAL:軟禁者 == 人物_風俗オーナー && 0==((DAY+1-CFLAG:LOCAL:軟禁日)%10) && !CFLAG:LOCAL:自主性
+;			他人=人物_風俗オーナー
+;			IF NTR_CHK_VISIBLE(CFLAG:LOCAL:現在位置)
+;				PRINTFORM %NTR_NAME(他人)%から、%CALLNAME:MASTER%がぼやぼやしているから
+;				PRINTFORML また利子が増えたぞ、と教えられた%CALLNAME:LOCAL%は
+;				IF NTR_WHO(LOCAL) == 人物_風俗オーナー
+;					PRINTFORMW そんなことはもうどうでもいい、と答えた。
+;				ELSE
+;					PRINTFORMW ここからでられる日が来るのだろうかと不安そうな顔をした。
+;				ENDIF
+;			ENDIF
+;			CALL NTR_ADD_SURRENDER(LOCAL, 10*(DAY+1-CFLAG:LOCAL:軟禁日))
+;			他人=人物_訪問者
+;		ENDIF
+		;審査員宅からの帰還
+		IF CFLAG:LOCAL:現在位置 == 場所_審査員宅 && CFLAG:LOCAL:軟禁者 == 人物_審査員 && (CFLAG:LOCAL:アイドルランク+CFLAG:LOCAL:軟禁日-DAY)<0 && !CFLAG:LOCAL:自主性
+			他人=人物_審査員
+			CALL 朝奉仕_まとめ(LOCAL)
+			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+			CFLAG:LOCAL:審査員枕=1
+			他人=人物_訪問者
+		ENDIF
+
+				;訪問者以外NTRで自ら行っている→N日の間に帰ってくる
+;		IF NTR_WHO(LOCAL)>人物_訪問者 && CFLAG:LOCAL:自主性 && 0==(RAND:(MAX(1, NTR_GET_STAYOUT_MAXIMUM(LOCAL)-(DAY-CFLAG:LOCAL:軟禁日))))
+;			他人=NTR_WHO(LOCAL)
+;			CFLAG:LOCAL:自主性=0
+;			CALL 朝奉仕_まとめ(LOCAL)
+;			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+;			他人=人物_訪問者
+;		ENDIF
+		IF CFLAG:LOCAL:自主性 && 0==(RAND:(MAX(1, NTR_GET_STAYOUT_MAXIMUM(LOCAL)-(DAY-CFLAG:LOCAL:軟禁日))))
+			他人=CFLAG:LOCAL:軟禁者
+			;バグ避け 他人=-1を防ぐ
+			SIF 他人==-1
+				他人=MAX屈服(LOCAL)
+			CFLAG:LOCAL:自主性=0
+			CALL 朝奉仕_まとめ(LOCAL)
+			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+			他人=人物_訪問者
+		ENDIF
+		;AV女優orソープ嬢は1/3で解放
+		IF  PRENTR(LOCAL, 人物_AV男優, NTRPRE_職) && RAND:3 == 0 && CFLAG:LOCAL:現在位置 >= 場所_訪問者宅
+			他人=CFLAG:LOCAL:軟禁者
+			;バグ避け
+			SIF 他人==-1
+				他人=人物_AV男優
+			CFLAG:LOCAL:自主性=0
+			CALL 朝奉仕_まとめ(LOCAL)
+			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+			他人=人物_訪問者
+		ENDIF
+		IF  PRENTR(LOCAL, 人物_風俗オーナー, NTRPRE_職) && RAND:3 == 0 && CFLAG:LOCAL:現在位置 >= 場所_訪問者宅
+			他人=CFLAG:LOCAL:軟禁者
+			;バグ避け
+			SIF 他人==-1
+				他人=人物_風俗オーナー
+			CFLAG:LOCAL:自主性=0
+			CALL 朝奉仕_まとめ(LOCAL)
+			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+			他人=人物_訪問者
+		ENDIF
+				;学校からの帰還
+;		IF CFLAG:LOCAL:現在位置==場所_生徒指導室 && !CFLAG:LOCAL:自主性 && 0==(RAND:(MAX(1, NTR_GET_STAYOUT_MAXIMUM(LOCAL)-(DAY-CFLAG:LOCAL:軟禁日))))
+;			他人=人物_教師
+;			CALL 朝奉仕_まとめ(LOCAL)
+;			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+;			他人=人物_訪問者
+;		ENDIF
+				;AV撮影からの帰還
+;		IF CFLAG:LOCAL:現在位置==場所_薄暗い撮影所 && !CFLAG:LOCAL:自主性 && 0==(RAND:(MAX(1, NTR_GET_STAYOUT_MAXIMUM(LOCAL)-(DAY-CFLAG:LOCAL:軟禁日))))
+;			他人=人物_AV男優
+;			CALL 朝奉仕_まとめ(LOCAL)
+;			CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+;			他人=人物_訪問者
+;			仮変数=MAX(10, RAND:(CFLAG:LOCAL:ファン人数+1))
+;			CFLAG:LOCAL:ファン人数=仮変数+CFLAG:LOCAL:ファン人数
+;			IF NTR_CHK_VISIBLE(CFLAG:LOCAL:現在位置)
+;				PRINTFORML %CALLNAME:LOCAL%のＡＶが闇ルートで流通している…
+;				PRINTFORMW この作品によって%CALLNAME:LOCAL%は新規にファンを{仮変数}人獲得したようだ
+;				PRINTL
+;			ENDIF
+;		ENDIF
+				;訪問者以外NTRで普通の場所にいて妊娠していない→1/(12-淫乱素質)(最大1/2)で遊びに行ってしまう
+		LOCAL:1=TALENT:LOCAL:淫壺+TALENT:LOCAL:尻穴狂い+TALENT:LOCAL:淫乳+TALENT:LOCAL:浮気な唇+TALENT:LOCAL:浮気な蜜壷+TALENT:LOCAL:浮気な尻穴+TALENT:LOCAL:浮気癖+TALENT:LOCAL:淫乱+TALENT:LOCAL:公衆便所+TALENT:LOCAL:浮気公認
+		IF NTR_WHO(LOCAL)>人物_訪問者 && CFLAG:LOCAL:現在位置 < 場所番号最大値+1 && 0==(RAND:(12-LOCAL:1)) && !CFLAG:LOCAL:にんっしんっ && GETBIT(FLAG:ＮＴＲパッチ設定,7)
+			他人=NTR_WHO(LOCAL)
+			CFLAG:LOCAL:自主性=1
+			CALL VISITER_TAKINGOUT(LOCAL)
+			他人=人物_訪問者
+		ENDIF
+
+		SIF CFLAG:MASTER:現在位置 == CFLAG:LOCAL:現在位置
+			TARGET = LOCAL
+	NEXT
+	IF TARGET
+		IF CFLAG:TARGET:睡眠
+			PRINTFORMW %CALLNAME:MASTER%が目覚めると隣ではまだ%CALLNAME:TARGET%がすやすやと眠っていた
+			PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%を起こさないようにベッドを抜け出し一日の準備を始めた
+		ELSE
+			IF TALENT:恋慕
+				PRINTFORMW %CALLNAME:MASTER%が目覚めると%CALLNAME:TARGET%と目があった
+				PRINTFORMW しばらく%CALLNAME:TARGET%と視線をかわしてからベッドを抜け出し一日の準備を始めた
+			ELSE
+				PRINTFORMW %CALLNAME:MASTER%が目覚めると%CALLNAME:TARGET%と目があった
+				IF 親子関係(MASTER, TARGET)
+					PRINTFORMW %CALLNAME:MASTER%は我が子と目覚めの挨拶を交わすと、ベッドを抜け出し一日の準備を始めた
+				ELSE
+					PRINTFORMW なぜ%CALLNAME:TARGET%が部屋にいるのだろうと不審に思いながらもベッドを抜け出し一日の準備を始めた
+				ENDIF
+			ENDIF
+			CALL KOJO_EVENT(6, TARGET, 1)
+		ENDIF
+	;ＮＴＲイベントオン時に街中で衰弱するとＬＹＰ（就寝時に開始位置に戻したいので行き倒れフラグを用意する）
+	ELSEIF (場所_住宅街 >= CFLAG:MASTER:現在位置 && CFLAG:MASTER:現在位置 < 場所_寮玄関) && HAS_VAGINA(MASTER) && !TALENT:公衆便所 == 1 && GETBIT(FLAG:ＮＴＲパッチ設定,31)
+		PRINTFORMW 街で気絶するように眠ってしまった%CALLNAME:MASTER%が目覚めるとそこは寝てしまう直前まで見ていた景色ではなかった
+		PRINTFORMW どうやら寝ている間に目立たない物陰に運ばれたようだ
+		PRINTFORMW 漂う生臭さを不審に思い体を起こすと%CALLNAME:MASTER%は全身精液塗れになっていた
+		PRINTFORMW %CALLNAME:MASTER%は輪姦された事を悟り、涙を浮かべながら身なりを整えた
+		TEQUIP:MASTER:Ｖセックス = 人物_客
+		FOR LOCAL,1,(RAND:20 + 10)
+			IF RAND:2
+				EXP:MASTER:Ｖ経験 ++
+				EXP:MASTER:Ｖ性交経験 ++
+				IF ABL:MASTER:Ｖ感覚 > RAND:5
+					EXP:MASTER:Ｖ絶頂経験 ++
+					EXP:MASTER:絶頂経験 ++
+				ENDIF
+				CALL EJACULATION_V(MASTER, 人物_客)
+				IF TALENT:MASTER:処女
+					CALL LOST_VIRGIN(MASTER, 人物_客)
+				ENDIF
+				;V感覚が高いと絶頂経験加算（強絶頂扱い）
+				;CALL NTR_V_EXP_PLUS(MASTER)
+			ELSEIF !RAND:3
+				EXP:MASTER:精液経験 ++
+				EXP:MASTER:手淫経験 ++
+				CALL STAIN_ADD_SEMEN_HAND(MASTER, 人物_客)
+			ELSEIF RAND:2
+				EXP:MASTER:精液経験 ++
+				EXP:MASTER:口淫経験 ++
+				CALL STAIN_ADD_SEMEN_M(MASTER, 人物_客)
+			ELSE
+				EXP:MASTER:精液経験 ++
+				EXP:MASTER:パイズリ経験 ++
+				IF ABL:MASTER:Ｂ感覚 > RAND:5
+					EXP:MASTER:Ｂ絶頂経験 ++
+					EXP:MASTER:絶頂経験 ++
+				ENDIF
+				CALL STAIN_ADD_SEMEN_B(MASTER, 人物_客)
+			ENDIF
+		NEXT
+	ENDIF
+;-------------------------------------------------------------------------------
+@目的地初期設定(ARG)
+;#DIM LOOP_CHR
+#DIM 仮配置,200
+
+FOR ARG,1,CHARA_ACTIVE
+
+VARSET 仮配置
+;ARG:キャラ番号
+;そのキャラの状況に合わせて目的地を設定
+;下の目的地に上書きされるため、下にあるほど優先度が高い
+;0300現在　仮組み
+
+	;全員の目的行動をリセットしておく
+	CFLAG:ARG:帰宅 = 0
+	CFLAG:ARG:目的地 = 0
+
+	;事務員は予定も消す
+	IF TALENT:ARG:事務員
+		CFLAG:ARG:行動予定 = 0
+	ENDIF
+
+	;ニート進化を解除
+	IF TALENT:ARG:ニート == 2
+		TALENT:ARG:ニート = 1
+	ENDIF
+	;ニートは３分の１で進化して自宅待機
+	IF TALENT:ARG:ニート == 1 && RAND:3 == 0 && (CFLAG:ARG:開始位置 < 場所番号最大値)
+		CFLAG:ARG:目的地 = CFLAG:ARG:開始位置
+		TALENT:ARG:ニート = 2
+	ENDIF
+
+NEXT
+
+;-------------------------------------------------------------------------------

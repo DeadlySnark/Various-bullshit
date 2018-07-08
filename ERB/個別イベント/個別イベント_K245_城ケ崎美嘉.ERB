@@ -1,0 +1,64 @@
+
+@個別イベント_K245(ARG)
+#DIM LOOP_NUM
+#DIM LOOP_CHR
+#DIM 判定
+;コンセプト：妹による姉の評価
+;特殊。女の子の選択肢をこちらで制御
+;:キャライベント ... -999999でイベント終了
+SIF CFLAG:ARG:キャライベント == -999999
+	RETURN 0
+
+IF CFLAG:ARG:キャライベント==0
+	;START
+	;事務所に所属していない、認識もない、円光等していない
+	IF ( !所属(ARG) ) && CFLAG:ARG:名前フラグ == 0 && !TALENT:ARG:NTRPRE
+	;1/3でオフ
+		SIF RAND:3
+			RETURN 0
+			;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		;リカとあなたが既に知り合いの時は実行されない
+		FOR LOOP_CHR,0, CHARA_ACTIVE
+			SIF (NO:LOOP_CHR==246 && CFLAG:LOOP_CHR:名前フラグ != 0) 
+				RETURN 0
+		NEXT
+		
+		PRINTFORML %CALLNAME:MASTER%が街を歩いていると、前を歩く小学生か中学生ぐらいであろう二人組の女の子の会話が漏れ聞こえてきた
+		PRINTFORMW 「ねえねえ、リカちゃんのお姉ちゃんってどういう人なのー？」
+		PRINTFORML リカと呼ばれた子は少し考えるそぶりをして……
+		PRINTL [0] ピュアと答えた
+		PRINTL [1] ギャルと答えた
+		PRINTL [2] びっちと答えた
+		INPUT
+		IF RESULT == 0
+			PRINTFORMW 「そういえば『結構ピュアだよねー』って昨日お家に来てたお友達たちに言われてたよっ」
+			PRINTFORMW 「へえーそうなんだー」
+			PRINTFORMW 「でも言われた後あわてて赤面してたんだよっ☆変なお姉ちゃん」
+
+		ELSEIF RESULT ==1
+			PRINTFORMW 「そういえば『カリスマギャル』って昨日お家に来てたお友達たちに言われてたよっ」
+			PRINTFORMW 「へえーそうなんだー」
+			PRINTFORMW 「『男の子とのたしなみ』もお姉ちゃんがみんなにいろいろ教えてるんだって☆」
+			CALL 性経験の改変(ARG, 0, 3)
+		ELSE
+			PRINTFORMW 「そういえば『とんでもないびっちだ』って昨日お家に来てた男の人に言われてたよっ」
+			PRINTFORMW 「へ、へえーそうなんだー」
+			PRINTFORMW 「その人のことお姉ちゃんは『せふれ』って言ってたよ☆変わった名前だよねー」
+			CALL 性経験の改変(ARG, 0, 100)
+		ENDIF
+		PRINTL 　　　・
+		PRINTL 　　　・
+		PRINTW 　　　・
+			
+		PRINTFORML 会話内容はともかく、この子たちもアイドルに誘ってみよう
+		PRINTFORML そう思った%CALLNAME:MASTER%だったが、曲がり角に入ったタイミングで彼女たちを見失ってしまった……
+		CFLAG:ARG:キャライベント = -999999
+		PRINTL
+	ENDIF
+ENDIF
+RETURN 1
+;;;;;;ここら辺まではテンプレ
+;;;;;;CFLAG:奴隷:キャライベントをイベント用にあらかじめ用意
+;;;;;;BIT操作などを駆使してイベントを作成してみてください。

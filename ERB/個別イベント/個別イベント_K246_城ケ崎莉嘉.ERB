@@ -1,0 +1,64 @@
+
+@個別イベント_K246(ARG)
+#DIM LOOP_NUM
+#DIM LOOP_CHR
+#DIM 判定
+;コンセプト：tenuki
+;特殊。女の子の選択肢をこちらで制御
+;:キャライベント ... -999999でイベント終了
+SIF CFLAG:ARG:キャライベント == -999999
+	RETURN 0
+
+IF CFLAG:ARG:キャライベント==0
+	;START
+	;事務所に所属していない、認識もない、円光等していない
+	IF ( !所属(ARG) ) && CFLAG:ARG:名前フラグ == 0 && !TALENT:ARG:NTRPRE
+	;1/3でオフ
+		SIF RAND:3
+			RETURN 0
+			;NTRフラグは恩
+		SIF !GETBIT(FLAG:ＮＴＲパッチ設定,9)
+			RETURN 0
+		;ミカとあなたが既に知り合いの時は実行されない
+		FOR LOOP_CHR,0, CHARA_ACTIVE
+			SIF (NO:LOOP_CHR==245 && CFLAG:LOOP_CHR:名前フラグ != 0) 
+				RETURN 0
+		NEXT
+		
+		PRINTFORML %CALLNAME:MASTER%が街を歩いていると、前を歩く女子高校生二人組の会話が漏れ聞こえてきた
+		PRINTFORMW 「ねえねえ、ミカちゃんの妹さんってどういう人？」
+		PRINTFORML ミカと呼ばれた子は少し考えるそぶりをして……
+		PRINTL [0] まだまだ子供と答えた
+		PRINTL [1] ギャルと答えた
+		PRINTL [2] ぐれたと答えた
+		INPUT
+		IF RESULT == 0
+			PRINTFORMW 「まだまだ子供っぽいよ」
+			PRINTFORMW 「へえーそうなんだー」
+			PRINTFORMW 「これからに期待ってところだね★」
+
+		ELSEIF RESULT ==1
+			PRINTFORMW 「『カリスマギャル』の妹にふさわしいギャルに育ってるよ★」
+			PRINTFORMW 「へえーそうなんだー」
+			PRINTFORMW 「でも『男の子とのたしなみ』とか言い出したときはびっくりしちゃったよ……」
+			CALL 性経験の改変(ARG, 0, 3)
+		ELSE
+			PRINTFORMW 「うん、それがね……最近ぐれちゃって……」
+			PRINTFORMW 「へ、へえーそうなんだー」
+			PRINTFORMW 「この前も家出して『カレシ』の家に泊まったり……もうアタシ、どうしたらいいか……」
+			CALL 性経験の改変(ARG, 0, 100)
+		ENDIF
+		PRINTL 　　　・
+		PRINTL 　　　・
+		PRINTW 　　　・
+			
+		PRINTFORML 会話内容はともかく、この子たちもアイドルに誘ってみよう
+		PRINTFORML そう思った%CALLNAME:MASTER%だったが、曲がり角に入ったタイミングで彼女たちを見失ってしまった……
+		PRINTL
+		CFLAG:ARG:キャライベント = -999999
+	ENDIF
+ENDIF
+RETURN 1
+;;;;;;ここら辺まではテンプレ
+;;;;;;CFLAG:奴隷:キャライベントをイベント用にあらかじめ用意
+;;;;;;BIT操作などを駆使してイベントを作成してみてください。

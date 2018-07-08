@@ -1,0 +1,241 @@
+;-------------------------------------------------
+;ニューゲーム
+;-------------------------------------------------
+;2014/10/08  ふたなりモード追加
+;  ふたなり住人にハメ倒されるプレイ向け
+;  キャラ登録直後のFOR文で全員をふたなり化しただけ
+;  FLAG:ゲームモードを弄るけど、問題ないよね？
+;  主人公のふたなり化は面倒が増えるからパス
+;  まとめに入れるならこの文は消してください(Byふたなりパッチ作者)
+@EVENTFIRST
+TARGET = 0
+ASSI = 0
+
+PBAND = 12
+
+CALL DEFAULT_OPTION
+FLAG:共通ランダム数=1+RAND:100000
+FLAG:徘徊数=7
+場所番号最大値=場所番号最大値初期数
+;モード選択
+;PRINTL ★★モードを選択してください★★
+;PRINTL [0] - START
+;PRINTL [1] - 借金返済モード(ハードモード)
+
+
+;$INPUT_LOOP
+;INPUT
+;IF RESULT == 0
+;	FLAG:ゲームモード = 0
+;ELSEIF RESULT == 1
+;	SETBIT FLAG:ゲームモード,0
+;ELSE
+;	GOTO INPUT_LOOP
+;ENDIF
+
+;モード選択
+;PRINTL 同姓同名の許可
+;PRINTL [0] - 同姓同名を存在する
+;PRINTL [1] - 同姓同名は存在しない
+
+;$INPUT_LOOP_1
+;INPUT
+;IF RESULT == 0
+;ELSEIF RESULT == 1
+;	SETBIT FLAG:ゲームモード,1
+;	;特殊処理:ちひろさん
+;	ADDCHARA 351
+;	CALL 履歴MAKING(1, END_事務員)
+;	DELCHARA 1
+;ELSE
+;	GOTO INPUT_LOOP_1
+;ENDIF
+CFLAG:MASTER:乙女の秘密=1
+
+PRINTL 誰かになりきる？
+PRINTL [0]いいや
+PRINTL [1]うん
+
+$INPUT_LOOP_2
+INPUT
+IF RESULT==0
+	CALL CUSTOM_CHARAMAKE(MASTER)
+;	CALL 素質の変換(MASTER)
+	SIF HAS_PENIS(MASTER)
+		MAXBASE:MASTER:5 = 1500
+	CFLAG:MASTER:乙女の秘密=1
+ELSEIF RESULT==1
+;なりきり
+	CALL REVERSEMODE_1
+	CFLAG:MASTER:乙女の秘密=1
+;	CALL 素質の変換(MASTER)
+ELSE
+	GOTO INPUT_LOOP_2
+ENDIF
+;CALL SELECT_IDOL
+;	ADDCHARA 1
+;	ADDCHARA 2
+;	ADDCHARA 3
+;	ADDCHARA 4
+;	ADDCHARA 5
+;	ADDCHARA 6
+;	ADDCHARA 7
+;	ADDCHARA 8
+;	ADDCHARA 9
+;	ADDCHARA 10
+;	ADDCHARA 11
+;	ADDCHARA 12
+;とりあえずテストなのでいつもの人たちを。
+;ちっひ
+ADDCHARA 351
+FOR COUNT,1, CSVキャラ数
+	EXISTCSV COUNT
+	SIF RESULT && COUNT!=351 && COUNT!=NO:MASTER
+		ADDCHARA COUNT
+NEXT
+;NG
+;ADDCHARA 1
+;ADDCHARA 101
+;ADDCHARA 201
+;LL
+;ADDCHARA 171
+;ADDCHARA 119
+;CI
+;ADDCHARA 8
+;ADDCHARA 12
+;ADDCHARA 48
+;凸
+;ADDCHARA 246
+;ADDCHARA 249
+;ADDCHARA 210
+;*
+;ADDCHARA 41
+;ADDCHARA 112
+;rrrrr
+;ADDCHARA 146
+
+;ADDCHARA 166
+
+FOR LOCAL, 1, CHARANUM
+	CALL 素質の変換(LOCAL)
+	CALL 子宮内体積設定(LOCAL)
+	CALL 真名隠蔽(LOCAL)
+	CALL CLOTHES_SETTING(LOCAL ,1)
+;	FOR LOCAL:1, 0, CHARANUM
+;		SIF RELATION:LOCAL:(LOCAL:1) == 0
+;			RELATION:LOCAL:(LOCAL:1) = 100
+;	NEXT
+NEXT
+;あなたの処理
+CFLAG:MASTER:現在位置=場所_あなたの家
+CFLAG:MASTER:開始位置=場所_あなたの家
+SIF TALENT:MASTER:性別==2
+	CFLAG:MASTER:服装パターン=1
+;事務員の処理
+TALENT:1:事務員=1
+CFLAG:1:開始位置=場所_あなたの家+1
+CFLAG:1:現在位置=場所_事務所オフィス
+PHONE:(NO:1)=1
+;FOR LOCAL,1, CHARANUM
+;	CALL 真名隠蔽(LOCAL)
+;NEXT
+CALL 真名看破(1)
+CHARA_ACTIVE=15
+FOR COUNT:3, 0, CHARA_ACTIVE
+	CFLAG:(COUNT:3):ACTIVE=1
+NEXT
+FOR COUNT:3, 0, 2
+	CALL 登録キャラ調整
+NEXT
+FOR COUNT:3, 0, CHARA_ACTIVE
+	CFLAG:(COUNT:3):ACTIVE=1
+NEXT
+PRINTL ★★ふたなり要素を選択してください★★
+PRINTL [0]NORMAL
+PRINTL [1]ふたなりモード(ふたなりキャラが出現)
+INPUT
+IF RESULT == 1
+	FLAG:ふたなりモード=1
+	FOR LOCAL, 1, CHARANUM
+		IF !RAND:3
+			TALENT:LOCAL:性別 = 3
+			MAXBASE:LOCAL:勃起 = 1500
+		ENDIF
+	NEXT
+ENDIF
+
+;PRINTL ★★初期配置されるキャラは…★★
+;PRINTL [0] ＣＰ
+;PRINTL [1] ランダム
+;INPUT
+;IF RESULT==1
+;	;50回ぐらい呼んでおけば12.5回ぐらいおきるから十分混ざるやろ(鼻ﾎｼﾞｰ
+;	FOR COUNT:3, 0, 50
+;	CALL 登録キャラ調整
+;	NEXT
+;ENDIF
+SAVESTR:10 = /
+
+;キャラカスタム選択
+;CALL CHARA_CUSTUM
+SIF HAS_PENIS(MASTER)
+	MAXBASE:MASTER:5 = 1500
+
+;全員処女モード選択
+;CALL VIRGIN_CUSTOM
+
+;◆ショートカットモード選択
+;CALL SHORT_CUT_MODE
+;◆◆
+
+FOR LOCAL,0,CHARA_ACTIVE
+	;開始位置
+	
+	;服装
+	CALL CLOTHES_SETTING(LOCAL,1)
+NEXT
+SETBIT FLAG:ＮＴＲパッチ設定,0
+SETBIT FLAG:ＮＴＲパッチ設定,5
+SETBIT FLAG:ＮＴＲパッチ設定,6
+SETBIT FLAG:ＮＴＲパッチ設定,7
+SETBIT FLAG:ＮＴＲパッチ設定,8
+SETBIT FLAG:ＮＴＲパッチ設定,9
+SETBIT FLAG:雑多設定,5
+SETBIT FLAG:素質変動onoff,0
+SETBIT FLAG:住人同士イベント設定,0
+;SETBIT FLAG:住人同士イベント設定,0
+;SETBIT FLAG:雑多設定,22
+
+
+
+REPEAT 7
+	CALL MAKE_AUDITION(COUNT)
+REND
+FLAG:1002 = 1
+;起床時間
+CFLAG:MASTER:312 = 420
+CFLAG:MASTER:睡眠 = 1
+DAY = 1
+MONEY = 1000
+;人力OP
+CALL OPENING_KOJO()
+BEGIN SHOP
+
+@EVENTLOAD
+;CALL VERSION_UP
+
+
+@OPENING_KOJO()
+;OP予定
+PRINTL
+PRINTL
+DRAWLINE
+PRINTFORMW ここに超かっこいいオープニングが入ります（予定）
+PRINTFORML v0.30 
+PRINTFORML 前verから大きく変えたので説明をここに仮設置
+PRINTFORML 最初事務所には事務員さんしかいません。町でスカウトから始めましょう。
+PRINTFORML 好感度+事務所知名度+相手のタレント の各要素でスカウト可否が決まります。
+PRINTL
+$OP_INPUT
+
+

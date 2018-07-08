@@ -1,0 +1,104 @@
+@ENKOU_START_K302(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「プロデューサーの癖に、自分がスカウトしたアイドルとセックスしたいんですか？」
+	PRINTFORML 「――あの、早く済ませてしまいましょう」
+ELSE
+	PRINTFORML 「早くホテルに連れて行ってください。挿れて出せれば何でもいいんでしょう」
+ENDIF
+
+@ENKOU_FINISH_K302(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「プロデューサー、お疲れ様です」
+ELSE
+	PRINTFORML 「他の人からの電話が入ってるのでお先に失礼します」
+ENDIF
+@SORP_START_K302(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「プロデューサーの癖に、自分がスカウトしたアイドルとセックスしたいんですか？」
+	PRINTFORML 「――いえ、私はその、発声の練習に良いと教えられたので…」
+ELSE
+	PRINTFORML 「早く服を脱いでください。時間がもったいないですから」
+ENDIF
+@SORP_FINISH_K302(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「歌が私の…すべてですから。プロデューサーの指導は的確で……慣れているんですね」
+ELSE
+	PRINTFORML 「次のお客がまっているので、私は先に失礼します」
+ENDIF
+
+@KOJO_MESSAGE_COM_K302_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「私みたいな無愛想でも不思議と人気はあるんです」
+PRINTFORML 「物好きな人間が意外と多いんですよ」
+
+@KOJO_MESSAGE_COM_K302_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「私みたいな無愛想でも不思議と人気はあるんです」
+PRINTFORML 「物好きな人間が意外と多いんですよ」
+
+@KOJO_MESSAGE_COM_K302_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「……私の体は数え切れないほどの男性の精液で汚れています」
+			PRINTFORML 「正直、後悔してないわけじゃないです……でもいまさら……別にどうなったって……」
+			PRINTFORML 無感情な表情で淡々と離していた千早だが、%CALLNAME:MASTER%の思いに上手く言葉が続かないようだ。
+			PRINTFORML 肩をわずかに震わせながら押し黙る%CALLNAME:奴隷%を優しく抱きしめると、やがて小さな嗚咽があなたの耳に届いた。
+		ELSE
+			PRINTFORML 「活動に支障が出るのなら仕方ないですね。歌が歌えなくなるのも困りますし」
+		ENDIF
+	CASE 2
+		PRINTFORML 「あなたに何の関係があるんですか！　私生活にまで干渉しないでください」
+	CASE 3
+		PRINTFORML 「そうですか。いろいろと忙しいので失礼します」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K302(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORMW 「わたしがプロデューサー以外のペニスに思う存分貫かれる様子を見ていてください%MSG_HEART()%」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「プロデューサーに知られたら……私は……くっぁ%MSG_HEART()%」
+	PRINTFORML 「あの、私にとって、んんっ！　歌は私の全てですから、どんなに厳しい指導でも、ひぃん！　きっと乗り越えてみせますっ、あぁぁっ！！」
+	PRINTFORMW 千早は脳裏に浮かんだ思い人の姿に頭を振るも、%NTR_NAME_SEX(奴隷,他人)%の激しいレッスンに嬌声を抑えきれなかった。
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「歌を歌えるならば、見知らぬ誰かに抱かれようと構いません。厳しい指導をお願いします」
+	PRINTFORMW 「こんな貧相な体でも、私の夢のために役立つのなら……」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K302(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「こ、これは！　あの、歌が今よりも上手くなるっていわれて、ためしに使ってみただけなんです！」
+ELSE
+	PRINTFORML 「このお薬、すごいんです。いままで悩んでいたことがなにもかも忘れられて、幸せになれるんですよ」
+	PRINTFORML 虚ろな目を暗く輝かせながら、千早は静かに微笑んでいる。
+ENDIF

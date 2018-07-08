@@ -1,0 +1,67 @@
+;-------------------------------------------------------------------------------
+;‰Ÿ‚µ“|‚·
+@COM350
+	#DIM “z—ê
+	#DIM LOOP_I
+	;‰Ÿ‚µ“|‚·
+	FOR LOOP_I,1,CHARA_ACTIVE
+		SIF TARGET:LOOP_I <= 0
+			CONTINUE
+		“z—ê = TARGET:LOOP_I
+		;NG‚Ìê‡‚à‚ ‚é‚Ì‚ÅŒã‚Åƒtƒ‰ƒO‚ð—§‚Ä‚éB
+		;CFLAG:“z—ê:‚¤‚Ó‚Ó = 1
+		IF TALENT:“z—ê:ŒöO•ÖŠ && EQUIP:“z—ê:‰º”¼g‰º’…‚P == 100
+			IF FLAG:’å‘€‘ÑŒ®w“üƒtƒ‰ƒO == “z—ê
+				;ŒöO•ÖŠ‘ŠŽè‚ÉŒ®‚ð”ƒ‚Á‚Ä‚¢‚½ê‡
+				IF CFLAG:“z—ê:NTR’å‘€‘Ñ”½‰ž
+					;ŒöO•ÖŠŽ©g‚ª’å‘€‘Ñ‚ÌŒ®‚ð”FŽ¯‚µ‚Ä‚¢‚È‚¢ê‡
+					IF TCVAR:“z—ê:“é‚ê‡‚¢‹­“x < 2
+						;ŒöO•ÖŠ‚ª‚»‚Ì‹C‚É‚È‚Á‚Ä‚È‚¢‚Ì‚É‰Ÿ‚µ“|‚µ‚½ê‡
+						PRINTFORML %CALLNAME:“z—ê%‚ÍŽv‚í‚¸%CALLNAME:MASTER%‚ð‰Ÿ‚µ•Ô‚»‚¤‚Æ‚µ‚½‚ªA
+						PRINTFORMW ’å‘€‘Ñ‚ÌŒ®‚ð‚¿‚ç‚Â‚©‚¹‚Ä‚â‚é‚ÆAg‘Ì‚Ì—Í‚ð”²‚¢‚Ä%CALLNAME:MASTER%‚ðŽó‚¯“ü‚ê‚½B
+					ELSE
+						;ŒöO•ÖŠ‚ª‚»‚Ì‹C‚É‚È‚Á‚Ä‚éŽž‚É‰Ÿ‚µ“|‚µ‚½ê‡
+						PRINTFORML %CALLNAME:“z—ê%‚Í’å‘€‘Ñ‚ÉG‚êA%CALLNAME:MASTER%‚Í‚¢‚ÂŽ„‚ð”ƒ‚Á‚Ä‚­‚ê‚é‚Ì‚©A‚Æu‚Ë‚½B
+						PRINTFORMW ”ƒ‚Á‚½‚Î‚©‚è‚ÌŒ®‚ðŒ©‚¹‚Ä‚â‚é‚ÆA%CALLNAME:“z—ê%‚Í‚»‚Ì‹r‚ðŠJ‚¢‚ÄŒ®ŒŠ‚ðŽw‚³‚µ‚½B
+					ENDIF
+					CALL NTR_LOCK_REACTION(“z—ê)
+				ELSE
+					;ŒöO•ÖŠŽ©g‚ª’å‘€‘Ñ‚ÌŒ®‚ð”FŽ¯‚µ‚Ä‚¢‚éê‡
+					IF TCVAR:“z—ê:“é‚ê‡‚¢‹­“x < 2
+						;ŒöO•ÖŠ‚ª‚»‚Ì‹C‚É‚È‚Á‚Ä‚È‚¢‚Ì‚É‰Ÿ‚µ“|‚µ‚½ê‡
+						PRINTFORMW %CALLNAME:“z—ê%‚Í‚í‚¸‚©‚É’ïR‚·‚é—lŽq‚ðŒ©‚¹‚½‚ªA‚·‚®‚Ég‘Ì‚Ì—Í‚ð”²‚¢‚Ä%CALLNAME:MASTER%‚ðŽó‚¯“ü‚ê‚½B
+					ELSE
+						;ŒöO•ÖŠ‚ª‚»‚Ì‹C‚É‚È‚Á‚Ä‚éŽž‚É‰Ÿ‚µ“|‚µ‚½ê‡
+						PRINTFORMW %CALLNAME:“z—ê%‚ÍA%CALLNAME:MASTER%‚Ì‘O‚É’å‘€‘Ñ‚ðŽN‚µA‘‚­Œ®‚ðŠJ‚¯‚Ä‚­‚ê‚Æ‚Ë‚¾‚Á‚½B
+					ENDIF
+				ENDIF
+			ELSE
+				PRINTFORML %CALLNAME:MASTER+"‚ª”—‚é‚Æ"+CALLNAME:“z—ê+"‚ÍŒ®‚Ì‚©‚¯‚ç‚ê‚½’å‘€‘Ñ‚ðŒ©‚¹Aw"+CALLNAME:“z—ê+"x‚Í"+NTR_NAME(‘¼l)+"‚Ì¤•i‚È‚Ì‚¾‚©‚çAŽg‚¢‚½‚¯‚ê‚Î"+NTR_NAME(‘¼l)+"‚©‚çŒ®‚ð”ƒ‚í‚È‚¯‚ê‚Îƒ_ƒ‚¾‚Æ’f‚Á‚½B"%
+				CFLAG:“z—ê:‚¤‚Ó‚Ó = 0
+				CFLAG:MASTER:‚¤‚Ó‚Ó = 0
+				CFLAG:“z—ê:•¨‰A = 0
+				CFLAG:MASTER:•¨‰A = 0
+				TIME += 5
+				RETURN 0
+			ENDIF
+		ENDIF
+	NEXT
+	;‘Sˆõ¬Œ÷ŽžA‚¤‚Ó‚Óƒtƒ‰ƒO‚ð—§‚Ä‚éB
+	FOR LOOP_I,1,CHARA_ACTIVE
+		SIF TARGET:LOOP_I <= 0
+			CONTINUE
+		“z—ê = TARGET:LOOP_I
+		CFLAG:“z—ê:‚¤‚Ó‚Ó = 1
+	NEXT
+	IF CFLAG:MASTER:Œ»ÝˆÊ’u==êŠ_ƒ‰ƒuƒz
+		CALL ƒ‰ƒuƒz_ˆÚ“®ˆ—(MASTER)
+		FOR LOOP_I,1, CHARA_ACTIVE
+			SIF TARGET:LOOP_I <= 0
+				CONTINUE
+			“z—ê = TARGET:LOOP_I
+			CALL ƒ‰ƒuƒz_ˆÚ“®ˆ—(“z—ê)
+		NEXT
+	ENDIF
+	CFLAG:MASTER:‚¤‚Ó‚Ó = 1
+	TIME += 5
+RETURN 1

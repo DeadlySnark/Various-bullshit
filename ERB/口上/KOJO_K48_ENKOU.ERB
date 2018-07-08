@@ -1,0 +1,62 @@
+;ANZU FUTABA
+@KOJO_K48(ARG)
+RETURN 1
+@ENKOU_START_K48(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「こんなちんちくりんを買うなんて%CALLNAME:MASTER%もなかなかマニアックだね…」
+ELSE
+	PRINTFORML 「(……寝ててお金が手に入るんだからいい仕事だよね)」
+ENDIF
+
+@ENKOU_FINISH_K48(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「あーひょっとしたら事務所のみんなに会ったらこのことうっかりしゃべっちゃうかもなー」
+	PRINTFORML 「だから今日はみんなに会わないために仕事を休もうそうしよう」
+ELSE
+	PRINTFORML 「帰って寝る」
+ENDIF
+
+@KOJO_MESSAGE_COM_K48_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「こんなスタイルでもなかなか需要があるんだよ」
+
+@KOJO_MESSAGE_COM_K48_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 
+		ELSE
+			PRINTFORML 
+		ENDIF
+	CASE 2
+		PRINTFORML 「ええー…買った人の台詞じゃないよ、それ…」
+	CASE 3
+		PRINTFORML 「断る！」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K48(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	
+ELSEIF TALENT:奴隷:恋慕
+
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+
+ELSE
+
+ENDIF

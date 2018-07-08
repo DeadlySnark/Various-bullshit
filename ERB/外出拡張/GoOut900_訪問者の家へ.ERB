@@ -1,0 +1,63 @@
+;-------------------------------------------------------------------------------
+;事前の予定に従い、訪問者の家へおでかけさせる
+; return 1 でかけた
+; return 0 でかけなかった
+@GoOut_Ready_900(キャラ)
+	#DIM キャラ
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;「あなた」に挨拶してから、訪問者の家へおでかけさせる
+; return 1 でかけた
+; return 0 でかけなかった
+@GoOut_SeeYou_900(キャラ)
+	#DIM キャラ
+	
+	IF TALENT:キャラ:妊娠 || TALENT:キャラ:育児中
+		;妊娠中、育児中は出て行かない
+		DEBUGPRINTFORML %"妊娠中 or 育児中"%
+		RETURN 0
+	ENDIF
+	IF TALENT:キャラ:浮気公認 < 4
+		;浮気公認４レベル以上必要
+		DEBUGPRINTFORML %"浮気公認たりない("+TOSTR(TALENT:キャラ:浮気公認)+")"%
+		RETURN 0
+	ENDIF
+	IF FLAG:貞操帯鍵購入フラグ == キャラ
+		;鍵を持っていたら出て行かない
+		DEBUGPRINTFORML %"貞操帯の鍵を持っている"%
+		RETURN 0
+	ENDIF
+	IF (DATETIME() - CFLAG:キャラ:NTR訪問者と最後にセックスした日時) < 24*60*MAX(3,14-MARK:キャラ:浮気快楽刻印)
+		;３日～２週間以内にセックスしてたら行かない。快楽刻印によって短くなる
+		DEBUGPRINTFORML %"セックスしてから時間が経ってない"%
+		RETURN 0
+	ENDIF
+	IF FLAG:訪問者のムード > 0
+		;訪問者が誰かとうふふ中だったら行かない(相手して貰えないので)
+		DEBUGPRINTFORML %"訪問者さんの手が空いてない"%
+		RETURN 0
+	ENDIF
+	IF FLAG:訪問者の現在位置 != 場所_訪問者宅
+		PRINTFORML %CALLNAME:キャラ+"は"+NTR_NAME(他人)+"の家に泊まりに行ってくると言い、"+NTR_NAME(他人)+"を誘って出て行った……。"%
+		TRYCALLLIST
+			FUNC KOJO_MESSAGE_K{キャラ}_SeeYou_900_0(キャラ)
+			FUNC KOJO_MESSAGE_KU_SeeYou_900_0(キャラ)
+		ENDFUNC
+	ELSE
+		PRINTFORML %CALLNAME:キャラ+"は"+NTR_NAME(他人)+"の家に泊まりに行ってくると言って出て行った……。"%
+		TRYCALLLIST
+			FUNC KOJO_MESSAGE_K{キャラ}_SeeYou_900_1(キャラ)
+			FUNC KOJO_MESSAGE_KU_SeeYou_900_1(キャラ)
+		ENDFUNC
+	ENDIF
+	;訪問者が居ないのなら、誘ってから行く事になる。
+	FLAG:訪問者の現在位置 = 場所_訪問者宅
+	FLAG:訪問者同行フラグ = 0
+	CFLAG:キャラ:現在位置 = 場所_訪問者宅
+	;処女公衆便所競売
+	IF TALENT:キャラ:公衆便所 && TALENT:キャラ:処女 
+		CALL NTR_VIRGIN_AUCTION(キャラ)
+	ENDIF
+RETURN 1
+RETURN 0

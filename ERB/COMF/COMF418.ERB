@@ -1,0 +1,98 @@
+;-------------------------------------------------
+;鍵を購入する
+;-------------------------------------------------
+;公衆便所になった住人の貞操帯の鍵を購入するコマンド
+;
+;
+;-------------------------------------------------
+@COM418
+;購入対象選択
+#DIM 奴隷
+#DIM 鍵基本価格
+#DIM 鍵特別価格
+
+
+SELECTCASE EXP:MASTER:買春経験
+	CASE 0
+		PRINTFORML %NTR_NAME(他人)%は小さな鍵をちらつかせ、%CALLNAME:MASTER%にも『便所』を使わせてやろうか？と笑った。
+	CASEELSE
+		PRINTFORML %CALLNAME:MASTER%が鍵を求めると、%NTR_NAME(他人)%はウチの『便所』が気に入ったようだな、と笑った。
+ENDSELECT
+	
+FOR 奴隷,1,CHARA_ACTIVE
+	IF TALENT:奴隷:公衆便所
+		鍵基本価格 = NTR_COST_UNLOCK(奴隷)
+		鍵特別価格 = NTR_COST_UNLOCK_SP(奴隷,鍵基本価格)
+		SELECTCASE 鍵基本価格
+			CASE IS >= 4000
+				PRINTFORML %"["+TOSTR(奴隷,"00")+"]-高級便所『"+CALLNAME:奴隷+"』(4時間、$" + TOSTR(鍵特別価格) + ")"%
+			CASE IS >= 2000
+				PRINTFORML %"["+TOSTR(奴隷,"00")+"]-中級便所『"+CALLNAME:奴隷+"』(4時間、$" + TOSTR(鍵特別価格) + ")"%
+			CASE IS >= 1000
+				PRINTFORML %"["+TOSTR(奴隷,"00")+"]-低級便所『"+CALLNAME:奴隷+"』(4時間、$" + TOSTR(鍵特別価格) + ")"%
+			CASEELSE
+				PRINTFORML %"["+TOSTR(奴隷,"00")+"]-格安便所『"+CALLNAME:奴隷+"』(4時間、$" + TOSTR(鍵特別価格) + ")"%
+		ENDSELECT
+	ENDIF
+NEXT
+PRINTFORML [100] - やっぱりやめる
+$INPUT_LOOP
+INPUT
+SIF 100 == RESULT
+	RETURN 1
+SIF RESULT <= 0 || CHARA_ACTIVE <= RESULT
+	GOTO INPUT_LOOP
+SIF !TALENT:RESULT:公衆便所
+	GOTO INPUT_LOOP
+奴隷 = RESULT
+;購入金額
+鍵特別価格 = NTR_COST_UNLOCK_SP(奴隷,NTR_COST_UNLOCK(奴隷))
+IF MONEY < 鍵特別価格
+	PRINTFORMW お金が足りません。
+	GOTO INPUT_LOOP
+ENDIF
+;商品の説明
+
+IF TALENT:奴隷:恋慕
+	IF EXP:奴隷:Ｖ拡張経験 > 700 || EXP:奴隷:Ａ拡張経験 > 700
+		IF EXP:奴隷:Ｖ拡張経験 > 700 && EXP:奴隷:Ａ拡張経験 > 700
+			PRINTFORML %NTR_NAME(他人)+"は鍵を手渡すと、『"+CALLNAME:奴隷+"』はどちらの穴も緩いので、口を使わせた方がいいと教えてくれた。"%
+		ELSEIF EXP:奴隷:Ｖ拡張経験 > 700
+			PRINTFORML %NTR_NAME(他人)+"は鍵を手渡すと、『"+CALLNAME:奴隷+"』は尻穴が緩いので、膣を使った方がいいと教えてくれた。"%
+		ELSEIF EXP:奴隷:Ａ拡張経験 > 700
+			PRINTFORML %NTR_NAME(他人)+"は鍵を手渡すと、『"+CALLNAME:奴隷+"』は膣が緩いので、尻穴を使った方がいいと教えてくれた。"%
+		ENDIF
+		PRINTFORML %CALLNAME:MASTER+"が微妙な顔をしていると、"+NTR_NAME(他人)+"はそう言えば『"+CALLNAME:奴隷+"』は"+CALLNAME:MASTER+"の%MSG_RE_LOVER(奴隷)%だったな、どの穴でも構わないからゆっくり楽しんでくれ、と嫌な笑みを浮かべた。"%
+	ELSE
+		PRINTFORML %NTR_NAME(他人)+"は"+CALLNAME:奴隷+"が"+CALLNAME:MASTER+"の"+MSG_RE_LOVER(奴隷)+"であることを思い出し、"+MSG_RE_LOVER(奴隷)+"の身体を金で買う気分はどんなものだ？と嫌な笑みを浮かべた。"%
+	ENDIF
+ELSE
+	IF EXP:奴隷:Ｖ拡張経験 > 700 && EXP:奴隷:Ａ拡張経験 > 700
+		PRINTFORML %NTR_NAME(他人)+"は鍵を手渡すと、『"+CALLNAME:奴隷+"』はどちらの穴も緩いので、口を使わせた方がいいと教えてくれた。"%
+	ELSEIF EXP:奴隷:Ｖ拡張経験 > 700
+		PRINTFORML %NTR_NAME(他人)+"は鍵を手渡すと、『"+CALLNAME:奴隷+"』は尻穴が緩いので、膣を使った方がいいと教えてくれた。"%
+	ELSEIF EXP:奴隷:Ａ拡張経験 > 700
+		PRINTFORML %NTR_NAME(他人)+"は鍵を手渡すと、『"+CALLNAME:奴隷+"』は膣が緩いので、尻穴を使った方がいいと教えてくれた。"%
+	ENDIF
+ENDIF
+
+PRINTFORMW %"……公衆便所『"+CALLNAME:奴隷+"』の貞操帯の鍵を購入した。"%
+
+
+
+EXP:MASTER:買春経験++
+MONEY -= 鍵特別価格
+;鍵購入
+FLAG:貞操帯鍵購入フラグ = 奴隷
+CFLAG:奴隷:NTR鍵購入回数++
+;鍵購入カウンタ
+FLAG:貞操帯鍵有効カウンタ = TIME_PROGRESS() + 4*60
+;住人の反応等
+FOR 奴隷,1,CHARA_ACTIVE
+	;鍵購入反応フラグ初期化
+	CFLAG:奴隷:NTR貞操帯反応 = 1
+NEXT
+
+RETURN 1
+
+

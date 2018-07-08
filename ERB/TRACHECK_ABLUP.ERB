@@ -1,0 +1,173 @@
+@SOURCE_ABLUP(ARG)
+IF ABL:ARG:交渉能力 < 20
+	IF EXP:ARG:交渉経験 > EXPLV:(ABL:ARG:交渉能力 + 3) || (EXP:ARG:交渉経験 > 5 && ABL:ARG:交渉能力 == 0)
+		ABL:ARG:交渉能力 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の交渉能力がLV{ABL:ARG:交渉能力}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF
+IF ABL:ARG:話術技能 < 10
+	IF EXP:ARG:会話経験 > EXPLV:(ABL:ARG:話術技能 + 3)
+		ABL:ARG:話術技能 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の話術技能がLV{ABL:ARG:話術技能}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF
+
+IF ABL:ARG:職務技能 < 10 && ARG == 0
+	IF EXP:ARG:職務経験 > EXPLV:(ABL:ARG:職務技能 + 3)
+		ABL:ARG:職務技能 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の職務技能がLV{ABL:ARG:職務技能}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF
+IF ABL:ARG:教養 < 10 && ARG == 0
+	IF EXP:ARG:学習経験 > EXPLV:(ABL:ARG:教養 + 3) || (EXP:ARG:学習経験 > 5 && ABL:ARG:教養 == 0)
+		ABL:ARG:教養 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の教養がLV{ABL:ARG:教養}になりました
+		RESETCOLOR
+		SIF ABL:ARG:教養 == 1 && 能力表示許可(ARG)
+			PRINTW 媚薬を使えるようになりました
+			PRINTW 精力剤を使えるようになりました
+	ENDIF
+ENDIF
+IF ABL:ARG:料理技能 < 10 && ARG == 0
+	IF EXP:ARG:料理経験 > EXPLV:(ABL:ARG:料理技能 + 3) || (EXP:ARG:料理経験 > 5 && ABL:ARG:料理技能== 0)
+		ABL:ARG:料理技能 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の料理技能がLV{ABL:ARG:料理技能}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF
+IF ABL:ARG:指 < 10
+	LOCAL = EXP:ARG:手淫経験
+	LOCAL:1 = 10 + ABL:ARG:技巧 / 2 + TALENT:ARG:器用な指 * 2 + TALENT:ARG:習得速度
+	IF LOCAL * LOCAL:1 / 10 > EXPLV:(ABL:ARG:指 + 3) / 2 && EXP_UP(24,ARG)
+		ABL:ARG:指 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の指が器用になった
+		RESETCOLOR
+		IF ABL:ARG:指 >= 5 && TALENT:ARG:器用な指 == 0
+		SIF 能力表示許可(ARG)
+			PRINTFORMW %CALLNAME:ARG%は[器用な指]を得た
+			TALENT:ARG:器用な指 = 1
+		ENDIF
+	ENDIF
+ENDIF
+IF ABL:ARG:舌 < 10
+	LOCAL = EXP:ARG:口淫経験
+	LOCAL:1 = 10 + ABL:ARG:技巧 / 2 + TALENT:ARG:舌使い * 2 + TALENT:ARG:習得速度
+	IF  LOCAL * LOCAL:1 / 10 > EXPLV:(ABL:ARG:舌 + 3) && EXP_UP(25,ARG)
+		ABL:ARG:舌 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の舌が器用になった
+		RESETCOLOR
+		IF ABL:ARG:舌 >= 5 && TALENT:ARG:舌使い == 0
+		SIF 能力表示許可(ARG)
+			PRINTFORMW %CALLNAME:ARG%は[舌使い]を得た
+			TALENT:ARG:舌使い = 1
+		ENDIF
+	ENDIF
+ENDIF
+IF ABL:ARG:胸 < 6
+	LOCAL = EXP:ARG:パイズリ経験 * 2 +  EXP:ARG:Ｂ経験 / 5
+	LOCAL:1 = 10 + ABL:ARG:技巧 / 2 + TALENT:ARG:バストサイズ + TALENT:ARG:習得速度
+	IF LOCAL * LOCAL:1 / 10 > EXPLV:(ABL:ARG:胸 + 3) && EXP:ARG:パイズリ経験 >  EXPLV:(ABL:ARG:胸 + 1) && EXP_UP(26,ARG)
+		ABL:ARG:胸 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の胸を使った性技の技術が増したようだ
+		RESETCOLOR
+		IF ABL:ARG:胸 >= 5 && TALENT:ARG:淫乳 == 0
+		SIF 能力表示許可(ARG)
+			PRINTFORMW %CALLNAME:ARG%は[淫乳]を得た
+			TALENT:ARG:淫乳 = 1
+		ENDIF
+	ENDIF
+ENDIF
+IF ABL:ARG:腰 < 10
+	LOCAL = EXP:ARG:Ｖ性交経験 +  EXP:ARG:Ａ性交経験
+	LOCAL:1 = 10 + ABL:ARG:技巧 / 2 + TALENT:ARG:習得速度
+	IF LOCAL * LOCAL:1 / 10 > EXPLV:(ABL:ARG:腰 + 3)
+		ABL:ARG:腰 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の腰使いがうまくなった
+		RESETCOLOR
+	ENDIF
+ENDIF
+IF ABL:ARG:膣 < 6
+	;広げすぎるとガバガバになっちゃいますよ
+	LOCAL = EXP:ARG:Ｖ性交経験  * 2 +  EXP:ARG:Ｖ経験 / 5 + (EXP:ARG:Ｖ拡張経験 <= 10 ? EXP:ARG:Ｖ拡張経験 * 5 # 100 - EXP:ARG:Ｖ拡張経験)
+	LOCAL:1 = 10 + ABL:ARG:技巧 / 2 + TALENT:ARG:習得速度
+	IF LOCAL * LOCAL:1 / 10 > EXPLV:(ABL:ARG:膣 + 3) && EXP:ARG:Ｖ性交経験 >  EXPLV:(ABL:ARG:膣 + 1) && EXP_UP(20,ARG)
+		ABL:ARG:膣 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%の性交技術が増したようだ
+		RESETCOLOR
+		IF ABL:ARG:膣 >= 5 && TALENT:ARG:淫壺 == 0
+		SIF 能力表示許可(ARG)
+			PRINTFORMW %CALLNAME:ARG%は[淫壺]を得た
+			TALENT:ARG:淫壺 = 1
+		ENDIF
+	ENDIF
+ENDIF
+IF ABL:ARG:アナル < 6
+	LOCAL = EXP:ARG:Ａ性交経験  * 2 +  EXP:ARG:Ａ経験 / 5 + (EXP:ARG:Ａ拡張経験 <= 25 ? EXP:ARG:Ａ拡張経験 * 2 # 100 - EXP:ARG:Ａ拡張経験)
+	LOCAL:1 = 10 + ABL:ARG:技巧 / 2 + TALENT:ARG:習得速度
+	IF LOCAL * LOCAL:1 / 10 > EXPLV:(ABL:ARG:アナル + 3) && EXP:ARG:Ａ性交経験 > EXPLV:(ABL:ARG:アナル + 1) && EXP_UP(21,ARG)
+		ABL:ARG:アナル ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%のアナルを用いた性交技術が増したようだ
+		RESETCOLOR
+		IF ABL:ARG:アナル >= 5 && TALENT:ARG:尻穴狂い == 0
+		SIF 能力表示許可(ARG)
+			PRINTFORMW %CALLNAME:ARG%は[尻穴狂い]を得た
+			TALENT:ARG:尻穴狂い = 1
+		ENDIF
+	ENDIF
+ENDIF
+;アイドル要素 とりあえずバランスとかは考えていない
+;ver0400
+;100刻みであがるように変更
+IF TALENT:ARG:アイドル
+	IF (EXP:ARG:ビジュアル経験-EXP:ARG:ビジュアル経験%100)/100 > ABL:ARG:ビジュアル技能
+		ABL:ARG:ビジュアル技能 ++
+;色：エメラルドグリーン
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%のビジュアル技能がLV{ABL:ARG:ビジュアル技能}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF
+IF TALENT:ARG:アイドル
+	IF (EXP:ARG:ボーカル経験-EXP:ARG:ボーカル経験%100)/100 > ABL:ARG:ボーカル技能
+		ABL:ARG:ボーカル技能 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%のボーカル技能がLV{ABL:ARG:ボーカル技能}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF
+IF TALENT:ARG:アイドル
+	IF (EXP:ARG:ダンス経験-EXP:ARG:ダンス経験%100)/100 > ABL:ARG:ダンス技能
+		ABL:ARG:ダンス技能 ++
+		SETCOLOR 71,234,126
+		SIF 能力表示許可(ARG)
+		PRINTFORMW %CALLNAME:ARG%のダンス技能がLV{ABL:ARG:ダンス技能}になりました
+		RESETCOLOR
+	ENDIF
+ENDIF

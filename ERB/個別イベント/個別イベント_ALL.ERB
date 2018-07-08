@@ -1,0 +1,9 @@
+@個別イベント_ALL
+;個別イベントの読み込み
+#DIM LOOP_CHR
+#DIM LOOP_NUM
+FOR LOOP_CHR, 1, CHARA_ACTIVE
+;マスターのときは整合性取れないので除外
+		TRYCALLFORM 個別イベント_K{NO:LOOP_CHR}(LOOP_CHR)
+NEXT
+RETURN 1

@@ -1,0 +1,249 @@
+;-------------------------------------------------
+;;お酒を注文する
+;-------------------------------------------------
+@COM433
+#DIM CONST 菜々 = 63
+#DIM CONST 礼子 = 105
+#DIM CONST 瑞樹 = 107
+#DIM CONST 楓 = 145
+#DIM CONST 志乃 = 148
+#DIM CONST 礼 = 154
+#DIM CONST 留美 = 155
+#DIM CONST 友紀 = 214
+#DIM CONST 早苗 = 222
+#DIM 居酒屋_出現率
+#DIM 出現キャラ
+#DIM 未登録フラグ
+
+居酒屋_出現率 = 0
+
+;時刻判定 18時～23時
+IF TIME < 1080 || TIME > 1380
+	PRINTL
+	PRINTL まだ準備中のようだ...
+	PRINTW 入口には「営業時間 18:00～23:00」と書いてある。
+	RETURN 0
+ENDIF
+
+;一人の場合、ランダムで20歳以上のキャラクターが出現
+;注文により、特定のキャラクターが出やすくなる
+PRINTL
+PRINTFORML 席に着いた。
+PRINTFORML 何を注文しようか？
+PRINTFORML ------------------------------------- 
+PRINTFORML [0] ビール [1] 日本酒 [2] ワイン
+PRINTL   ...各$400 (1時間経過します)
+PRINTL
+PRINTFORML [100] 戻る
+$INPUT_SAKE
+INPUT
+
+;出現テーブルを作成
+;選んだ酒によって特定キャラクターの居酒屋_出現率上昇
+SELECTCASE RESULT
+CASE 0
+	FOR LOCAL, 0, 20
+		IF IZAKAYA_APPEAR(菜々)
+			Z:居酒屋_出現率 = 菜々
+			居酒屋_出現率 += 1
+		ENDIF
+		IF IZAKAYA_APPEAR(友紀)
+			Z:居酒屋_出現率 = 友紀
+			居酒屋_出現率 += 1
+		ENDIF
+		IF IZAKAYA_APPEAR(早苗)
+			Z:居酒屋_出現率 = 早苗
+			居酒屋_出現率 += 1
+		ENDIF
+	NEXT
+CASE 1
+	FOR LOCAL, 0, 20
+		IF IZAKAYA_APPEAR(楓)
+			Z:居酒屋_出現率 = 楓
+			居酒屋_出現率 += 1
+		ENDIF
+		IF IZAKAYA_APPEAR(瑞樹)
+			Z:居酒屋_出現率 = 瑞樹
+			居酒屋_出現率 += 1
+		ENDIF
+		IF IZAKAYA_APPEAR(礼子)
+			Z:居酒屋_出現率 = 礼子
+			居酒屋_出現率 += 1
+		ENDIF
+	NEXT
+CASE 2
+	FOR LOCAL, 0, 20
+		IF IZAKAYA_APPEAR(志乃)
+			Z:居酒屋_出現率 = 志乃
+			居酒屋_出現率 += 1
+		ENDIF
+		IF IZAKAYA_APPEAR(礼)
+			Z:居酒屋_出現率 = 礼
+			居酒屋_出現率 += 1
+		ENDIF
+		IF IZAKAYA_APPEAR(留美)
+			Z:居酒屋_出現率 = 留美
+			居酒屋_出現率 += 1
+		ENDIF
+	NEXT
+CASE 100
+	RETURN 0
+CASEELSE
+	GOTO INPUT_SAKE
+ENDSELECT
+
+;パラメータ変動
+TIME += 60
+BASE:MASTER:体力 += 100
+BASE:MASTER:気力 -= 100
+
+;出現可能なキャラクターを抽出してテーブルに追加
+FOR LOCAL, 1, 300
+	;出現可能判定
+	SIF !IZAKAYA_APPEAR(LOCAL)
+		CONTINUE
+	Z:居酒屋_出現率 = LOCAL
+	居酒屋_出現率 += 1
+NEXT
+
+PRINTL
+
+;debug用 出現テーブルの確認
+;FOR LOCAL, 0, 居酒屋_出現率
+;	IF GETCHARA(Z:LOCAL) == -1
+;		PRINTFORML {Z:LOCAL}_{GETCHARA(Z:LOCAL)}_%CSVNAME(Z:LOCAL)%
+;	ELSE
+;		PRINTFORML {Z:LOCAL}_{GETCHARA(Z:LOCAL)}_%NAME:(GETCHARA(Z:LOCAL))%_{CFLAG:GETCHARA(Z:LOCAL):名前フラグ}
+;	ENDIF
+;NEXT
+
+;出現率は2/3
+IF 居酒屋_出現率 > 0
+	LOCAL = RAND(居酒屋_出現率 * 3 / 2)
+ENDIF
+
+PRINTL
+PRINTFORMW .
+PRINTFORMW ..
+PRINTFORMW ...
+PRINTL
+
+IF LOCAL < 居酒屋_出現率
+	;あたり
+	出現キャラ = Z:LOCAL
+	;登録されていない場合、一時的に登録
+	未登録フラグ = 0
+	IF GETCHARA(出現キャラ) >= CHARA_ACTIVE
+	;	CALL ADD_IDOL(出現キャラ)
+	;	SIF RESULT == 0
+	;		GOTO HITORI_ZAKE
+		未登録フラグ = 1
+	ENDIF
+	IF CFLAG:GETCHARA(出現キャラ):名前フラグ == 0
+		;名前が判明していない場合
+		PRINTFORML %CALLNAME:MASTER%はふと、一人で座っている女性に目を引かれた。
+		SIF 未登録フラグ == 1
+			PRINT この辺りでは見たことのない、
+		IF 出現キャラ < 100
+			PRINT 可憐な
+		ELSEIF 出現キャラ < 200
+			PRINT 落ち着いた
+		ELSE
+			PRINT 華やかな
+		ENDIF
+		PRINTFORMW 印象の女性だ。
+		PRINTL
+		PRINTFORML [0] 声をかける [1] 声をかけない
+		$INPUT_CHOICE
+		INPUT
+		IF RESULT == 0
+			PRINTL
+			PRINTFORMW %CALLNAME:MASTER%は女性に、相席してもよいかと声をかけた。
+			PRINTFORMW 女性から許可を得た%CALLNAME:MASTER%は、正面の席に腰を下ろした。
+			SIF 未登録フラグ == 1
+			CALL ADD_IDOL(GETCHARA(出現キャラ))
+		ELSEIF RESULT == 1
+			;一時登録状態でスルーした場合、キャラを削除
+;			SIF 未登録フラグ == 1
+;				CALL DEL_IDOL(GETCHARA(出現キャラ))
+			GOTO HITORI_ZAKE
+		ELSE
+			GOTO INPUT_CHOICE
+		ENDIF
+	ELSE
+		;顔見知りの場合
+		PRINTL
+		PRINTFORML %CALLNAME:MASTER%が一人で飲んでいると、%CALLNAME:GETCHARA(出現キャラ)%が店に入ってきた。
+		PRINTFORML %CALLNAME:GETCHARA(出現キャラ)%は%CALLNAME:MASTER%の姿を認めると、軽く挨拶して向かい側の席に腰を下ろした。
+	ENDIF
+	;キャラクターの生成・移動フラグ
+	TFLAG:発見キャラ_居酒屋 = GETCHARA(出現キャラ)
+ELSE
+	;はずれ
+	GOTO HITORI_ZAKE
+ENDIF
+RETURN 1
+
+$HITORI_ZAKE
+PRINTL
+PRINTFORMW %CALLNAME:MASTER%は一人静かに、酒と食事を満喫した。
+TFLAG:発見キャラ_居酒屋 = -1
+RETURN 1
+
+;キャラクターが出現可能なら1、不可能なら0を返す
+@IZAKAYA_APPEAR(ARG)
+#FUNCTION
+;CSV存在チェック
+SIF !EXISTCSV(ARG)
+	RETURNF 0
+;出現抑制中キャラは除外
+SIF GETCHARA(ARG) == -1 && GETBIT(出現率:ARG, 1)
+	RETURNF 0
+;退場済みキャラは除外
+SIF CFLAG:GETCHARA(ARG):ACTIVE<0
+	RETURNF 0
+;未成年キャラは除外
+SIF CSVBASE(ARG, 9) < 20
+	RETURNF 0
+IF	GETCHARA(ARG) != -1
+	;スカウト済キャラは除外
+	SIF 所属(GETCHARA(ARG))
+		RETURNF 0
+	;NTR中は除外
+	SIF NTR拠点(CFLAG:GETCHARA(ARG):軟禁者) == CFLAG:GETCHARA(ARG):現在位置
+		RETURNF 0
+	;すでに居酒屋にいる場合は除外
+	SIF CFLAG:GETCHARA(ARG):現在位置 == 場所_居酒屋
+		RETURNF 0
+	;寝てたり、衰弱してたり、普通の場所にいなかったり
+	SIF CFLAG:GETCHARA(ARG):睡眠 || CFLAG:GETCHARA(ARG):衰弱 || CFLAG:GETCHARA(ARG):現在位置 > 場所番号最大値
+		RETURNF 0
+ENDIF
+RETURNF 1
+
+@COM_ABLE433
+;実行判定
+SIF !TFLAG:100
+	RETURN 0
+;一括管理
+SIF GLOBAL_COMABLE(433)
+	RETURN RESULT
+;現在地判定
+SIF CFLAG:MASTER:現在位置 != 場所_居酒屋
+	RETURN 0
+;気力判定
+	SIF BASE:MASTER:気力 <= 0
+	RETURN 0
+;うふふ中
+SIF CFLAG:うふふ > 0
+	RETURN 0
+;実行済判定
+SIF TFLAG:発見キャラ_居酒屋 != 0
+	RETURN 0
+;同行者判定
+SIF GET_DOUKOU_NUM() != 0
+	RETURN 0
+RETURN 1
+
+@MESSAGE_COM433
+

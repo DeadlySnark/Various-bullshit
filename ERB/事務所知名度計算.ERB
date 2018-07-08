@@ -1,0 +1,96 @@
+@事務所知名度計算
+;事務所の知名度を計算
+;終了時に毎回計算
+#DIM LOOP_CHR
+;初期化
+FLAG:事務所知名度=0
+SKIPDISP 1
+;アンケートを持っている
+SIF ITEM:アンケート
+	SKIPDISP 0
+PRINTFORML 事務所のＨＰに設置したアンケートによると…
+FOR LOOP_CHR, 0, CHARA_ACTIVE
+;所属していないキャラは省く
+	SIF !所属(LOOP_CHR)
+		CONTINUE
+;MASTER,事務員は除く
+	SIF LOOP_CHR==MASTER
+		CONTINUE
+	SIF TALENT:LOOP_CHR:事務員 == 1
+		CONTINUE
+	SIF TALENT:LOOP_CHR:トレーナー >= 1
+		CONTINUE
+	;個人による影響は絶対値20まで
+	PRINTFORML ～%CALLNAME:LOOP_CHR%～
+	FLAG:事務所知名度+=LIMIT(知名度計算(LOOP_CHR), -20, 20)
+NEXT
+FLAG:事務所知名度=LIMIT(FLAG:事務所知名度, -100 ,100)
+SKIPDISP 0
+PRINTL
+PRINTFORML 現在の事務所の知名度は{FLAG:事務所知名度}のようだ
+PRINTL
+
+@知名度計算(ARG)
+;ARGの知名度を計算
+#FUNCTION
+#DIM 値
+	値=0
+;アイドルランクによる変動
+	値+=CFLAG:ARG:アイドルランク*2
+;アイドル経験値による変動
+	値+=LIMIT(EXP:ARG:アイドル活動経験/20, 0, 5 )
+
+IF 値 > 10
+		PRINTDATA
+			DATAFORM 「毎日ＴＶで見てます」
+			DATAFORM 「家族全員でファンです」
+			DATAFORM 「日々の生きがいです」
+		ENDDATA
+ELSEIF 値 >5
+		PRINTDATA
+			DATAFORM 「最近よく雑誌とかで見るようになりました」
+			DATAFORM 「もっとプッシュしてください」
+			DATAFORM 「たまにＴＶで見かけて気になっていました」
+		ENDDATA
+ELSEIF 値==0
+		PRINTDATA
+			DATAFORM 「誰？」
+			DATAFORM 「ポテンシャルを感じますね」
+			DATAFORM 「新人さんですか？がんばってください」
+		ENDDATA
+ENDIF
+;以下マイナス要素
+;NTR
+	値-=LIMIT(MIN(TALENT:ARG:NTR, 1)*2 + EXP:ARG:NTR陥落経験/2+EXP:ARG:公衆便所陥落経験, 0 ,5)
+
+;円光
+	値-=LIMIT(MIN(PRENTR(ARG, 人物_パパ, NTRPRE_職履歴)+PRENTR(ARG, 人物_パパ, NTRPRE_職), 1)*3 + EXP:ARG:援助交際経験/20, 0 ,10)
+;枕
+	値-=LIMIT(EXP:ARG:枕営業経験/20 , 0 ,10)
+;AV
+	値-=LIMIT(EXP:ARG:AV女優経験/5+MIN(PRENTR(ARG, 人物_AV男優, NTRPRE_職履歴)+PRENTR(ARG, 人物_AV男優, NTRPRE_職), 1)*6, 0 ,10)
+IF LIMIT(MIN(TALENT:ARG:NTR, 1)*2 + EXP:ARG:NTR陥落経験/2+EXP:ARG:公衆便所陥落経験, 0 ,5)
+	PRINTDATA
+		DATAFORM 「色気というよりは淫靡な感じがちょっと…」
+		DATAFORM 「子供に見せたくないです」
+		DATAFORM 「悲鳴の演技が嬌声に聞こえて不快」
+	ENDDATA
+ENDIF
+
+IF PRENTR(ARG, 人物_パパ, NTRPRE_職履歴)
+	PRINTDATA
+		DATAFORM 「この前裏路地で見かけた、あんなところに何の用が」
+		DATAFORM 「赤の他人だと思うけどこの前サポートした子にそっくりでびっくり」
+		DATAFORM 「尻軽っぽい」
+	ENDDATA
+ENDIF
+IF PRENTR(ARG, 人物_AV男優, NTRPRE_職履歴)
+	PRINTDATA
+		DATAFORM 「ＡＶに戻って欲しい」
+		DATAFORM 「こんなビッチを公共の電波にのせるな」
+		DATAFORM 「TNTNがいらいらする」
+	ENDDATA
+ENDIF
+;賞罰(0300 仮)
+PRINTL
+RETURNF 値

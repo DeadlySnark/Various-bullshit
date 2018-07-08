@@ -1,0 +1,65 @@
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版)
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+@COM300
+	#DIMS コマンド,100
+	#DIM コマンド数 = 0
+	#DIM 結果 = 0
+	コマンド数 = 0
+	SIF TFLAG:電話フラグ
+		GOTO DENWA_300
+	;電話用の処理
+
+	SIF TFLAG:電話相手
+		TARGET=TFLAG:電話相手
+	FOR LOCAL:0,0,100
+		TRYCCALLFORM %"COM300_"+TOSTR(LOCAL:0,"00")+"_ENABLE"%
+			IF RESULT:0
+				コマンド:コマンド数 = %RESULTS:0%
+				コマンド数++
+			ENDIF
+		CATCH
+		ENDCATCH
+	NEXT
+	;特殊会話は会話不能が0の場合だけ表示。直接番号叩かれたら呼べるけど、まあ妥協。
+	IF (TCVAR:(TARGET:0):会話不能 == 0) && (コマンド数 > 0)
+		PRINTFORML %"何について話そうか……？"%
+		SIF 所属(TARGET)
+		PRINTFORML %"[ 1]-他愛も無い雑談"%
+		FOR LOCAL,0,コマンド数
+			PRINTFORML %コマンド:LOCAL%
+		NEXT
+		$COM300_INPUT_LOOP
+		INPUT
+		TRYCCALLFORM COM300_%TOSTR(RESULT:0,"00")%
+			結果=RESULT:0
+;			RETURN RESULT:0
+		CATCH
+			CLEARLINE 1
+			GOTO COM300_INPUT_LOOP
+		ENDCATCH
+	ELSE
+		CALL COM300_01
+		結果=RESULT:0
+;		RETURN RESULT:0
+	ENDIF
+;お掃除
+
+
+RETURN 結果
+
+$DENWA_300
+;電話からくるとなぜか二週してしまうので、ここで回避
+TFLAG:電話フラグ=0
+SELECTCOM=300
+NEXTCOM=-1
+TFLAG:3=300
+TFLAG:COMABLE管理=1
+RETURN 1
+
+@電話の後処理
+;仮データを消す
+;SIF TFLAG:電話相手仮存在 && 削除チェック(TFLAG:電話相手)
+;	CALL DEL_IDOL(TFLAG:電話相手)
+TFLAG:電話相手=0

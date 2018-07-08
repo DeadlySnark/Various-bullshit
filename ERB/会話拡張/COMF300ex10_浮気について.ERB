@@ -1,0 +1,345 @@
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 浮気について話す 実行判定
+; RETURN 0 コマンドの実行不可
+; RETURN 1 コマンドの実行可能
+@COM300_10_ENABLE
+	RESULTS:0 = %"[10]-"+CALLNAME:(TARGET:0)+"の浮気について"%
+	IF TCVAR:(TARGET:0):会話不能
+		RETURN 0
+	ELSEIF NTR_CHK_FAVORABLY((TARGET:0), FAV_主人より高い) == 0 && NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られそう) == 0 && NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られ寸前) == 0
+		RETURN 0
+	ELSEIF TALENT:(TARGET:0):恋慕 == 0
+		RETURN 0
+	ELSE
+		RETURN 1
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;会話コマンド(拡張版) - 浮気について話す
+; RETURN 0 コマンドの実行に失敗
+; RETURN 1 コマンドの実行に成功
+;SOURCEは合計300ぐらいの変化でいいかな
+@COM300_10
+	;会話累積値を増やしたりの処理は共通、時間は少し多めに
+	LOSEBASE:気力 += 100
+	DOWNBASE:(PLAYER:0):気力 += 100
+	DOWNBASE:(TARGET:0):気力 += 100
+	TCVAR:会話累積値 += 200 / (3 + ABL:MASTER:話術技能)
+	TIME += 15
+	;-----------------------------------------------------------------------------
+	;会話不能があると失敗
+	IF TCVAR:(TARGET:0):会話不能
+		PRINTFORML %CALLNAME:(TARGET:0)+"に話しかけようとしたが言葉が見つからない"%
+		PRINTFORML %"あたりに気まずい空気が流れた……"%
+		TFLAG:コマンド成功度 = -1
+		RETURN 0
+	ELSE
+		;特殊会話すると会話不能が増える
+		TCVAR:(TARGET:0):会話不能 ++
+	ENDIF
+	;-----------------------------------------------------------------------------
+	EXP:MASTER:会話経験 ++
+	TFLAG:コマンド成功度 = 0
+	IF TALENT:(TARGET:0):浮気公認 > 0
+		;すでに浮気公認してるなら
+		CALL COM300_10_02
+	ELSE
+		;まだ浮気公認していないなら
+		CALL COM300_10_01
+	ENDIF
+RETURN RESULT:0
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気について問い詰める
+@COM300_10_01
+	#DIM 浮気の証拠がある = 0
+	浮気の証拠がある = STRCOUNT(SAVESTR:10,@"%CALLNAME:(TARGET:0)+"15PH/"%") + STRCOUNT(SAVESTR:10,@"%CALLNAME:(TARGET:0)+"16PH/"%")
+	PRINTFORM %CALLNAME:(PLAYER:0)+"が"+NTR_NAME(他人)+"との関係を指摘すると"%
+	IF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られ寸前)
+		IF (CFLAG:覗き発覚回数 > 0 && CFLAG:覗き発覚時行為 > 0) || (CFLAG:同席目撃回数 > 0 && CFLAG:同席目撃時行為 > 0)
+			;覗きバレしていた場合
+			PRINTFORML %CALLNAME:(TARGET:0)+"はあっさりと浮気を認め、助けもせずに覗き続けていたのは"+MSG_RE_LOVER(TARGET:0)+"が犯される様を見て興奮したからなのかと問い返した。"%
+			CFLAG:覗き発覚回数 = 0
+			CFLAG:覗き発覚時行為 = 0
+			CFLAG:同席目撃回数 = 0
+			CFLAG:同席目撃時行為 = 0
+			SOURCE:(TARGET:0):挑発 += 200
+			SOURCE:(TARGET:0):逸脱 += 100
+		ELSE
+			;寝取られ寸前なら、証拠が無くても隠そうとしない
+			PRINTFORML %CALLNAME:(TARGET:0)+"はあっさりと浮気を認め、何か問題があるのかと問い返した。"%
+			SOURCE:(TARGET:0):逸脱 += 300
+		ENDIF
+	ELSEIF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られそう)
+		;寝取られそうなら嘘を吐こうとする
+		IF (CFLAG:覗き発覚回数 > 0 && CFLAG:覗き発覚時行為 > 0) || (CFLAG:同席目撃回数 > 0 && CFLAG:同席目撃時行為 > 0)
+			;覗きバレしていた場合
+			PRINTFORML %CALLNAME:(TARGET:0)+"は自分の浮気を棚に上げ、どうして助けもせずに覗き続けていたのか、"+MSG_RE_LOVER(TARGET:0)+"が犯される様を見て興奮するのかと問い返した。"%
+			CFLAG:覗き発覚回数 = 0
+			CFLAG:覗き発覚時行為 = 0
+			CFLAG:同席目撃回数 = 0
+			CFLAG:同席目撃時行為 = 0
+			SOURCE:(TARGET:0):反感 += 300
+		ELSEIF 浮気の証拠がある > 0
+			;浮気の証拠がある場合、嘘を暴かれてしまう
+			PRINTFORML %CALLNAME:(TARGET:0)+"は浮気などしていないと嘘を吐いたが、証拠の写真を見せつけられると慌てて言い訳を始めた。"%
+			SOURCE:(TARGET:0):反感 += 100
+			SOURCE:(TARGET:0):恐怖 += 200
+		ELSE
+			;浮気の証拠がない場合、嘘と責任転嫁で切り抜ける
+			PRINTFORML %CALLNAME:(TARGET:0)+"は浮気などしていないと怒りだし、"+MSG_RE_LOVER(TARGET:0)+"を疑った事を激しく非難した。"%
+			SOURCE:(TARGET:0):反感 += 150
+			SOURCE:(TARGET:0):恐怖 += 100
+			SOURCE:(TARGET:0):鬱屈 += 50
+			TFLAG:コマンド成功度 = -1
+			;会話はここで終わる
+			RETURN 0
+		ENDIF
+	ELSE
+		;それ以外の場合
+		IF (CFLAG:覗き発覚回数 > 0 && CFLAG:覗き発覚時行為 > 0) || (CFLAG:同席目撃回数 > 0 && CFLAG:同席目撃時行為 > 0)
+			;覗きバレしていた場合、強姦だったということにして切り抜ける
+			PRINTFORML %CALLNAME:(TARGET:0)+"はどうして強姦されるのを見ていながら助けてくれなかったのか、自分は助ける価値もないのか、それでも"+MSG_LOVER(TARGET:0)+"なのかと罵った。"%
+			CFLAG:覗き発覚回数 = 0
+			CFLAG:覗き発覚時行為 = 0
+			CFLAG:同席目撃回数 = 0
+			CFLAG:同席目撃時行為 = 0
+			SOURCE:(TARGET:0):反感 += 150
+			SOURCE:(TARGET:0):鬱屈 += 150
+			TFLAG:コマンド成功度 = -1
+			;会話はここで終わる
+			RETURN 1
+		ELSEIF 浮気の証拠がある > 0
+			;浮気の証拠がある場合、嘘を暴かれてしまう
+			PRINTFORML %CALLNAME:(TARGET:0)+"は浮気などしていないと嘘を吐いたが、証拠の写真を見せつけられると何も言えなくなってしまったようだ。"%
+			SOURCE:(TARGET:0):恐怖 += 300
+		ELSE
+			;浮気の証拠がない場合、嘘と責任転嫁で切り抜ける
+			PRINTFORML %CALLNAME:(TARGET:0)+"は浮気などしていない、自分を信じていないのかと非難した。"%
+			SOURCE:(TARGET:0):反感 += 100
+			SOURCE:(TARGET:0):恐怖 += 100
+			SOURCE:(TARGET:0):鬱屈 += 100
+			TFLAG:コマンド成功度 = -1
+			;会話はここで終わる
+			RETURN 0
+		ENDIF
+	ENDIF
+	;ここで表示する口上は「それで、どうしたいの？」とかそんな感じ？
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_01((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_01((TARGET:0), (PLAYER:0))
+	ENDFUNC
+	PRINTFORML %"[1]-浮気をするのは許せない"%
+	PRINTFORML %"[2]-浮気をしても別にいい"%
+	PRINTFORML %"[3]-むしろ積極的に浮気して欲しい"%
+	$COM300_10_01_INPUT_LOOP
+	INPUT
+	TRYCCALLFORM COM300_10_01_%TOSTR(RESULT:0,"00")%
+		RETURN RESULT:0
+	CATCH
+		CLEARLINE 1
+		GOTO COM300_10_01_INPUT_LOOP
+	ENDCATCH
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気について話す - 許せない
+@COM300_10_01_01
+	#DIM 屈服度減少分
+	PRINTFORM %CALLNAME:(PLAYER:0)+"が浮気をするのは許せないと言うと、"%
+	IF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られ寸前)
+		;寝取られ寸前ならもう手遅れ
+		PRINTFORML %CALLNAME:(TARGET:0)+"は浮気をやめるつもりは無いから、自分と別れてくれても構わないと言った。"%
+	ELSEIF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られそう)
+		;寝取られそうなぐらいなら、止めさせるきっかけになる程度まで屈服度が下がる
+		;屈服度が1000以上あなたの好感度以下まで減少
+		PRINTFORML %CALLNAME:(TARGET:0)+"は、渋々と頭を下げて、もうしないと約束した。"%
+		屈服度減少分 = MIN(CFLAG:(TARGET:0):屈服度-1000,CFLAG:(TARGET:0):屈服度-CFLAG:(TARGET:0):好感度)
+	ELSE
+		;それ以外なら身体を許さない程度まで屈服度が下がる
+		;屈服度が500まで減少
+		PRINTFORML %CALLNAME:(TARGET:0)+"は、もう二度としないから許してほしい、と泣き出した。"%
+		屈服度減少分 = MAX(0,CFLAG:(TARGET:0):屈服度-500)
+	ENDIF
+	;口上表示は屈服度再計算前
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_01_01((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_01_01((TARGET:0), (PLAYER:0))
+	ENDFUNC
+	IF 屈服度減少分 > 0
+		PRINTFORML %"(屈服度 -"%{屈服度減少分}%")"%
+		CFLAG:(TARGET:0):屈服度 -= 屈服度減少分
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気について話す - 許せる
+@COM300_10_01_02
+	#DIM 屈服度減少分
+	PRINTFORM %CALLNAME:(PLAYER:0)+"が浮気をしても別にいいと言うと、"%
+	IF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られ寸前)
+		;寝取られ寸前
+		PRINTFORML %CALLNAME:(TARGET:0)+"は、浮気をされる側じゃなく、する側になってもかまわないか、と訊ねてきた……。"%
+	ELSEIF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られそう)
+		;寝取られそうなら、別れ話と思い少し不安を感じる
+		;屈服度が１割下がる
+		PRINTFORML %CALLNAME:(TARGET:0)+"は、自分と別れるつもりなのかと訝しんでいるものの、一応は納得したようだ……。"%
+		屈服度減少分 = MAX(0,CFLAG:(TARGET:0):屈服度/10)
+	ELSE
+		;それ以外なら自分のしたことを悔いる
+		;屈服度が1000まで減少
+		PRINTFORML %CALLNAME:(TARGET:0)+"は、そうではないのだと必死に言い訳していたが、やがて不承不承ながら聞き入れた。"%
+		屈服度減少分 = MAX(0,CFLAG:(TARGET:0):屈服度-1000)
+	ENDIF
+	;浮気公認レベルが最低1に
+	TALENT:(TARGET:0):浮気公認 = MAX(1,TALENT:(TARGET:0):浮気公認)
+	;口上表示は屈服度再計算前
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_01_02((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_01_02((TARGET:0), (PLAYER:0))
+	ENDFUNC
+	IF 屈服度減少分 > 0
+		PRINTFORML %"(屈服度 -"%{屈服度減少分}%")"%
+		CFLAG:(TARGET:0):屈服度 -= 屈服度減少分
+	ENDIF
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気について話す - 寝取られたい
+@COM300_10_01_03
+	PRINTFORM %CALLNAME:(PLAYER:0)+"がむしろ積極的に浮気して欲しいと言うと、"%
+	IF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られ寸前)
+		;寝取られ寸前なら
+		PRINTFORML %CALLNAME:(TARGET:0)+"はやっぱり"+MSG_RE_LOVER(TARGET:0)+"を寝取られるのに興奮する変態だったのね、と笑った。"%
+	ELSEIF NTR_CHK_FAVORABLY((TARGET:0), FAV_寝取られそう)
+		;寝取られそうなら
+		PRINTFORML %CALLNAME:(TARGET:0)+"は理解はできないけれど、そう言うのなら遠慮はしないことにする、と言った。"%
+	ELSE
+		;それ以外なら
+		PRINTFORML %CALLNAME:(TARGET:0)+"は何を言っているのかわからないと狼狽えていたが、やがて不承不承ながら聞き入れた。"%
+	ENDIF
+	;浮気公認レベルが最低1に
+	TALENT:(TARGET:0):浮気公認 = MAX(1,TALENT:(TARGET:0):浮気公認)
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_01_03((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_01_03((TARGET:0), (PLAYER:0))
+	ENDFUNC
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気公認について
+@COM300_10_02
+	PRINTFORM %CALLNAME:(PLAYER:0)+"が"+NTR_NAME(他人)+"との関係を訊ねると、"%
+	IF TALENT:(TARGET:0):妊娠
+		PRINTFORML %"子供が産まれるまではお預けなのだと答えた。"%
+	ELSEIF (CFLAG:(TARGET:0):NTR訪問者と最後にセックスした日時/(24*60)) == (DATETIME()/(24*60))
+		;同じ日にセックスしてたら
+		SELECTCASE CFLAG:(TARGET:0):NTR訪問者と最後にセックスした日時
+			CASE IS > (DATETIME() - 1*01*60) ;１時間以内
+				PRINTFORML %"今セックスしたばかりなのだと答えた。"%
+			CASE IS > (DATETIME() - 1*04*60) ;４時間以内
+				PRINTFORML %"先程セックスしたところなのだと答えた。"%
+			CASEELSE
+				PRINTFORML %"今日もセックスしたのだと答えた。"%
+		ENDSELECT
+	ELSE
+		SELECTCASE CFLAG:(TARGET:0):NTR訪問者と最後にセックスした日時
+			CASE IS > (DATETIME() - 1*01*60) ;１時間以内
+				PRINTFORML %"今セックスしたばかりなのだと答えた。"%
+			CASE IS > (DATETIME() - 1*08*60) ;８時間以内
+				PRINTFORML %"先程セックスしたところなのだと答えた。"%
+			CASE IS > (DATETIME() - 1*24*60) ;１日以内
+				PRINTFORML %"昨日もセックスしたのだと答えた。"%
+			CASE IS > (DATETIME() - 3*24*60) ;２日以内
+				PRINTFORML %"昨日はセックスして貰えなかったのだと答えた。"%
+			CASEELSE
+				PRINTFORML %"もう随分とセックスしていないのだと答えた。"%
+		ENDSELECT
+	ENDIF
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_02((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_02((TARGET:0), (PLAYER:0))
+	ENDFUNC
+	PRINTFORML %"[1]-やっぱり浮気はされたくない"%
+	PRINTFORML %"[2]-いまのままでいい"%
+	PRINTFORML %"[3]-もっと積極的に浮気して欲しい"%
+	$COM300_10_02_INPUT_LOOP
+	INPUT
+	TRYCCALLFORM COM300_10_02_%TOSTR(RESULT:0,"00")%
+		RETURN RESULT:0
+	CATCH
+		CLEARLINE 1
+		GOTO COM300_10_02_INPUT_LOOP
+	ENDCATCH
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気公認について - やっぱりやだ
+@COM300_10_02_01
+	PRINTFORM %CALLNAME:(PLAYER:0)+"がやっぱり浮気はされたくないと言うと、"%
+	IF TALENT:(TARGET:0):公衆便所 && TALENT:(TARGET:0):浮気公認 >= 4
+		;公衆便所の場合4以下にはならない
+		TALENT:(TARGET:0):浮気公認 = 4
+		PRINTFORML %CALLNAME:(TARGET:0)+"はそんなことを言われても、"+NTR_NAME(他人)+"との関係は止められないし、売春もやめない、と言われてしまった。"%
+	ELSEIF MARK:(TARGET:0):快楽刻印 < MARK:(TARGET:0):浮気快楽刻印
+		;快楽を覚えてしまっている場合０にはならない
+		TALENT:(TARGET:0):浮気公認 = 1
+		PRINTFORML %CALLNAME:(TARGET:0)+"はそんなことを言われても、もう"+CALLNAME:(PLAYER:0)+"とのセックスでは満足できないし、"+NTR_NAME(他人)+"との関係は止められそうにない、と言われてしまった。"%
+	ELSE
+		;快楽を覚えていない場合０になる
+		TALENT:(TARGET:0):浮気公認 = 0
+		PRINTFORML %CALLNAME:(TARGET:0)+"は自分から誘ったりはしないけれど、"+NTR_NAME(他人)+"に誘われたら断れないかも知れない、と困った顔を見せた。"%
+	ENDIF
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_02_01((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_02_01((TARGET:0), (PLAYER:0))
+	ENDFUNC
+RETURN 1
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気公認について - いまのままで
+@COM300_10_02_02
+	PRINTFORM %CALLNAME:(PLAYER:0)+"がいまのままでいいと言うと、"%
+	IF MARK:(TARGET:0):快楽刻印 < MARK:(TARGET:0):浮気快楽刻印
+		IF TALENT:(TARGET:0):浮気公認 < MARK:(TARGET:0):浮気快楽刻印
+			PRINTFORML %CALLNAME:(TARGET:0)+"はもっとしたいのに、と残念そうだった。"%
+		ELSE
+			PRINTFORML %CALLNAME:(TARGET:0)+"は本当にいいのか、と嬉しそうだった。"%
+		ENDIF
+	ELSE
+		PRINTFORML %CALLNAME:(TARGET:0)+"は本当にいいのか、と不安そうだった。"%
+	ENDIF
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_02_02((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_02_02((TARGET:0), (PLAYER:0))
+	ENDFUNC
+RETURN 1
+RETURN 0
+
+;-------------------------------------------------------------------------------
+;浮気公認について - もっと寝取られたい
+@COM300_10_02_03
+	PRINTFORM %CALLNAME:(PLAYER:0)+"がもっと積極的に浮気して欲しいと言うと、"%
+	;現在の所最大で４まで。将来的に５まで拡張したい
+	TALENT:(TARGET:0):浮気公認 = MIN(4,TALENT:(TARGET:0):浮気公認+1)
+	SELECTCASE TALENT:(TARGET:0):浮気公認
+		CASE 1 ;最低１からスタートなので発生しないはず
+			PRINTFORML %CALLNAME:(TARGET:0)+"はそれなら期待に応えられるようにする、と笑った。"%
+		CASE 2
+			PRINTFORML %CALLNAME:(TARGET:0)+"はそれなら"+CALLNAME:(PLAYER:0)+"の見てる前で"+NTR_NAME(他人)+"を誘惑してみる、と笑った。"%
+		CASE 3
+			PRINTFORML %CALLNAME:(TARGET:0)+"はそれなら"+NTR_NAME(他人)+"に犯される所を"+CALLNAME:(PLAYER:0)+"に見せてあげる、と笑った。"%
+		CASE 4
+			PRINTFORML %CALLNAME:(TARGET:0)+"はそれなら"+NTR_NAME(他人)+"の家に時々泊まりに行くようにする、と笑った。"%
+		CASEELSE ;５以上
+			PRINTFORML %CALLNAME:(TARGET:0)+"はそれなら"+NTR_NAME(他人)+"の妻として向こうに住み、"+CALLNAME:(PLAYER:0)+"にも時々逢いに来てあげる、と笑った。"%
+	ENDSELECT
+	TRYCALLLIST
+		FUNC KOJO_MESSAGE_COM_K{(TARGET:0)}_300_10_02_03((TARGET:0), (PLAYER:0))
+		FUNC KOJO_MESSAGE_COM_KU_300_10_02_03((TARGET:0), (PLAYER:0))
+	ENDFUNC
+RETURN 1
+RETURN 0

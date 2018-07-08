@@ -1,0 +1,118 @@
+@汎用イベント_ALL
+;汎用イベントの読み込み
+#DIM LOOP_CHR
+#DIM LOOP_NUM
+FOR LOOP_CHR,0, CHARA_ACTIVE
+	FOR LOOP_NUM,0, 63
+		RESULT=0
+		TRYCALLFORM 汎用イベント_NO{LOOP_NUM}(LOOP_CHR)
+		SIF RESULT
+			TRYCALLFORM 汎用イベント口上_NO{LOOP_NUM}_K{NO:LOOP_CHR}(LOOP_CHR)
+	NEXT
+NEXT
+RETURN 1
+
+
+;0~9 ビデオレター用に保持
+
+@汎用イベント_NO10(奴隷)
+;托卵
+#DIM 奴隷
+;恋慕or事務所所属,まだNTRではないが...,孕んでない,処女でない,MASTERがhaspenis,まだこのイベントを起こしたことがない,普通の場所にいる,屈服最大が訪問者
+IF (TALENT:奴隷:恋慕 || 所属(奴隷) ) && !TALENT:奴隷:NTR && NTR_CHK_FAVORABLY(奴隷, FAV_主人より高い) && !TALENT:奴隷:処女 && !CFLAG:奴隷:にんっしんっ && HAS_PENIS(MASTER) && MASTER!=奴隷 && !GETBIT(CFLAG:奴隷:汎用イベント,10) && CFLAG:奴隷:現在位置 < 場所番号最大値+1 && MAX屈服_WHO(奴隷) == 人物_訪問者 && EXP:奴隷:浮気Ｖ性交経験 && CFLAG:MASTER:現在位置==CFLAG:MASTER:開始位置
+	;確率1/10
+	SIF RAND:10
+		RETURN 0
+	;妊娠フラグoffのときはキャンセル
+	SIF !GETBIT(FLAG:雑多設定,5)
+		RETURN 0
+	;処理　フラグを立てる
+	SETBIT CFLAG:奴隷:汎用イベント,10
+	;孕む
+	CFLAG:奴隷:にんっしんっ=1+NO:MASTER
+	;経験
+	EXP:奴隷:精液経験++
+	EXP:奴隷:Ｖ性交経験++
+	;口上
+	PRINTL 
+	PRINTFORML %CALLNAME:MASTER%は下半身に違和感を感じ目を覚ました。
+	PRINTFORML そこには、%CALLNAME:MASTER%に馬乗りになり肉棒を秘所にくわえこんだ%CALLNAME:奴隷%の姿があった。
+	PRINTFORMW %CALLNAME:奴隷%の腰使いに翻弄され、%CALLNAME:MASTER%は抵抗する間もなく彼女の最奥へと精を放ってしまった。
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTFORML なぜこんなことをしたんだ、と服を着て家を出て行こうとする%CALLNAME:奴隷%に問いかけると、
+	PRINTDATA
+		DATAFORM 人肌恋しかったから、
+		DATAFORM ムラムラしたから、
+		DATAFORM %CALLNAME:MASTER%と繋がりたかったから
+	ENDDATA
+	PRINT と
+	PRINTDATA
+		DATAFORM こちらを見ずに言った。
+		DATAFORM 妖艶な笑みを浮かべて言った。
+		DATAFORM お腹をさすりながら言った。
+	ENDDATA
+	PRINTW
+	RETURN 1
+ENDIF
+RETURN 0
+
+@汎用イベント_NO11(奴隷)
+;托卵バレ
+#DIM 奴隷
+;たくらんされてる、まだイベントおきていない、訪問者にNTRれてる、子供がいる、
+IF GETBIT(CFLAG:奴隷:汎用イベント,10)&& !GETBIT(CFLAG:奴隷:汎用イベント,11) && NTR_WHO(奴隷)==人物_訪問者 && 親別出産数:(NO:奴隷):(NO:MASTER) && CFLAG:MASTER:現在位置==CFLAG:MASTER:開始位置
+	SIF RAND:5
+		RETURN 0
+	;処理　フラグを立てる
+	SETBIT CFLAG:奴隷:汎用イベント,11
+	;好感度を子供分引く
+	CFLAG:奴隷:好感度=MAX(CFLAG:奴隷:好感度-300, 0)
+	;子供を訪問者のに変換
+	親別出産数:(NO:奴隷):(NO:MASTER)-=1
+	親別出産数:(NO:奴隷):(人物_訪問者)+=1
+	
+	;口上
+	PRINTL 
+	PRINTFORML %CALLNAME:MASTER%の手元には今USBメモリがある。以前%NTR_NAME(人物_訪問者)%が事務所に置き忘れていったものだ。
+	PRINTFORMW 渡そうと思い回収したが、タイミングがなく結局家に持ち帰ってきてしまった。
+	;犯罪やぞ
+	PRINTFORML いけないことと知りつつも好奇心に負けた%CALLNAME:MASTER%は家のパソコンで中身を閲覧すると、
+	PRINTFORMW そこには無造作に「{NO:奴隷}」と番号の振られた動画が入っていた。
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	DRAWLINE
+	PRINTFORML まず映っていたのはベッドに腰掛ける全裸の%NTR_NAME(人物_訪問者)%と%CALLNAME:奴隷%の姿だった。
+	PRINTFORM 男に促され%CALLNAME:奴隷%は名前
+	SIF TALENT:奴隷:アイドル
+		PRINTFORM やアイドルをやっていること
+	PRINTFORMW などのプロフィールを動画に収めていった……
+	PRINTFORML 一通りそれが終わると%NTR_NAME(人物_訪問者)%は避妊薬と称した錠剤を%CALLNAME:奴隷%に飲ませた。
+	PRINTFORMW しっかりと飲みこんだ事を確認すると、%NTR_NAME(人物_訪問者)%はベッドに%CALLNAME:奴隷%を押し倒した。
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTFORML {RAND:5+2}回目の射精が終わった後、%NTR_NAME(人物_訪問者)%はカメラの前で開帳しろ、と%CALLNAME:奴隷%に命じた。
+	PRINTFORMW %CALLNAME:奴隷%は絶頂の余韻に震えながらも命令に従うと、白い液体がとめどなく膣から溢れ出てきた。
+	PRINTFORML %NTR_NAME(人物_訪問者)%はそのことを確認すると、にやつきながら先ほどの錠剤は実は排卵剤だった、とネタばらしをした。
+	PRINTFORML 確実に妊娠した、と断言され呆然とする%CALLNAME:奴隷%。
+	PRINTFORMW その肩に腕を回して、%NTR_NAME(人物_訪問者)%は明日、%CALLNAME:MASTER%に抱かれて来い、と命令した。
+	PRINTDATA
+		DATAFORM 他の選択肢なんてない
+		DATAFORM %CALLNAME:MASTER%は真面目だから気づくはずもない
+		DATAFORM 真実を知らなければみんなハッピーだ、
+	ENDDATA
+	PRINTFORMW と囁かれた%CALLNAME:奴隷%が力なくうなずいたところで録画は終わっていた。
+	DRAWLINE
+	PRINTL 　　　・
+	PRINTL 　　　・
+	PRINTW 　　　・
+	PRINTFORML %CALLNAME:MASTER%がおそるおそる動画の日付を見ると、以前深夜に%CALLNAME:奴隷%に襲われた日の前日だった。
+	PRINTFORMW %CALLNAME:MASTER%にできることはただ一つ、見なかったことにすることだけだ……
+	RETURN 1
+ENDIF
+RETURN 0
+
+

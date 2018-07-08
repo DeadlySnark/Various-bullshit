@@ -1,0 +1,106 @@
+@ENKOU_START_K306(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「…まあ、いいわ。しっかり奉仕して頂戴。プロデューサーはアイドルの下僕なんだからね、にひひっ♪ %MSG_HEART()%」
+ELSE
+	PRINTFORML 「今日の予定？…あら、偶然あいてるみたい」
+	PRINTFORML 「そうね、跪いて私とエッチしたいって言うなら、シテあげなくもないわよ♪ %MSG_HEART()%」
+ENDIF
+
+@ENKOU_FINISH_K306(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「プロデューサー。アンタは下僕の才能あるって思うわよ！　次もしっかり奉仕しなさい %MSG_HEART()%」
+ELSE
+	PRINTFORML 「パパとの約束があるからこれで失礼するわ。…アンタよりもすっごい上手なんだから %MSG_HEART()%」
+ENDIF
+@SORP_START_K306(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「――何でアンタがこんなところに居るのよ？　プロデューサーの癖にアイドルとエッチしようだなんて、この変態！！」
+	PRINTFORML 「ほら、そんなにエッチしたいのなら、下僕は下僕らしく跪いて舐めなさいよ！　にひひっ♪ %MSG_HEART()%」
+
+ELSE
+	PRINTFORML 「ちょっと、なにボーッとしてるのよ？　この私とエッチするからにはしっかり奉仕しないと承知しないんだからねっ！」
+	PRINTFORML 「ほら、モタモタしないで、さっさと服脱ぎなさいよ」
+ENDIF
+@SORP_FINISH_K306(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「下僕のクセにやるじゃない。アンタのアレだけは見直したわ！」
+ELSE
+	PRINTFORML 「…アンタ、私の下僕になりなさい。いいから！今すぐによっ！　拒否権なんてないんだから %MSG_HEART()%」
+ENDIF
+
+@KOJO_MESSAGE_COM_K306_300_13_01(奴隷, ARG)
+;奴隷：登録番号  会話　売春について
+#DIM 奴隷
+
+PRINTFORML 「にひひっ♪　伊織ちゃんの魅力の前では、みんな下僕になりたがるのよ！ %MSG_HEART()%」
+
+
+@KOJO_MESSAGE_COM_K306_300_14_01(奴隷, ARG)
+;奴隷：登録番号  会話　援助交際について
+#DIM 奴隷
+
+PRINTFORML 「にひひっ♪　伊織ちゃんの魅力の前では、みんな下僕になりたがるのよ！ %MSG_HEART()%」
+
+@KOJO_MESSAGE_COM_K306_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+		IF TALENT:奴隷:恋慕
+			PRINTFORML 「……始めはこんな気持ちになるって思わなかったけど、アンタってなかなかやるわね。」
+			PRINTFORML 「いいわ、アンタを私の第一の下僕にしてあげる！」
+			PRINTFORML 「この伊織ちゃんの下僕になれるのは、%CALLNAME:MASTER%だけなんですからねっ？　自分の幸運に感謝しなさい %MSG_HEART()%」
+			PRINTFORML 「アンタは私が満足するまで奉仕しないとダメなんだからね！　にひひっ♪」
+		ELSE
+			PRINTFORML 「そうね……アンタが私の下僕として満足させてくれる間は考えてもいいわ」
+		ENDIF
+	CASE 2
+		PRINTFORML 「なんで私が下僕の言うことを聞かなきゃいけないのよ！」
+	CASE 3
+		PRINTFORML 「なんで私が下僕の言うことを聞かなきゃいけないのよ！」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K306(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	PRINTFORML 「…アンタが本当に望むなら、私、その、アンタ以外と…エッチしてあげてもいいわ!」
+	PRINTFORMW 「ちゃんと見てなさいよ？　アンタは、私がアイツとシテる姿から目を離しちゃダメなんだからね %MSG_HEART()%」
+ELSEIF TALENT:奴隷:恋慕
+	PRINTFORML 「アイツが、ふっ %MSG_HEART()%　私から、ひぁん！　目を離したのがいけないんだから！　っぅん！！ %MSG_HEART()%」
+	PRINTFORML 伊織は、%NTR_NAME_SEX(奴隷,他人)%の上でその華奢な体が壊れそうなほど激しく上下させている。
+	PRINTFORMW 下から突き上げられるたびに、声にならない嬌声を上げるその姿に、%NTR_NAME_SEX(奴隷,他人)%は薄い笑みを浮かべた。
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+	PRINTFORML 「このスーパーアイドル伊織ちゃんの魅力をもってすれば、頂点を目指すのなんてワケないんだから、にひひっ♪」
+	PRINTFORMW 「トップアイドルを目指すのって、思ってたより楽しいかも %MSG_HEART()%」
+ELSE
+	;まあここは空白でいいや…
+ENDIF
+
+@KOJO_MESSAGE_DRAG_DISCLOSE_K306(奴隷)
+#DIM 奴隷
+;おクスリばれる
+IF MAXBASE:奴隷:薬物<500
+;軽い
+	PRINTFORML 「な、何よ！　こんなの芸能界じゃみんなやってることじゃない！」
+ELSE
+	PRINTFORML 「……にひひっ♪　…下僕はみんな私の魅力にめろめろなんだから♪」
+	PRINTFORML そうウサギの人形に呟き続ける%CALLNAME:奴隷%の目は虚ろだ。
+ENDIF

@@ -1,0 +1,103 @@
+
+@個別イベント_K351(ARG)
+#DIM LOOP_NUM
+#DIM 成功判定
+#DIM LOOP_CHR
+#DIM 判定
+;コンセプト：ちひろさん金を稼ぐ
+;特殊。女の子の選択肢をこちらで制御
+;:キャライベント ... -999999でイベント終了
+SIF CFLAG:ARG:キャライベント == -999999
+	RETURN 0
+
+IF CFLAG:ARG:キャライベント==0
+	;START
+	;事務員である(現状絶対そうだが)、NTRれていない、変なところにいない
+	IF 所属(ARG) && TALENT:ARG:事務員 && !TALENT:ARG:NTR && CFLAG:ARG:現在位置 < 場所番号最大値+1 && CFLAG:ARG:好感度>0 &&MONEY >100
+	;1/10
+		SIF RAND:10
+			RETURN 0
+		CFLAG:ARG:キャライベント = -999999
+		PRINTFORML %CALLNAME:MASTER%が忘れ物を取るため夜事務所に戻ると、明かりがまだついていた
+		PRINTFORMW 玄関から中を覗いてみると、%CALLNAME:ARG%がパソコンの画面を眺めながらニヤニヤしていた……
+		PRINTL [0] そっとしておこう
+		PRINTL [1] 一応声をかけて見よう
+		INPUT
+		IF RESULT == 0
+			PRINTFORML %CALLNAME:ARG%にもいろいろあるのだろう
+			PRINTFORMW %CALLNAME:MASTER%は忘れ物をとるのを諦め、見なかったことにして家に帰ることにした
+		ELSE
+			PRINTFORML 「うひゃああ！……な、なんだ、%CALLNAME:MASTER%さんですか」
+			PRINTFORMW 「急に離しかけられたのでびっくりしましたよ……」
+			PRINTFORML 「え、この画面ですか？」
+			PRINTFORML 「これは私の趣味のひとつといいますか、なんと言いますか……」
+			PRINTFORML 「わかりやすく言えば個人的な資産運用用の口座の画面ですね」
+			;ほんまかいな
+			PRINTFORMW 「所詮個人の財産の動かせる範囲内での運用なので、大した額の増減ではないんですけれどね」
+			PRINTFORMW %CALLNAME:ARG%は若干照れくさそうな顔をしている
+			PRINTL [0] 趣味ならば仕方ない
+			PRINTL [1] いっそ事務所の資金を運用してはどうか
+			INPUT
+			IF RESULT == 0
+				PRINTFORML 趣味ならば特に口出しすることもなかろう
+				PRINTFORMW %CALLNAME:MASTER%は忘れ物を手に取ると適当に%CALLNAME:ARG%に挨拶して事務所を出た
+			ELSE
+				PRINTFORML 「えっ、会社の資金を、ですか？」
+				PRINTFORML 「そうですね、会社の名前を使って行えば個人でやるよりも色々やりやすいかもしれません」
+				PRINTFORMW 「ただ、結構投機的なので失敗することもありますが、それでも良いならば……」
+				PRINTL [0] やっぱりやめた
+				PRINTL [1] おねがいする
+				INPUT
+				IF RESULT == 0
+					PRINTFORML 危険なことはしないに限る
+					PRINTFORMW %CALLNAME:MASTER%は資産運用してもらうことを諦めた
+				ELSE
+					PRINTFORML 「分かりました、成果が出たら報告しますね」
+					PRINTFORMW 報告が楽しみだ
+					CFLAG:ARG:キャライベント=1
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDIF
+	RETURN 1
+ELSEIF CFLAG:ARG:キャライベント==1
+	IF 所属(ARG) && TALENT:ARG:事務員 && !TALENT:ARG:NTR && CFLAG:ARG:現在位置 < 場所番号最大値+1 && CFLAG:ARG:好感度>0 &&MONEY >100
+		SIF RAND:10
+			RETURN 0
+			;事務所知名度補正が入る,最大+-5 知名度が0のとき若干不利な出目
+		判定=LIMIT(RAND:10+FLAG:事務所知名度/20, 0, 9)
+		PRINTFORML %CALLNAME:ARG%から連絡が来た
+		PRINTFORM どうやら
+		SELECTCASE 判定
+			CASE 0
+			;大失敗
+				PRINTFORMW 資産運用に大失敗し、資金の半分に当たる${MONEY/2}を溶かしてしまったらしい……
+				MONEY=MONEY-MONEY/2
+			CASE 9
+			;大成功
+				PRINTFORMW 資産運用に大成功し、資金を二倍に増やすことができたらしい
+				MONEY=MONEY+MONEY
+			CASE 1 TO 4
+			;失敗
+				PRINTFORMW 資産運用に失敗し、資金の一割に当たる${MONEY/10}を溶かしてしまったらしい……
+				MONEY=MONEY-MONEY/10
+			CASE 5 TO 8
+			;成功
+				PRINTFORMW 資産運用に成功し、資金を一割増しにできたらしい
+				MONEY=MONEY+MONEY/10
+		ENDSELECT
+		PRINTFORMW （現在資金:${MONEY}）
+		PRINTFORML さて、どうしようか
+		PRINTL [0] 続行させる
+		PRINTL [1] 中止させる
+		INPUT
+		IF RESULT == 1
+			PRINTFORML もうこれぐらいでいいだろう
+			PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:ARG%に資産の運用を中止させた
+			CFLAG:ARG:キャライベント = -999999
+		ENDIF
+	ENDIF
+ENDIF
+;;;;;;ここら辺まではテンプレ
+;;;;;;CFLAG:奴隷:キャライベントをイベント用にあらかじめ用意
+;;;;;;BIT操作などを駆使してイベントを作成してみてください。

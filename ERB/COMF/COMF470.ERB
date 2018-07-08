@@ -1,0 +1,188 @@
+;-------------------------------------------------
+;トレーニング
+;-------------------------------------------------
+@COM470
+#DIM トレーナーフラグ
+#DIM TARGET_保存
+#DIM LOOP_CHR
+TARGET_保存=TARGET
+トレーナーフラグ = 0
+FOR TARGET, 0, CHARA_ACTIVE
+	SIF TALENT:トレーナー >= 1 && !TALENT:NTR && CFLAG:MASTER:現在位置 == CFLAG:TARGET:現在位置
+		トレーナーフラグ=TARGET
+	SIF TALENT:トレーナー >= 1 && TALENT:NTR && CFLAG:MASTER:現在位置 == CFLAG:TARGET:現在位置
+		PRINTFORML %CALLNAME%は上の空で役にたたなそうだ……
+NEXT
+SIF トレーナーフラグ
+	PRINTFORML どうやら%CALLNAME:トレーナーフラグ%のおかげで効率的にトレーニングできそうだ……
+LOCAL = TARGET
+FOR TARGET, 1, CHARA_ACTIVE
+	SIF TALENT:事務員 == 1 || TALENT:トレーナー >= 1
+		CONTINUE
+	SIF BASE:体力 <400 || BASE:気力 < 300
+		CONTINUE
+	SIF !所属(TARGET)
+		BREAK
+	SIF CFLAG:MASTER:現在位置 != CFLAG:TARGET:現在位置
+		CONTINUE
+	IF CFLAG:MASTER:現在位置 == CFLAG:TARGET:現在位置
+	 LOCAL:1=0
+	 IF TALENT:NTR>0
+	 	PRINTFORML %CALLNAME:TARGET%は自分でしたい訓練を勝手にやるから、と宣言した
+	 	;一番得意なものを重点的に
+	 	LOCAL:1=1
+	 	SIF ABL:ビジュアル技能<ABL:ダンス技能 && ABL:ダンス技能>ABL:ボーカル技能
+	 	LOCAL:1=2
+		SIF ABL:ダンス技能<ABL:ボーカル技能 && ABL:ビジュアル技能 < ABL:ボーカル技能
+		LOCAL:1=3
+	 ELSE
+	
+$INPUT_470
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の指示を仰いでいる．．．
+		PRINTFORM ﾗﾝｸ:%IDOLRANK(CFLAG:TARGET:アイドルランク)%　
+		PRINTFORM ﾌｧﾝ:{CFLAG:TARGET:ファン人数}人
+		CALL IDOLSTATAS(TARGET)
+		PRINTFORML
+		PRINTFORML [1] ビジュアル重視で
+		PRINTFORML [2] ボーカル重視で
+		PRINTFORML [3] ダンス重視で
+		PRINTFORML [9] 満遍なく
+		INPUT
+		IF INRANGE(RESULT, 1, 3)
+			LOCAL:1=RESULT
+		ELSEIF RESULT==9
+			LOCAL:1=0
+		ELSE
+			PRINTFORML 入力が不正です
+			GOTO INPUT_470
+		ENDIF
+	 ENDIF
+IF !CFLAG:睡眠
+	DOWNBASE:気力 = 400
+	DOWNBASE:体力 = 300
+	;固定で獲得するソース
+	SOURCE:歓楽 = 1400
+	;ABL:従順をみる
+	IF ABL:従順 <= 1
+		SOURCE:歓楽 += (ABL:従順 * 60)
+	ELSEIF ABL:従順 <= 3
+		SOURCE:歓楽 += 200 + (ABL:従順 * 60)
+	ELSEIF ABL:従順 <= 5
+		SOURCE:歓楽 += 500 + (ABL:従順 * 60)
+	ELSEIF ABL:従順 <= 8
+		SOURCE:歓楽 += 750 + (ABL:従順 * 75)
+	ELSEIF ABL:従順 <= 11
+		SOURCE:歓楽 += 1000 + (ABL:従順 * 75)
+	ELSE
+		SOURCE:歓楽 += 2000 + (ABL:従順 * 30)
+	ENDIF
+
+	;好感度をみる
+	IF CFLAG:好感度 <= 500
+		SOURCE:歓楽 += CFLAG:2
+	ELSEIF CFLAG:好感度 <= 5000
+		SOURCE:歓楽 += 500 + (CFLAG:好感度 - 500) / 3
+	ELSE
+		SOURCE:歓楽 += 2000 + (CFLAG:好感度 - 5000) / 5
+	ENDIF
+	SIF SOURCE:歓楽 < 0
+		SOURCE:歓楽 = 0
+
+			;初心者ボーナス
+			IF ABL:ダンス技能==0 && ABL:ボーカル技能==0&& ABL:ビジュアル技能==0
+				SELECTCASE (FLAG:共通ランダム数+NO:TARGET)%3
+					CASE 1
+						EXP:ビジュアル経験+=100
+					CASE 2
+						EXP:ボーカル経験+=100
+					CASEELSE
+						EXP:ダンス経験+=100
+				ENDSELECT
+			ENDIF
+			;現状適当なので要バランス取り
+			REPEAT (CFLAG:アイドルランク*5+TALENT:恋慕*3+10+MIN(トレーナーフラグ,1)*15)
+				SELECTCASE RAND:(5+TALENT:恋慕+MIN(1, TALENT:NTR))
+				CASE 0
+				EXP:ビジュアル経験 +=1+RAND:(MAX(1, TALENT:ＳＲ))
+				CASE 1
+				EXP:ボーカル経験 +=1+RAND:(MAX(1, TALENT:ＳＲ))
+				CASE 2
+				EXP:ダンス経験 +=1+RAND:(MAX(1, TALENT:ＳＲ))
+				CASEELSE
+					SELECTCASE LOCAL:1
+						CASE 0
+							COUNT--
+						CASE 1
+							EXP:ビジュアル経験+=1+RAND:(MAX(1, TALENT:ＳＲ))
+						CASE 2
+							EXP:ボーカル経験+=1+RAND:(MAX(1, TALENT:ＳＲ))
+						CASE 3
+							EXP:ダンス経験+=1+RAND:(MAX(1, TALENT:ＳＲ))
+					ENDSELECT
+				ENDSELECT
+			REND
+;相性の変動
+;自分より番号上の人をサーチして判断
+	FOR LOOP_CHR, TARGET+1, CHARA_ACTIVE
+		SIF CFLAG:TARGET:現在位置 != CFLAG:LOOP_CHR:現在位置
+			CONTINUE
+		SIF !所属(LOOP_CHR)
+			BREAK
+		;1/2で上昇
+		SIF RAND:2
+			CONTINUE
+		;既に200overの時は終わり
+		SIF RELATION:TARGET:(NO:LOOP_CHR)>=200
+			CONTINUE
+		;0のときの処理
+		IF RELATION:TARGET:(NO:LOOP_CHR)==0
+			RELATION:TARGET:(NO:LOOP_CHR)=100
+			RELATION:LOOP_CHR:(NO:TARGET)=100
+		ENDIF
+		RELATION:TARGET:(NO:LOOP_CHR)++
+		RELATION:LOOP_CHR:(NO:TARGET)++
+	NEXT
+ENDIF
+ENDIF
+NEXT
+TIME += 60
+TARGET=TARGET_保存
+RETURN 1
+
+
+
+;自主トレ
+@AUTO_TRAINING
+#DIM LOOP_CHR
+#DIM LOOP_CO
+#DIM トレーナーフラグ
+SIF CFLAG:MASTER:現在位置==場所_事務所レッスン室
+	RETURN 0
+FOR LOOP_CHR, 0, CHARA_ACTIVE
+	SIF TALENT:LOOP_CHR:トレーナー >= 1 && !TALENT:LOOP_CHR:NTR && CFLAG:LOOP_CHR:現在位置 == 場所_事務所レッスン室
+		トレーナーフラグ = 1
+NEXT
+FOR LOOP_CHR, 1, CHARA_ACTIVE
+	SIF TALENT:LOOP_CHR:事務員 == 1 || TALENT:LOOP_CHR:トレーナー >= 1
+		CONTINUE
+	SIF CFLAG:LOOP_CHR:現在位置 != 場所_事務所レッスン室
+		CONTINUE
+	;体力、気力が1/2以上ないときはしない
+	SIF MAXBASE:LOOP_CHR:体力 > BASE:LOOP_CHR:体力*2 || MAXBASE:LOOP_CHR:気力 > BASE:LOOP_CHR:気力*2
+		CONTINUE
+	PRINTFORML %CALLNAME:LOOP_CHR%は自主的にトレーニングしたようだ
+	BASE:LOOP_CHR:気力 -= 500
+	BASE:LOOP_CHR:体力 -= 400
+	;普段の50%程度しかできない
+	FOR LOOP_CO, 0, ((CFLAG:LOOP_CHR:アイドルランク*5+TALENT:LOOP_CHR:恋慕*3+10+MIN(トレーナーフラグ,1)*15)/2)
+		SELECTCASE RAND:3
+			CASE 0
+				EXP:LOOP_CHR:ビジュアル経験 +=1+RAND:(MAX(1, TALENT:LOOP_CHR:ＳＲ))
+			CASE 1
+				EXP:LOOP_CHR:ボーカル経験 +=1+RAND:(MAX(1, TALENT:LOOP_CHR:ＳＲ))
+			CASE 2
+				EXP:LOOP_CHR:ダンス経験 +=1+RAND:(MAX(1, TALENT:LOOP_CHR:ＳＲ))
+		ENDSELECT
+	NEXT
+
+NEXT

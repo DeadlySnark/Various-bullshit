@@ -1,0 +1,65 @@
+;KOUME
+@KOJO_K158(ARG)
+RETURN 1
+@ENKOU_START_K158(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「……知ってる、人だと……ちょっとﾄﾞｷﾄﾞｷ………」
+ELSE
+	PRINTFORML 「……あの、中に………しっかり出して、ください…………」
+ENDIF
+
+@ENKOU_FINISH_K158(奴隷)
+;奴隷：登録番号
+#DIM 奴隷
+
+IF 所属(奴隷)
+;事務所に所属している
+	PRINTFORML 「…買ってくれて、うれしい、です」
+ELSE
+	PRINTFORML 「お金、は……これからの、ために、貯金中……」
+ENDIF
+
+@KOJO_MESSAGE_COM_K158_300_14_01(奴隷, ARG)
+;奴隷：登録番号
+#DIM 奴隷
+
+PRINTFORML 「赤ちゃん………あの子が、器が欲しいって……」
+
+@KOJO_MESSAGE_COM_K158_300_14_02(奴隷, ARG , 結果)
+;奴隷：登録番号
+;結果:1...説得成功　2...逆切れ　3...失敗
+#DIM 奴隷
+#DIM 結果
+SELECTCASE 結果
+	CASE 1
+
+			PRINTFORML 「えっ………うん…うん……」
+			PRINTFORML 「あの子が……もうする必要ないって………」
+			PRINTFORML 「それと、%CALLNAME:MASTER%に、よろしく、だって………」
+
+	CASE 2
+		IF CFLAG:奴隷:子供の人数 || CFLAG:奴隷:にんっしんっ
+			PRINTFORML 「……今度こそ…」
+		ELSE
+			PRINTFORML 「まだ……だめ……できてない…………」
+		ENDIF
+	CASE 3
+		PRINTFORML 「まだ……だめ………」
+ENDSELECT
+
+@KOJO_CELLPHONE_NTR_K158(奴隷)
+#DIM 奴隷
+;浮気公認→恋慕→アイドルNTR→その他
+IF TALENT:奴隷:浮気公認
+	
+ELSEIF TALENT:奴隷:恋慕
+
+ELSEIF TALENT:奴隷:NTR && 所属(奴隷) && TALENT:奴隷:アイドル
+
+ELSE
+
+ENDIF

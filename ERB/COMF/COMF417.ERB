@@ -1,0 +1,1396 @@
+;-------------------------------------------------
+;撃破する
+; バランスとかいい加減なので、適当に修正してね。
+;-------------------------------------------------
+
+;---------------------------------------------
+;コマンド実行
+@COM417
+	CALL COM417_Setup(MASTER)
+	CALL COM417_Battle(MASTER,RESULT:0,RESULT:1)
+	CALL COM417_Cleanup(MASTER,RESULT:0)
+RETURN 0
+
+
+;---------------------------------------------
+;戦闘前準備
+;@param ARG 訪問者に対峙するキャラクター番号
+;@return あなた陣営戦力,訪問者陣営戦力
+;分岐にTFLAG:99を使用
+@COM417_Setup(ARG)
+	VARSET LOCAL
+	LOCAL:1 = ABL:ARG:交渉能力 + 1
+	PRINTFORML %CALLNAME:ARG%の交渉力:+{LOCAL:1}
+	;あなたより弱い訪問者は存在しない。いいね？
+	IF ABL:MASTER:42 < 5
+	;と言ったな。あれは嘘だ。
+	ELSEIF ABL:MASTER:42 <= 15
+		PRINTFORML 日頃の鍛錬の成果を見せますか？
+		PRINTL [0] いつ見せる？今でしょ！
+		PRINTL [1] 今はその時ではない
+		$INPUT_LOOP_BATTELESUPERMODE01
+		INPUT
+		IF RESULT == 0
+			TFLAG:99 = 1
+		ELSEIF RESULT == 1
+			
+		ELSE
+		GOTO INPUT_LOOP_BATTELESUPERMODE01
+		ENDIF
+	;猛者共がひしめく幻想郷で生き抜いた、筋肉モリモリマッチョマンの変態(という名の紳士)だ
+	ELSE
+		PRINTFORML 鍛錬の果てに修得した、体の内の荒ぶる力を開放しますか？
+		PRINTL [0]開放しない
+		PRINTL [1]ちょっとだけ本気出す
+		PRINTL [2]全力を出す
+		$INPUT_LOOP_BATTELESUPERMODE02
+		INPUT
+		IF RESULT == 0
+
+		ELSEIF RESULT == 1
+			TFLAG:99 = 1
+		ELSEIF RESULT == 2
+			TFLAG:99 = 2
+		ELSE
+			GOTO INPUT_LOOP_BATTELESUPERMODE02
+		ENDIF
+	ENDIF
+	;本気度の度合いによる戦闘力の分岐
+	IF TFLAG:99 == 0
+		LOCAL:2 = LOCAL:1 + 3 + RAND:4
+		PRINTFORML %NTR_NAME(他人)%の交渉力:+{LOCAL:2}
+	ELSEIF TFLAG:99 == 1
+		LOCAL:2 = LOCAL:1 - 2 + RAND:4
+		PRINTFORML %NTR_NAME(他人)%の交渉力:+{LOCAL:2}
+	ELSEIF TFLAG:99 == 2
+		LOCAL:2 = LOCAL:1 - 10 + RAND:4
+		PRINTFORML %NTR_NAME(他人)%の交渉力:+{LOCAL:2}
+	ENDIF
+	
+	PRINTFORMW %CALLNAME:ARG%は%NTR_NAME(他人)%を事務所から追い出すべく、交渉を開始した！
+	FOR LOCAL,0,CHARA_ACTIVE
+		;同行状態は強制解除(バグ防止)
+		CFLAG:LOCAL:同行 = 0
+		IF LOCAL == ARG
+			;自分自身は参戦できない
+		ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置 && !CFLAG:LOCAL:睡眠
+			;同じ位置にいれば参戦してくれる
+			SELECTCASE COM417_Position(LOCAL)
+				CASE IS <= -50
+					PRINTFORML %CALLNAME:LOCAL%は全力で%NTR_NAME(他人)%を援護した(交渉力+{ABL:LOCAL:交渉能力})
+					LOCAL:2 += ABL:LOCAL:交渉能力
+				CASE -49 TO -20
+					PRINTFORML %CALLNAME:LOCAL%は積極的に%NTR_NAME(他人)%を援護した(交渉力+{ABL:LOCAL:交渉能力/2})
+					LOCAL:2 += ABL:LOCAL:交渉能力/2
+				CASE -19 TO -1
+					PRINTFORML %CALLNAME:LOCAL%はさりげなく%NTR_NAME(他人)%を援護した(交渉力+{ABL:LOCAL:交渉能力/3})
+					LOCAL:2 += ABL:LOCAL:交渉能力/3
+				CASE 0 TO 19
+					PRINTFORML %CALLNAME:LOCAL%はさりげなく%CALLNAME:ARG%を援護した(交渉力+{ABL:LOCAL:交渉能力/3})
+					LOCAL:1 += ABL:LOCAL:交渉能力/3
+				CASE 20 TO 49
+					PRINTFORML %CALLNAME:LOCAL%は積極的に%CALLNAME:ARG%を援護した(交渉力+{ABL:LOCAL:交渉能力/2})
+					LOCAL:1 += ABL:LOCAL:交渉能力/2
+				CASE IS >= 50
+					PRINTFORML %CALLNAME:LOCAL%は全力で%CALLNAME:ARG%を援護した(交渉力+{ABL:LOCAL:交渉能力})
+					LOCAL:1 += ABL:LOCAL:交渉能力
+				CASEELSE
+					;上記の選択肢ならありえないが一応表示
+					PRINTFORML %CALLNAME:LOCAL%はどちらの味方をしていいのかわからないようだ……。
+			ENDSELECT
+		ENDIF
+	NEXT
+RETURN LOCAL:1,LOCAL:2
+
+
+;---------------------------------------------
+;戦闘中処理 1ターン10分
+;@param ARG   訪問者に対峙するキャラクター番号
+;@param ARG:1 あなた陣営戦力
+;@param ARG:2 訪問者陣営戦力
+;@return 勝った場合1、負けた場合0
+@COM417_Battle(ARG,ARG:1,ARG:2)
+	VARSET LOCAL
+	LOCAL:0 = 1
+	LOCAL:1 = 0
+	LOCAL:2 = ARG:1
+	LOCAL:3 = ARG:2
+
+	WHILE LOCAL:0
+
+		LOCAL:1++
+		TIME += 10
+
+		PRINTFORMW {LOCAL:1}ターン目 %CALLNAME:ARG%側の交渉力 {LOCAL:2} : %NTR_NAME(他人)%側の交渉力 {LOCAL:3}
+		
+		PRINTFORMW 　　　　　　　・
+		PRINTFORMW 　　　　　　　・
+		PRINTFORMW 　　　　　　　・　　
+		
+		LOCAL:4 = LOCAL:2+RAND:5
+		LOCAL:5 = LOCAL:3+RAND:5
+		
+		SELECTCASE LOCAL:4
+			CASE IS < LOCAL:5
+				;判定に敗北
+				LOCAL:7 = SQRT(POWER(LOCAL:5,2)-POWER(LOCAL:4,2))
+				PRINTFORML %CALLNAME:ARG%側は{LOCAL:7}のダメージを受けた！
+				LOCAL:2 -= LOCAL:7
+				PRINTFORMW (%CALLNAME:ARG%の体力-{500*LOCAL:7/ARG:1}、気力-{500*LOCAL:7/ARG:1})
+				BASE:ARG:体力 = MAX(BASE:ARG:体力 - 500*LOCAL:7/ARG:1,500)
+				BASE:ARG:気力 = MAX(BASE:ARG:気力 - 500*LOCAL:7/ARG:1,100)
+			CASE IS > LOCAL:5
+				;判定に勝利
+				LOCAL:7 = SQRT(POWER(LOCAL:4,2)-POWER(LOCAL:5,2))
+				PRINTFORML %NTR_NAME(他人)%側に{LOCAL:7}のダメージを与えた！
+				LOCAL:3 -= LOCAL:7
+				PRINTFORMW (%CALLNAME:ARG%の体力-{150*LOCAL:7/ARG:1}、気力-{150*LOCAL:7/ARG:1})
+				BASE:ARG:体力 = MAX(BASE:ARG:体力-150*LOCAL:7/ARG:1,500)
+				BASE:ARG:気力 = MAX(BASE:ARG:気力-150*LOCAL:7/ARG:1,100)
+			CASEELSE
+				PRINTFORML どちらも致命的なダメージは受けていないようだ
+				PRINTFORMW (%CALLNAME:ARG%の体力-{150*LOCAL:7/ARG:1}、気力-{150*LOCAL:7/ARG:1})
+				BASE:ARG:体力 = MAX(BASE:ARG:体力-150*LOCAL:7/ARG:1,500)
+				BASE:ARG:気力 = MAX(BASE:ARG:気力-150*LOCAL:7/ARG:1,100)
+				;判定に引分
+		ENDSELECT
+		
+		;体力500または気力が100以下で負け
+		IF (BASE:ARG:体力 <= 500) || (BASE:ARG:気力 <= 100)
+			PRINTFORMW %CALLNAME:ARG%はもう身体が動かせない……
+			RETURN 0
+		ENDIF
+
+		;戦力0になったら負け
+		IF LOCAL:2 < 1
+			PRINTFORMW %CALLNAME:ARG%はもう戦うことができないようだ……
+			RETURN 0
+		ENDIF
+		
+		;戦力0にしたら勝ち
+		IF LOCAL:3 < 1
+			PRINTFORMW %NTR_NAME(他人)%はもう戦うことができないようだ……
+			RETURN 1
+		ENDIF
+		
+		PRINT [0] - まだ戦える [1] - もう降参する
+		INPUT
+		IF RESULT
+			PRINTFORMW %CALLNAME:ARG%は降参した……
+			RETURN 0
+		ENDIF
+		
+	WEND
+RETURN 0
+
+
+;---------------------------------------------
+;戦闘後処理
+;@param ARG   訪問者に対峙したキャラクター番号
+;@param ARG:1 戦闘結果(1:勝利,0:敗北)
+@COM417_Cleanup(ARG,ARG:1)
+	IF ARG:1
+		CALL COM417_Win(ARG)
+	ELSE
+		CALL COM417_Lose(ARG)
+	ENDIF
+RETURN 0
+
+
+;---------------------------------------------
+;キャラクターの立ち位置(敵味方)を決める関数
+;@param ARG  判定するキャラクター番号
+;@return 立ち位置(+100～+1であなたの味方、0で中立、-1～-100であなたと敵対）
+@COM417_Position(ARG)
+#FUNCTION
+RETURNF LIMIT((100*(CFLAG:ARG:好感度-CFLAG:ARG:屈服度)/MAX(CFLAG:ARG:好感度,1)),-100,100)
+
+
+;---------------------------------------------
+;戦闘勝利時の処理
+;@param ARG  訪問者に対峙したキャラクター番号
+@COM417_Win(ARG)
+	PRINTFORMW %CALLNAME:ARG%は%NTR_NAME(他人)%を追い出す事に成功した！
+	FLAG:訪問者の現在位置 = 場所_訪問者宅
+	FLAG:訪問者同行フラグ = 0
+	CALL NTR_RESET_VISITOR_ACTION(-1)
+	FLAG:訪問者との汚れ判定に使用 = 0
+	FLAG:訪問者滞在時間カウンタ = 0
+	;屈服度減算
+	CFLAG:ARG:屈服度 = MAX(CFLAG:ARG:屈服度 - 50 - RAND:50, 0)
+	;全開中の全開で戦った場合、好感度低下。屈服が高いorNTR状態の時は好感度が結構下がる上に時間も消費される。でも、この条件を出せる程まで鍛えた分、屈服低下の補正大。
+	IF TFLAG:99 == 2
+		FOR LOCAL,0,CHARA_ACTIVE
+			IF LOCAL == ARG
+				;自分自身は評価しない
+			ELSEIF CFLAG:LOCAL:睡眠
+				;寝てる人は無関係
+			ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置
+				PRINTFORML %CALLNAME:LOCAL%は%CALLNAME:ARG%の明らかに度を過ぎた口調に
+				;やり過ぎだよねぇ…と思いつつも、自分を守ってくれた事には一応感謝してる
+				IF TALENT:LOCAL:恋慕
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 1
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 400
+					PRINTFORMW 顔を引きつらせながらも褒めてくれた。
+				ELSEIF CFLAG:LOCAL:好感度 > CFLAG:LOCAL:屈服度
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 25
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 300
+					PRINTFORMW さすがにやり過ぎじゃないかと%CALLNAME:ARG%に説教をした。
+				;介抱する時間と送り届ける時間とで、結構持っていかれる
+				ELSEIF TALENT:LOCAL:NTR
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 75
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 200
+					PRINTFORMW 非難の視線を浴びせると、%CALLNAME:ARG%にボロボロにされた%NTR_NAME(他人)%を献身的に介抱し、
+					PRINTFORMW %NTR_NAME(他人)%がなんとか動けるようになると、肩を貸して%CALLNAME:ARG%の方を見ようともせず玄関まで送り届けた。
+					TIME += 20
+				ELSEIF CFLAG:LOCAL:好感度 < CFLAG:LOCAL:屈服度
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 50
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 250
+					PRINTFORMW %CALLNAME:ARG%に非難の視線を浴びせつつ、%NTR_NAME(他人)%を玄関まで送り届けた。
+					TIME += 10
+				ENDIF
+			ENDIF
+			; 好感度、屈服度がマイナスであれば０に補正
+			IF CFLAG:LOCAL:好感度 < 0 
+				CFLAG:LOCAL:好感度 = 0 
+			ENDIF
+			IF CFLAG:LOCAL:屈服度 < 0 
+				CFLAG:LOCAL:屈服度 = 0 
+			ENDIF
+		NEXT
+	;少しだけ本気出した場合、;勝利時に住人の評価がちょっとダウン(恋慕ならわずかだが好感度が上がる)。屈服が高い時は好感度が下がる上に時間も消費される。
+	ELSEIF TFLAG:99 == 1
+		FOR LOCAL,0,CHARA_ACTIVE
+			IF LOCAL == ARG
+				;自分自身は評価しない
+			ELSEIF CFLAG:LOCAL:睡眠
+				;寝てる人は無関係
+			ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置
+				PRINTFORM %CALLNAME:LOCAL%は
+				IF TALENT:LOCAL:恋慕
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 + 1
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 250
+					PRINTFORMW とりあえず%CALLNAME:ARG%を褒めてくれた。
+				ELSEIF CFLAG:LOCAL:好感度 > CFLAG:LOCAL:屈服度
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 10
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 200
+					PRINTFORMW さすがに少しやり過ぎじゃないかと%CALLNAME:ARG%をたしなめた。
+				ELSE
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 25
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 150
+					PRINTFORMW %CALLNAME:ARG%にボロボロにされた%NTR_NAME(他人)%を介抱した。
+					TIME += 5
+				ENDIF
+			ENDIF
+			; 好感度、屈服度がマイナスであれば０に補正
+			IF CFLAG:LOCAL:好感度 < 0 
+				CFLAG:LOCAL:好感度 = 0 
+			ENDIF
+			IF CFLAG:LOCAL:屈服度 < 0 
+				CFLAG:LOCAL:屈服度 = 0 
+			ENDIF
+		NEXT
+	;本気を出していない場合は変化なし
+	ELSE
+		;勝利時住人の評価UP、同時にNTR状態の住人の評価ダウン
+		FOR LOCAL,0,CHARA_ACTIVE
+			IF LOCAL == ARG
+				;自分自身は評価しない
+			ELSEIF CFLAG:LOCAL:睡眠
+				;寝てる人は無関係
+			ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置
+				IF CFLAG:LOCAL:好感度 > CFLAG:LOCAL:屈服度
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 + 10
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 100
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:ARG%を褒めてくれた。
+				ELSE
+					CFLAG:LOCAL:好感度 = CFLAG:LOCAL:好感度 - 10
+					CFLAG:LOCAL:屈服度 = CFLAG:LOCAL:屈服度 - 100
+					PRINTFORMW %CALLNAME:LOCAL%は去って行く%NTR_NAME(他人)%の背中を見つめていた。
+				ENDIF
+			ENDIF
+			; 好感度、屈服度がマイナスであれば０に補正
+			IF CFLAG:LOCAL:好感度 < 0 
+				CFLAG:LOCAL:好感度 = 0 
+			ENDIF
+			IF CFLAG:LOCAL:屈服度 < 0 
+				CFLAG:LOCAL:屈服度 = 0 
+			ENDIF
+		NEXT
+	ENDIF
+RETURN 0
+
+
+;---------------------------------------------
+;戦闘敗北時の処理
+;@param ARG  訪問者に対峙したキャラクター番号
+@COM417_Lose(ARG)
+
+	#DIM 奴隷
+	VARSET LOCAL
+
+	PRINTFORMW %CALLNAME:ARG%は%NTR_NAME(他人)%に敗けてしまった……
+	;貞操帯の鍵没収
+	IF FLAG:貞操帯鍵購入フラグ
+		PRINTFORMW %CALLNAME:(FLAG:貞操帯鍵購入フラグ)%の貞操帯の鍵を没収されてしまった……
+		FLAG:貞操帯鍵購入フラグ = 0
+		FLAG:貞操帯鍵有効カウンタ = 0
+	ENDIF
+	;屈服度の高い女あなたが一人で敗北、かつ監禁ONの時の例外処理
+	IF ARG == MASTER && HAS_VAGINA(ARG) && CFLAG:ARG:屈服度 > 1000 && GET_N_WITH_VISITER(0) == 1 && IS_NTR_IMPRISON_ENABLE()
+		PRINTFORMW %NTR_NAME(他人)%は気絶している%CALLNAME:ARG%を抱き上げると、自分の家へ連れて行った……
+		CFLAG:MASTER:現在位置 = 場所_訪問者宅
+		CFLAG:MASTER:現在位置詳細 = 25
+		FLAG:訪問者同行フラグ = 0
+		FLAG:訪問者宅の施錠状態 ^= (訪問者宅_牢屋解錠済|訪問者宅_通路解錠済|訪問者宅_床扉解錠済)
+		CFLAG:MASTER:NTR訪問者宅監禁状況 ^= (訪問者宅_牢屋解錠済|訪問者宅_通路解錠済|訪問者宅_床扉解錠済)
+		RETURN 0
+	ENDIF
+	;恋慕公衆便所持ちの住人とあなたと訪問者の３人のケースの例外処理
+	IF ARG == MASTER && GET_N_WITH_VISITER(0) == 2
+		;同じ場所にいる人物の特定
+		FOR LOCAL,1,CHARA_ACTIVE
+			IF CFLAG:MASTER:現在位置 == CFLAG:LOCAL:現在位置
+				奴隷 = LOCAL
+				BREAK
+			ENDIF
+		NEXT
+		;奴隷が恋慕公衆便所かつ浮気公認？
+		IF TALENT:奴隷:恋慕 && TALENT:奴隷:公衆便所 && TALENT:奴隷:浮気公認
+			CALL COM417_Lose_Punishment_Special(ARG, 奴隷)
+			RETURN 0
+		ENDIF
+	ENDIF
+	FOR LOCAL,0,CHARA_ACTIVE
+		IF LOCAL == ARG
+			;自分自身はキツいお仕置きが待っている
+		ELSEIF CFLAG:LOCAL:睡眠
+			;寝てる人は無関係
+			CONTINUE
+		ELSEIF !HAS_VAGINA(LOCAL)
+			; 訪問者「オトコはいいや」
+			CONTINUE
+		ELSEIF !NTR_CHK_STRIKE_ZONE(LOCAL)
+			; 訪問者「子供には興味はない。」
+			CONTINUE
+		ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置 && !CFLAG:LOCAL:睡眠
+			;あなたに味方した娘にはお仕置きだよねー
+			SELECTCASE COM417_Position(LOCAL)
+				CASE 0 TO 19
+					;さりげなく援護していた場合、軽いお仕置き
+					CALL COM417_Lose_Punishment_Easy(LOCAL)
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:ARG%に失望したようだ。
+					CFLAG:LOCAL:好感度 -= MAX(CFLAG:LOCAL:好感度 / 50,100)
+				CASE 20 TO 49
+					;積極的に援護していた場合、普通のお仕置き
+					CALL COM417_Lose_Punishment_Normal(LOCAL)
+					LOCAL:1 += RESULT
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:ARG%に大きく失望したようだ。
+					CFLAG:LOCAL:好感度 -= MAX(CFLAG:LOCAL:好感度 / 25,250)
+				CASE IS >= 50
+					;全力で援護していた場合、キツいお仕置き
+					CALL COM417_Lose_Punishment_Extra(LOCAL)
+					LOCAL:1 += RESULT
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:ARG%にひどく失望したようだ。
+					CFLAG:LOCAL:好感度 -= MAX(CFLAG:LOCAL:好感度 / 10,500)
+				CASEELSE
+					;それ以外は大丈夫
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:ARG%に失望したようだ。
+					CFLAG:LOCAL:好感度 -= MAX(CFLAG:LOCAL:好感度 / 50,100)
+			ENDSELECT
+		ENDIF
+	NEXT
+	;他に誰か連れて行かれてたら助けてもらえない
+	CALL COM417_Lose_Punishment_Hard(ARG,LOCAL:1)
+	CALL COM417_Lose_Punishment_Extra_Continue(ARG)
+RETURN 0
+
+;---------------------------------------------
+;戦闘敗北時の(特殊な)お仕置き処理(恋慕公衆便所への娼婦紋)
+;@param 対峙者  訪問者に対峙したキャラクター番号
+@COM417_Lose_Punishment_Special(対峙者, 奴隷)
+	#DIM 対峙者
+	#DIM 奴隷
+	#DIM 取得部位
+	
+	PRINTFORML %NTR_NAME(他人)%は%CALLNAME:奴隷%を見て、%CALLNAME:対峙者%に対する罰を思いついたようだ。
+	PRINTFORML %CALLNAME:対峙者%は%CALLNAME:奴隷%の浮気を公認していたのだから、%MSG_RE_LOVER(奴隷)%が娼婦になることも公認できるだろうと言った。
+	PRINTFORML %NTR_NAME(他人)%は赤いキャンディを取り出し、%CALLNAME:奴隷%に飲ませた。
+	PRINTFORML %CALLNAME:奴隷%の処女幕が再生した。
+	PRINTFORM  %NTR_NAME(他人)%は小さな印章を取り出し、%CALLNAME:奴隷%の右頬と恥丘
+	SIF TALENT:奴隷:人妻
+		PRINTFORM と左尻
+	PRINTFORML にこれを押せ、と命じた。
+	TALENT:奴隷:処女 = 2
+	取得部位 = 0
+	;右頬は絶対に押下
+	SETBIT 取得部位,娼婦紋_右頬
+	;恋慕公衆便所は必ず浮気公認Lvが4なので判定なしで追加
+	SETBIT 取得部位,娼婦紋_恥丘
+	;人妻だとさらにダメ押し
+	SIF TALENT:奴隷:人妻
+		SETBIT 取得部位,娼婦紋_左尻
+	CALL COM417_Put_Stump(奴隷, 取得部位)
+	PRINTFORML 再生処女なのでこの娼婦紋は二度と消えない烙印になったわけだ、と%NTR_NAME(他人)%は笑った。
+	PRINTW
+RETURN 0
+
+;---------------------------------------------
+;戦闘敗北時の(優しい)お仕置き処理(ぱんつ回収＆ローター挿入)
+;@param ARG  訪問者に対峙したキャラクター番号
+@COM417_Lose_Punishment_Easy(ARG)
+
+	VARSET LOCAL
+
+	PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%に穿いている下着を脱いで、秘部を晒すように命じた
+	IF EQUIP:ARG:下半身下着１ == 0 && EQUIP:ARG:下半身下着２ == 0
+		;ぱんつはいてない
+		PRINTFORML %CALLNAME:ARG%はしばらく黙っていたが、やがて小さな声で下着は穿いていないと返事をした
+		PRINTFORML %NTR_NAME(他人)%は意地悪な笑みを浮かべ、見せてみろ、と言った……
+		SOURCE:ARG:露出 += 200
+		SOURCE:ARG:欲情 += 100 + 200 * ABL:ARG:欲望
+		SOURCE:ARG:受動 += 100 + 200 * ABL:ARG:従順
+		CALL NTR_ADD_SURRENDER(ARG, 1)
+	ELSEIF EQUIP:下半身下着１ == 100
+		;貞操帯
+		PRINTFORML %CALLNAME:ARG%はしばらく黙っていたが、鍵が無ければ脱ぎたくても脱げないのだと返事をした
+		SOURCE:ARG:欲情 += 100 + 100 * ABL:ARG:欲望
+		SOURCE:ARG:受動 += 100 + 100 * ABL:ARG:従順
+		CALL NTR_ADD_SURRENDER(ARG, 2)
+		RETURN 0
+	ELSE	;ぱんつはかせたくない
+		PRINTFORM %CALLNAME:ARG%はしばらく黙っていたが、やがて
+		IF EQUIP:ARG:下半身下着１
+			IF GETBIT(FLAG:匂いフェチ,1) 
+				PRINTFORM %PANTS_DESCRIPTION(EQUIP:ARG:下半身下着１)%%IRUINAME_SMELL(EQUIP:ARG:下半身下着１)%%PANTSNAME(EQUIP:ARG:下半身下着１)%
+			ELSE
+				PRINTFORM %PANTS_DESCRIPTION(EQUIP:ARG:下半身下着１)%%PANTSNAME(EQUIP:ARG:下半身下着１)%
+			ENDIF
+		ELSEIF EQUIP:ARG:下半身下着２
+			IF GETBIT(FLAG:匂いフェチ,1) 
+				PRINTFORM %PANTS_DESCRIPTION(EQUIP:ARG:下半身下着２)%%IRUINAME_SMELL(EQUIP:ARG:下半身下着２)%%PANTSNAME(EQUIP:ARG:下半身下着２)%
+			ELSE
+				PRINTFORM %PANTS_DESCRIPTION(EQUIP:ARG:下半身下着２)%%PANTSNAME(EQUIP:ARG:下半身下着２)%
+			ENDIF
+		ELSE
+			;発生しないはずだけど一応ね
+			PRINTFORM 下着
+		ENDIF
+		PRINTFORML を脱ぐと、%NTR_NAME(他人)%に手渡した……
+		CFLAG:ARG:服装_下半身下着２ = 0
+		SOURCE:ARG:露出 += 200
+		SOURCE:ARG:欲情 += 100 + 200 * ABL:ARG:欲望
+		SOURCE:ARG:受動 += 100 + 200 * ABL:ARG:従順
+		CALL NTR_ADD_SURRENDER(ARG, 1)
+	ENDIF
+
+	IF HAS_VAGINA(ARG)
+		IF TALENT:ARG:処女
+			;見るまでわからないからね、仕方がないね
+			PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%の秘唇を押し広げ、処女膜を確認すると、次は処女を奪ってやる、と脅した
+			SOURCE:ARG:露出 += 100
+			SOURCE:ARG:恐怖 += 500
+			CALL NTR_ADD_SURRENDER(ARG, 10)
+		ELSE
+			IF CFLAG:ARG:ローター挿入 != 0
+				;ローターは新しいのに交換しようねー
+				PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%の秘所に押し込まれているローターの電池を取り替えた
+			ELSE
+				PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%の秘所にローターを挿入して固定した
+			ENDIF
+			CFLAG:ARG:ローター挿入 = 240
+			SOURCE:ARG:露出 += 200
+			SOURCE:ARG:欲情 += 100 + 200 * ABL:ARG:欲望
+			SOURCE:ARG:受動 += 100 + 200 * ABL:ARG:従順
+			CALL NTR_ADD_SURRENDER(ARG, 3)
+		ENDIF
+		PRINT そのまま
+	ENDIF
+	IF CFLAG:ARG:ローターA挿入 != 0
+		;ローターは新しいのに交換しようねー
+		PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%のアヌスに押し込まれているローターの電池を取り替えた
+	ELSE
+		PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%のアヌスにローターを挿入して固定した
+	ENDIF
+	CFLAG:ARG:ローターA挿入 = 240
+	SOURCE:ARG:露出 += 200
+	SOURCE:ARG:欲情 += 100 + 200 * ABL:ARG:欲望
+	SOURCE:ARG:受動 += 100 + 200 * ABL:ARG:従順
+	CALL NTR_ADD_SURRENDER(ARG, 3)
+
+RETURN 0
+;---------------------------------------------
+;戦闘敗北時の(普通の)お仕置き処理(屋外トイレ行き)
+;@param ARG   訪問者に対峙したキャラクター番号
+;@param ARG:1 他人が口をだせるかどうか(0:出せる,1:出せない)
+;@return 結果(0:助かった,1:屋外トイレ行き)
+@COM417_Lose_Punishment_Normal(ARG,ARG:1)
+	
+	VARSET LOCAL
+
+	PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%に、たっぷりと犯してやるからトイレで待て、と命じた。
+
+	IF TALENT:ARG:処女
+		IF TALENT:ARG:プライド > 0
+			PRINTFORML %CALLNAME:ARG%は屈辱に震えている……
+		ELSE
+			PRINTFORML %CALLNAME:ARG%は恐怖で震えている……
+		ENDIF
+		SOURCE:ARG:恐怖 += 500
+		CALL NTR_ADD_SURRENDER(ARG, 10)
+	ELSE
+		PRINTFORML %CALLNAME:ARG%は屈辱に唇を噛みしめた……
+		SOURCE:ARG:欲情 += 100 + 200 * ABL:ARG:欲望
+		SOURCE:ARG:受動 += 100 + 200 * ABL:ARG:従順
+	ENDIF
+	
+	IF ARG:1 == 0
+		;あなた対応ができなくて詰んだ……仕方ないんであなた抜きループ
+		;流石にやり過ぎ、と言って貰えるかどうかの判定
+		FOR LOCAL,1,CHARA_ACTIVE
+			IF LOCAL == ARG
+				;自分自身は助けられませんね？
+			ELSEIF CFLAG:LOCAL:睡眠
+				;寝てる人は無関係
+			ELSEIF TALENT:LOCAL:NTR
+				;NTRだと助けてくれません
+			ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置
+				;同じ位置にいるならワンチャンある
+				IF COM417_Position(LOCAL) <20
+					;あなた側にさりげなく援護、程度なら口出しする権利がある
+					;相性補正とか入れてみたいけど、面倒なのでとりあえず単純に。
+					IF LOCAL:1 == 0
+						PRINTFORM %CALLNAME:LOCAL%
+					ELSE
+						PRINTFORM と%CALLNAME:LOCAL%
+					ENDIF
+					LOCAL:1 ++
+				ENDIF
+			ENDIF
+		NEXT
+	ENDIF
+	IF LOCAL:1 > 0
+		;助けて貰えた
+		PRINTFORMW が非難すると、%NTR_NAME(他人)%は渋々とあきらめたようだ……
+		CALL COM417_Lose_Punishment_Easy(ARG)
+		RETURN 0
+	ELSE
+		;助けて貰えなかった
+		IF TALENT:ARG:プライド > 0
+			PRINTFORMW %CALLNAME:ARG%は屈辱に肩を震わせながら、犯されるためだけにトイレへと歩いて行った……
+		ELSE
+			PRINTFORMW %CALLNAME:ARG%はうつむいて、犯されるためだけにトイレへと歩いて行った……
+		ENDIF
+		CFLAG:ARG:現在位置 = 場所_公園トイレ
+		FLAG:訪問者同行フラグ = 0
+		RETURN 1
+	ENDIF
+RETURN 0
+
+
+;---------------------------------------------
+;戦闘敗北時の(厳しい)お仕置き処理(お持ち帰り)
+;@param ARG  訪問者に対峙したキャラクター番号
+@COM417_Lose_Punishment_Extra(ARG)
+
+	VARSET LOCAL
+	
+	IF !IS_NTR_TAKINGOUT_ENABLE()
+		;お持ち帰り禁止なら屋外トイレ行き（強制）
+		CALL COM417_Lose_Punishment_Normal(ARG,1)
+		RETURN 0
+	ENDIF
+
+	PRINTFORML %NTR_NAME(他人)%は%CALLNAME:ARG%に、正門で待っているように命じた
+	PRINTFORML %CALLNAME:ARG%が恐る恐る理由を聞くと、%NTR_NAME(他人)%は自宅に連れ帰って可愛がってやるからだ、と答えた
+	PRINTFORML お互い合意の上の楽しいお遊びをしようじゃないか、と厭らしい笑みを浮かべた。
+	
+	IF TALENT:ARG:処女
+		IF TALENT:ARG:プライド > 0
+			PRINTFORML %CALLNAME:ARG%は顔を蒼ざめさせ、無理に笑顔を作ろうとして頬をひきつらせている……
+		ELSE
+			PRINTFORML %CALLNAME:ARG%は恐怖のあまり失神しそうになっている……
+		ENDIF
+		SOURCE:ARG:恐怖 += 1000
+		CALL NTR_ADD_SURRENDER(ARG, 100)
+	ELSE
+		PRINTFORML %CALLNAME:ARG%は周りを見回し、助けを求めた……
+		SOURCE:ARG:欲情 += 100 + 200 * ABL:ARG:欲望
+		SOURCE:ARG:受動 += 100 + 200 * ABL:ARG:従順
+	ENDIF
+	
+	;あなた対応ができなくて詰んだ……仕方ないんであなた抜きループ
+	;流石にやり過ぎ、と言って貰えるかどうか……？
+	FOR LOCAL,1,CHARA_ACTIVE
+		IF LOCAL == ARG
+			;自分自身は助けられませんね？
+		ELSEIF CFLAG:LOCAL:睡眠
+			;寝てる人は無関係
+		ELSEIF TALENT:LOCAL:NTR
+			;NTRだと助けてくれません
+		ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置
+			;同じ位置にいるならワンチャンある
+			IF COM417_Position(LOCAL) <20
+				;あなた側にさりげなく援護、程度なら口出しする権利がある
+				;相性補正とか入れてみたいけど、面倒なのでとりあえず単純に。
+				IF LOCAL:1 == 0
+					PRINTFORM %CALLNAME:LOCAL%
+				ELSE
+					PRINTFORM と%CALLNAME:LOCAL%
+				ENDIF
+				LOCAL:1 ++
+			ENDIF
+		ENDIF
+	NEXT
+	IF LOCAL:1 > 0
+		;助けて貰えたが、屋外トイレへご招待
+		PRINTFORMW が非難すると、%NTR_NAME(他人)%は連れ帰るのをあきらめたようだ……
+		CALL COM417_Lose_Punishment_Normal(ARG,1)
+		RETURN 1
+	ELSE
+
+		IF TALENT:ARG:処女
+			;処女守りたい？
+			IF GETBIT(CFLAG:ARG:娼婦紋, 娼婦紋_右頬) > 0 && GETBIT(CFLAG:ARG:娼婦紋, 娼婦紋_恥丘) > 0 && GETBIT(CFLAG:ARG:娼婦紋, 娼婦紋_胸元) > 0 && GETBIT(CFLAG:ARG:娼婦紋, 娼婦紋_左尻) > 0 && TALENT:ARG:処女 == 1
+				TRYCALL COM417_Save_the_Virgin_ex(ARG,1)
+			ELSE
+				CALL COM417_Save_the_Virgin(ARG,1)
+			ENDIF
+			IF RESULT == 1
+				RETURN 0
+			ENDIF
+		ENDIF
+
+		;助けて貰えなかった
+		IF TALENT:ARG:プライド > 0
+			PRINTFORMW %CALLNAME:ARG%は蒼ざめながら、玄関の前で%NTR_NAME(他人)%を待っている……
+		ELSE
+			PRINTFORMW %CALLNAME:ARG%は震えて泣きながら、玄関の前で%NTR_NAME(他人)%を待っている……
+		ENDIF
+		;現在位置を強制的に開錠
+		FLAG:(300 + FLAG:訪問者の現在位置) = 0
+		;正門と言いつつそのまま訪問者宅へ移動。本当に正門へ移動させると誤爆拉致があるので
+		CFLAG:ARG:現在位置 = 場所_訪問者宅
+		;訪問者はまだやることがあるので後で移動します
+		;FLAG:訪問者の現在位置 = 場所_訪問者宅
+		CALL NTR_RESET_VISITOR_ACTION(ARG)
+		FLAG:訪問者との汚れ判定に使用 = 0
+		FLAG:訪問者滞在時間カウンタ = 0
+		FLAG:訪問者同行フラグ = 0
+		CFLAG:ARG:NTRカウンターセクハラ = 0
+	ENDIF
+	
+RETURN 0
+
+;---------------------------------------------
+;戦闘敗北時の(厳しい)お仕置き処理(屋外トイレメイン処理)
+;@param ARG  訪問者に対峙したキャラクター番号
+;@param ARG:1 他人が口をだせるかどうか(0:出せる,1以上:出せない)
+@COM417_Lose_Punishment_Hard(ARG,ARG:1)
+
+	VARSET LOCAL
+	
+	IF ARG:1 == 0
+		FOR LOCAL,1,CHARA_ACTIVE
+			IF LOCAL == ARG
+				;自分自身は助けられませんね？
+			ELSEIF CFLAG:LOCAL:睡眠
+				;寝ていると助けてくれません
+			ELSEIF TALENT:LOCAL:NTR
+				;NTRだと助けてくれません
+			ELSEIF CFLAG:LOCAL:現在位置 == CFLAG:ARG:現在位置
+				;同じ位置にいるならワンチャンある
+				IF COM417_Position(LOCAL) <20
+					;あなた側にさりげなく援護、程度なら口出しする権利がある
+					;相性補正とか入れてみたいけど、面倒なのでとりあえず単純に。
+					IF LOCAL:1 == 0
+						PRINTFORM %CALLNAME:MASTER%はトイレへ連れて行かれそうになったが、%CALLNAME:LOCAL%
+					ELSE
+						PRINTFORM と%CALLNAME:LOCAL%
+					ENDIF
+					LOCAL:1 ++
+				ENDIF
+			ENDIF
+		NEXT
+	ENDIF
+	IF LOCAL:1 > 0
+		;助けてもらえた
+		PRINTW によって阻止された
+		RETURN 0
+	ELSE
+		CFLAG:ARG:現在位置 = 場所_公園トイレ
+		FLAG:訪問者の現在位置 = 場所_公園トイレ
+		FLAG:訪問者滞在時間カウンタ = 0
+		FLAG:訪問者同行フラグ = 0
+		PRINTFORMW %CALLNAME:ARG%は%NTR_NAME(他人)%によってトイレに連れ込まれた
+		PRINTFORMW 　　　　　　・
+		PRINTFORMW 　　　　　　・
+		PRINTFORMW 　　　　　　・
+		FOR LOCAL,0,CHARA_ACTIVE
+			IF CFLAG:LOCAL:睡眠
+				;寝てる人は無関係
+			ELSEIF CFLAG:LOCAL:現在位置 == 場所_公園トイレ
+				IF TALENT:LOCAL:処女
+					;処女守りたい？
+					;再生処女ではなく既に太股以外の４ヶ所に娼婦紋あると特殊娼婦紋条件へ
+					IF GETBIT(CFLAG:LOCAL:娼婦紋, 娼婦紋_右頬) > 0 && GETBIT(CFLAG:LOCAL:娼婦紋, 娼婦紋_恥丘) > 0 && GETBIT(CFLAG:LOCAL:娼婦紋, 娼婦紋_胸元) > 0 && GETBIT(CFLAG:LOCAL:娼婦紋, 娼婦紋_左尻) > 0 && TALENT:LOCAL:処女 == 1
+						TRYCALL COM417_Save_the_Virgin_ex(LOCAL)
+					ELSE
+						CALL COM417_Save_the_Virgin(LOCAL)
+					ENDIF
+				ELSE
+					RESULT =0
+				ENDIF
+				IF RESULT == 0
+					CALL COM417_Fucking(LOCAL,RESULT)
+				ENDIF
+			ENDIF
+		NEXT
+	ENDIF
+RETURN 0
+
+
+;---------------------------------------------
+;気が済むまで犯す処理
+;@param ARG 犠牲者のキャラクター番号
+;@param ARG:1 後ろだけ使うなら1
+@COM417_Fucking(ARG,ARG:1)
+	#DIM iLoop
+	VARSET LOCAL
+	
+	;LOCAL:1 経過時間(分)
+	LOCAL:1 = 0
+	;LOCAL:2 連続レイプ確率
+	LOCAL:2 = 5
+	;LOCAL:3 Ｖレイプ回数
+	LOCAL:3 = 0
+	;LOCAL:4 Ａレイプ回数
+	LOCAL:4 = 0
+
+	;飽きるまで犯す
+	WHILE 1
+		;時間経過
+		LOCAL:1 += RAND:5 + 18
+		;犯されるごとに屈服度上昇
+		CALL NTR_ADD_SURRENDER(ARG, (5 + RAND:5))
+		;基本前重視の判定
+		IF RAND:3 && HAS_VAGINA(ARG)
+			;Ｖレイプ回数増加
+			LOCAL:3 ++
+			CALL COM417_Ntr_Rape_V(ARG)
+		ELSE
+			;Aレイプ回数増加
+			LOCAL:4 ++
+			CALL COM417_Ntr_Rape_A(ARG)
+		ENDIF
+
+		;犯し飽きたかどうかの判定
+		SIF RAND:(LOCAL:2) == 0
+			BREAK
+		LOCAL:2 = MAX(LOCAL:2--,2)
+
+	WEND
+
+	IF LOCAL:3 > 0 && LOCAL:4 == 0
+		PRINTFORMW %CALLNAME:ARG%は{LOCAL:3}回、{LOCAL:1/60}時間{LOCAL:1%60}分もの間性器を犯された…
+	ELSEIF LOCAL:3 == 0 && LOCAL:4 > 0
+		PRINTFORMW %CALLNAME:ARG%は{LOCAL:4}回、{LOCAL:1/60}時間{LOCAL:1%60}分もの間アナルを犯された…
+	ELSEIF LOCAL:3 > 0 && LOCAL:4 > 0
+		PRINTFORMW %CALLNAME:ARG%は性器を{LOCAL:3}回、アナルを{LOCAL:4}回、{LOCAL:1/60}時間{LOCAL:1%60}分もの間犯された…
+	ENDIF
+
+	FOR iLoop,0,(LOCAL:1/(LOCAL:3+LOCAL:4)*LOCAL:3),5
+		CALL 締り具合変動, ARG, 3, 0
+	NEXT
+	FOR iLoop,0,(LOCAL:1/(LOCAL:3+LOCAL:4)*LOCAL:4),5
+		CALL 締り具合変動, ARG, 3, 1
+	NEXT
+	
+	;MASTER時の処理
+	IF ARG == MASTER
+		;MASTERのレイプ回数
+		FLAG:MASTERが犯された回数 += LOCAL:3 + LOCAL:4
+		;屈服度がある程度あるとペニス用貞操帯の着用を強いられる。
+		IF HAS_PENIS(MASTER) && CFLAG:MASTER:屈服度 > 500
+			PRINTFORML %NTR_NAME(他人)%は力尽きて動けない%CALLNAME:MASTER%の傍らで、小さなペニス用の貞操帯を取りだした
+			PRINTFORML %NTR_NAME(他人)%は%CALLNAME:MASTER%のペニスに貞操帯を着けると、１週間後に外してやると言って離れていった……
+			;屈服度が劇的に増える。満たない場合は強制的に1500に
+			CFLAG:MASTER:屈服度 = MAX (CFLAG:MASTER:屈服度 + 20 + RAND:20,1500)
+			;ペニス用貞操帯装着
+			CALL MOUNT_P_CHASTITY_BELT(MASTER, 人物_訪問者, 2)
+		ENDIF
+	ENDIF
+
+	;時間経過
+	TIME += LOCAL:1
+RETURN 0
+
+
+;---------------------------------------------
+;犯す処理Ｖ
+;@param ARG 犠牲者のキャラクター番号
+@COM417_Ntr_Rape_V(ARG)
+
+	VARSET LOCAL
+
+	TEQUIP:ARG:Ｖセックス = 人物_訪問者
+	TCVAR:ARG:行為者 = 人物_訪問者
+	
+	;経験増加
+	EXP:ARG:Ｖ経験 ++
+	EXP:ARG:Ｖ性交経験 ++
+
+	;膣内射精される
+	TRYCALL 精力取得, 人物_訪問者
+	TRYCALL NTR_SAMEN_EXP_PLUS(ARG, 0)
+	TRYCALL 精子取得, 人物_訪問者, ARG
+
+	;簡易絶頂判定
+	IF ABL:ARG:Ｖ感覚 > RAND:5
+		EXP:ARG:Ｖ絶頂経験 ++
+		EXP:ARG:絶頂経験 ++
+		;絶頂したらご褒美にもう一回精子取得
+		TRYCALL 精子取得, 人物_訪問者, ARG
+	ENDIF
+
+	;処女判定
+	IF TALENT:ARG:処女
+		PRINTFORML %CALLNAME:ARG%の処女は%NTR_NAME(他人)%によって散らされてしまった・・
+		PRINTFORML ＜%CALLNAME:ARG%は処女を失いました＞
+		CALL LOST_VIRGIN(ARG, 人物_訪問者)
+		;破瓜血付与(この後の汚れ判定で)
+		SETBIT FLAG:訪問者との汚れ判定に使用,6
+		CALL NTR_ADD_SURRENDER(ARG, (10 + RAND:10))
+	ENDIF
+
+	;汚れ判定
+	;訪問者の精液汚れセット
+	CALL EJACULATION_V(ARG, 人物_訪問者)
+
+RETURN 0
+
+
+;---------------------------------------------
+;犯す処理Ａ
+;@param ARG 犠牲者のキャラクター番号
+@COM417_Ntr_Rape_A(ARG)
+
+	VARSET LOCAL
+
+	TEQUIP:ARG:Ａセックス = 人物_訪問者
+	TCVAR:ARG:行為者 = 人物_訪問者
+	
+	;経験増加
+	EXP:ARG:Ａ経験 ++
+	EXP:ARG:Ａ性交経験 ++
+
+	;簡易絶頂判定
+	IF ABL:ARG:Ａ感覚 > RAND:5
+		EXP:ARG:Ａ絶頂経験 ++
+		EXP:ARG:絶頂経験 ++
+		IF HAS_PENIS(ARG)
+			;絶頂したらトコロテン
+			SETBIT STAIN:ARG:Ｐ,汚れB_精液
+			EXP:ARG:射精経験 ++
+		ENDIF
+	ENDIF
+
+	CALL LOST_VIRGIN_A(ARG, 人物_訪問者)
+	;汚れ判定
+	;訪問者の精液汚れセット
+	CALL EJACULATION_A(ARG, 人物_訪問者)
+
+RETURN 0
+
+
+;---------------------------------------------
+;戦闘敗北時の(厳しい)お仕置き処理の続き(お持ち帰り)
+@COM417_Lose_Punishment_Extra_Continue(ARG)
+	
+	VARSET LOCAL
+	
+	LOCAL:1 = 0
+	LOCAL:2 = 0
+	FOR LOCAL,1,CHARA_ACTIVE
+		IF CFLAG:LOCAL:現在位置 == 場所_訪問者宅
+			LOCAL:2 = LOCAL
+			IF LOCAL:1 == 0
+				PRINTFORM 玄関では%CALLNAME:LOCAL%
+			ELSE
+				PRINTFORM と%CALLNAME:LOCAL%
+			ENDIF
+			LOCAL:1++
+		ENDIF
+	NEXT
+	IF LOCAL:1==0
+		;レイプ後にみんな屋外トイレに居て会話始まっちゃうのはアレなので訪問者を駅へ逃がす
+		FLAG:訪問者の現在位置 = 場所_駅
+		FLAG:訪問者同行フラグ = 0
+		RETURN 0
+	ELSE
+		PRINTFORM が%NTR_NAME(他人)%を待っていた……
+		;ここで訪問者も帰る
+		FLAG:訪問者の現在位置 = 場所_訪問者宅
+		FLAG:訪問者同行フラグ = 0
+		IF LOCAL:1 > 1
+			PRINTFORMW %NTR_NAME(他人)%は{LOCAL:1}人を連れると、どこかへ去って行った……
+		ELSE
+			PRINTFORMW %NTR_NAME(他人)%は%CALLNAME:(LOCAL:2)%を連れると、どこかへ去って行った……
+		ENDIF
+		
+	ENDIF
+
+RETURN 0
+
+;---------------------------------------------
+;処女を奪うのだけは許してください！なんでもしますから！
+;基本あなた限定なので、意図的にMASTERを使っています。
+;ちょっと関数長すぎる上に汚いんでリファクタリングしたいですね
+;@return 0:奪ってもいいです,1:奪わないでください
+@COM417_Save_the_Virgin(犠牲者,持帰フラグ)
+	#DIM 犠牲者		; 犠牲者のキャラクター番号
+	#DIM 持帰フラグ	; 0:屋外トイレ 1:持帰り
+	#DIM LOOP_CNT	; ループカウンタ
+	#DIM 取得数		; 今回押させる数
+	#DIM 取得部位	; 今回押させる場所
+	
+	IF !TALENT:犠牲者:処女
+		;非処女は助ける必要は無いね
+		RETURN 0
+	ENDIF
+
+	IF 犠牲者 == MASTER
+		;自分は助かりません
+		RETURN 0
+	ENDIF
+	
+	PRINTFORML このままでは%CALLNAME:犠牲者%の処女が奪われてしまう……！
+	
+	PRINT [0] - それだけはやめてくれと頼む [1] - 泣く泣くあきらめる
+	INPUT
+	IF RESULT
+		PRINTFORMW %CALLNAME:MASTER%は、何も言うことができなかった……
+		RETURN 0
+	ENDIF
+	
+	;娼婦紋取得部位を取得
+	CALL COM417_Get_Pos(犠牲者, 持帰フラグ)
+	取得部位 = RESULT
+	
+;	IF 犠牲者 == 人物_C
+;		;ぱっちぇさん見ただけでわかるねすごいね。だが絶望しかない
+;		PRINTFORMW %CALLNAME:犠牲者%は印章を見て青ざめたが、%NTR_NAME(他人)%が軽く脅しをかけると、口を噤んで%CALLNAME:MASTER%の方をじっと見つめた
+;	ENDIF
+	
+	IF 0 == CFLAG:MASTER:娼婦紋押下回数
+		;娼婦紋を押したことがないとき
+		IF EXP:MASTER:買春経験
+			PRINTFORMW 印章に刻まれているのは、%NTR_NAME(他人)%から買う「便所」の鍵と同じ紋だ……。
+		ENDIF
+		IF TALENT:犠牲者:処女 == 1
+			;純正処女だと……まあ、うん。なんとかなるはなるよね
+			PRINTFORMW 凄く嫌な予感がする。これを押したとして、本当に%CALLNAME:犠牲者%を助けられるのだろうか……？
+		ELSE
+			;再生処女だと取り返しがつかない事になります
+			PRINTFORMW 凄く嫌な予感がする。これを押してしまったら、もう取り返しがつかないような……。
+		ENDIF
+	ELSE
+		;既に押したことがあるとき
+		PRINTFORMW わかっている。この印章を押してしまうと……。
+	ENDIF
+	
+	PRINT [0] - 処女を守るために押しつける [1] - 無理だ。これは押せない……
+	INPUT
+	IF RESULT
+		IF TALENT:犠牲者:恋慕
+			PRINTFORMW %NTR_NAME(他人)%は、こいつは自分の%MSG_RE_LOVER(犠牲者)%の処女を他人にくれてやるんだとさ、と%CALLNAME:犠牲者%に告げた……
+		ELSE
+			PRINTFORMW %NTR_NAME(他人)%は、どうやら処女はいらないらしいな、と%CALLNAME:犠牲者%に告げた……
+		ENDIF
+		RETURN 0
+	ENDIF
+	
+	;娼婦紋を押す
+	CALL COM417_Put_Stump(犠牲者, 取得部位)
+	PRINTFORMW %NTR_NAME(他人)%は他の誰かに捧げるその日まで、%CALLNAME:犠牲者%の処女を大事にしてやれ、と言い笑った。
+	RETURN 1
+	
+RETURN 0
+
+;---------------------------------------------
+;娼婦紋取得部位を取得
+;@return 取得部位
+@COM417_Get_Pos(犠牲者, 持帰フラグ)
+	#DIM 犠牲者		; 犠牲者のキャラクター番号
+	#DIM 持帰フラグ	; 0:屋外トイレ 1:持帰り
+	#DIM LOOP_CNT	; ループカウンタ
+	#DIM 取得数		; 今回押させる数
+	#DIM 取得部位	; 今回押させる場所
+	
+	IF 0 == CFLAG:MASTER:娼婦紋押下回数
+		;娼婦紋を押したことがないとき
+		PRINTFORML %CALLNAME:MASTER%が処女を奪うのだけは許してくれ、と懇願すると
+		PRINTFORMW %NTR_NAME(他人)%は、何かとても酷いことを思いついたようだ……
+		PRINTL
+
+		PRINTFORML %NTR_NAME(他人)%は、しばらくの間%CALLNAME:犠牲者%の身体を弄り回すと、ポケットから小さな印章を取りだし
+	ELSE
+		;既に押したことがあるとき
+		PRINTFORML %CALLNAME:MASTER%が処女を奪うのだけは許してくれ、と懇願すると
+		PRINTFORMW %NTR_NAME(他人)%は薄笑いを浮かべ、ポケットから見覚えのある印章を取りだし
+	ENDIF
+
+	取得数 = 0
+	取得部位 = 0
+	PRINTFORM %CALLNAME:犠牲者%の
+	FOR LOOP_CNT,5,0,-1
+		IF (取得数<=持帰フラグ) && (GETBIT(CFLAG:犠牲者:娼婦紋, 娼婦紋_右頬)==0) && (ABL:犠牲者:親密 > LOOP_CNT)
+			;右頬優先。目に見えるから。あとちゅっちゅ防止
+			PRINTFORM %"と"*(取得数>0)+"右頬"%
+			SETBIT 取得部位,娼婦紋_右頬
+			取得数++
+		ENDIF
+		IF (取得数<=持帰フラグ) && (GETBIT(CFLAG:犠牲者:娼婦紋, 娼婦紋_恥丘)==0) && (ABL:犠牲者:Ｃ感覚 > LOOP_CNT)
+			PRINTFORM %"と"*(取得数>0)+"恥丘"%
+			SETBIT 取得部位,娼婦紋_恥丘
+			取得数++
+		ENDIF
+		IF (取得数<=持帰フラグ) && (GETBIT(CFLAG:犠牲者:娼婦紋, 娼婦紋_左尻)==0) && (ABL:犠牲者:Ａ感覚 > LOOP_CNT)
+			PRINTFORM %"と"*(取得数>0)+"左尻"%
+			SETBIT 取得部位,娼婦紋_左尻
+			取得数++
+		ENDIF
+		IF (取得数<=持帰フラグ) && (GETBIT(CFLAG:犠牲者:娼婦紋, 娼婦紋_胸元)==0) && (ABL:犠牲者:Ｂ感覚 > LOOP_CNT)
+			PRINTFORM %"と"*(取得数>0)+"胸元"%
+			SETBIT 取得部位,娼婦紋_胸元
+			取得数++
+		ENDIF
+		IF (取得数<=持帰フラグ) && (GETBIT(CFLAG:犠牲者:娼婦紋, 娼婦紋_太股)==0) && (ABL:犠牲者:Ｖ感覚 > LOOP_CNT)
+			;挿入は優先度が低い。訪問者は優しいね。
+			PRINTFORM %"と"*(取得数>0)+"太腿"%
+			SETBIT 取得部位,娼婦紋_太股
+			取得数++
+		ENDIF
+		IF 取得数 > 持帰フラグ
+			BREAK
+		ENDIF
+	NEXT
+	;もしどこにも押さなかったら右頬に押す
+	IF 取得数 == 0
+		PRINTFORM %"と"*(取得数>0)+"右頬"%
+		SETBIT 取得部位,娼婦紋_右頬
+		取得数++
+	ENDIF
+
+	IF 0 == CFLAG:MASTER:娼婦紋押下回数
+		;娼婦紋を押したことがないとき
+		PRINTFORMW に印章を押しつければ処女は奪わずにおいてやる、と言った
+	ELSE
+		;既に押したことがあるとき
+		PRINTFORMW に印章を押しつければ処女は奪わずにおいてやる、結果は……わかっているな？と言った
+	ENDIF
+	PRINTL
+
+RETURN 取得部位
+
+;---------------------------------------------
+;娼婦紋を押す
+;@return 常に1
+@COM417_Put_Stump(犠牲者, 取得部位)
+	#DIM 犠牲者		; 犠牲者のキャラクター番号
+	#DIM 取得部位	; 今回押させる場所
+	#DIM 取得数		; 今回押させる数
+
+	取得数 = 0
+	PRINTFORM %CALLNAME:MASTER%は印章を受け取ると、%CALLNAME:犠牲者%の
+	IF GETBIT(取得部位,娼婦紋_恥丘)
+		PRINTFORM %"と"*(取得数>0)+"恥丘"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_左尻)
+		PRINTFORM %"と"*(取得数>0)+"左尻"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_胸元)
+		PRINTFORM %"と"*(取得数>0)+"胸元"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_太股)
+		PRINTFORM %"と"*(取得数>0)+"太腿"%
+		取得数++
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_右頬)
+		PRINTFORM %"と"*(取得数>0)+"右頬"%
+		取得数++
+	ENDIF
+
+	PRINTFORMW に押しつけた。
+	PRINTFORMW 印章を離すと、押したところには淫靡さを感じさせる、赤紫色の紋が残されている。
+	PRINTL
+	IF 0 == CFLAG:MASTER:娼婦紋押下回数
+		;娼婦紋を押したことがないとき
+		PRINTFORML %CALLNAME:MASTER%が振り返ると、%NTR_NAME(他人)%は悪魔のような笑みを浮かべ、
+		PRINTFORMW それは生娘を買い取る時に押させる紋で、押した%CALLNAME:MASTER%は%CALLNAME:犠牲者%に手を出せなくなるのだ、と種明かしをした。
+	ELSE
+		;既に押したことがあるとき
+		PRINTFORMW %CALLNAME:MASTER%は自らの手で、%CALLNAME:犠牲者%に手を出せなくなる娼婦紋を押してしまった。
+	ENDIF
+	
+	IF GETBIT(取得部位,娼婦紋_恥丘)
+		CALL COM417_Add_Stump(犠牲者, 娼婦紋_恥丘, "恥丘")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_左尻)
+		CALL COM417_Add_Stump(犠牲者, 娼婦紋_左尻, "左尻")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_胸元)
+		CALL COM417_Add_Stump(犠牲者, 娼婦紋_胸元, "胸元")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_太股)
+		CALL COM417_Add_Stump(犠牲者, 娼婦紋_太股, "太股")
+	ENDIF
+	IF GETBIT(取得部位,娼婦紋_右頬)
+		CALL COM417_Add_Stump(犠牲者, 娼婦紋_右頬, "右頬")
+	ENDIF
+	
+	CFLAG:MASTER:娼婦紋押下回数 += 取得数
+RETURN 1
+
+;---------------------------------------------
+;娼婦紋を追加
+;@return 常に1
+@COM417_Add_Stump(犠牲者, 追加部位, 部位名称)
+	#DIM 犠牲者
+	#DIM 追加部位
+	#DIMS 部位名称
+
+	IF GETBIT(CFLAG:犠牲者:娼婦紋, 追加部位)
+		CFLAG:犠牲者:娼婦紋上書回数 ++
+		PRINTFORML %CALLNAME:犠牲者%は%部位名称%に娼婦紋を上書きされた
+	ELSE
+		PRINTFORML %CALLNAME:犠牲者%は%部位名称%に娼婦紋を得た
+	ENDIF
+	SETBIT CFLAG:犠牲者:娼婦紋,追加部位
+RETURN 1
+
+;---------------------------------------------
+;処女が失われた時の処理
+;@param ARG   奪われたキャラ
+;@param ARG:1 奪ったキャラ
+@COM417_Lost_Virgin(ARG,ARG:1)
+
+	IF CFLAG:ARG:娼婦紋 == 0
+		RETURN 0
+	ENDIF
+
+	IF ARG:1 == MASTER
+		PRINTFORML %CALLNAME:ARG%の娼婦紋はもう二度と消えなくなってしまった……
+		RETURN 0
+	ENDIF
+
+	IF TALENT:ARG:処女 == 2
+		PRINTFORML 処女を奪われたにもかかわらず、%CALLNAME:ARG%の娼婦紋は消えなかった……
+		RETURN 0
+	ENDIF
+
+	PRINTFORML %CALLNAME:MASTER%以外に処女を奪われ、%CALLNAME:ARG%の娼婦紋は跡形も無く消え去った……。
+	CFLAG:ARG:娼婦紋 = 0
+
+RETURN 0
+
+
+;---------------------------------------------
+;紋による接触可否チェック
+;@return 0:触れる 1:触れない
+@COM417_is_Protected(調教者,対象者,部位)
+	#DIM 調教者
+	#DIM 対象者
+	#DIM 部位	; (0:Ｃ,1:Ｖ,2:Ａ,3:Ｂ,4:口)
+	#DIMS 部位名
+	#DIMS 紋位置
+	
+	SELECTCASE 部位
+		CASE 娼婦紋_恥丘
+			部位名 = クリトリス
+			紋位置 = 恥丘
+		CASE 娼婦紋_太股
+			部位名 = 秘唇
+			紋位置 = 太腿
+		CASE 娼婦紋_左尻
+			部位名 = 尻
+			紋位置 = 左尻
+		CASE 娼婦紋_胸元
+			部位名 = 胸
+			紋位置 = 胸元
+		CASE 娼婦紋_右頬
+			部位名 = 口
+			紋位置 = 右頬
+		CASEELSE
+			RETURN 0
+	ENDSELECT
+	
+	IF GETBIT(CFLAG:対象者:娼婦紋,部位)
+
+		;充填率
+		CALL COM417_GetFillingRateByPublicSperm(対象者)
+		SELECTCASE (RESULT:1 * RESULT:0)
+			CASE IS >= 200
+				;満タンならコマンドが実行できる
+				PRINTFORML %CALLNAME:対象者%の%紋位置%に押された紋が、鮮やかなピンク色に変わっている……
+				PRINTFORML 精液で膨れあがった%CALLNAME:対象者%の下腹を撫で、%CALLNAME:調教者%はその肢体にむしゃぶりついた
+				PRINTFORML これだけ精液が注ぎ込まれたのなら、数日は娼婦紋が効果を失ったままだろう……
+				RETURN 0
+			CASE 100 TO 199
+				;満タンならコマンドが実行できる
+				PRINTFORML %CALLNAME:対象者%の%紋位置%に押された紋が、ピンク色に変わっている……
+				PRINTFORML どうやら、%CALLNAME:調教者%以外の精液が子宮を満たしている間だけは、娼婦紋が効果を失うようだ
+				PRINTFORML 久しぶりに%CALLNAME:対象者%に触れた%CALLNAME:調教者%は、その感触を十分に堪能した
+				RETURN 0
+			CASE 50 TO 99
+				PRINTFORML %CALLNAME:調教者%は%CALLNAME:対象者%の%部位名%に触れようとしたが、見えない壁のようなものに阻まれた
+				PRINTFORML %CALLNAME:対象者%の%紋位置%に押された紋が、赤色に変わっている……
+			CASE 1 TO 49
+				PRINTFORML %CALLNAME:調教者%は%CALLNAME:対象者%の%部位名%に触れようとしたが、見えない壁のようなものに阻まれた
+				PRINTFORML %CALLNAME:対象者%の%紋位置%に押された紋が、赤紫色に変わっている……
+			CASEELSE
+				IF RESULT:1 == 0 && RESULT:0 > 99
+					PRINTFORML %CALLNAME:対象者%の子宮は精液で膨れあがっているのに、%紋位置%に押された紋は紫色のままだ。
+					PRINTFORML %CALLNAME:調教者%の精液が注がれた証拠ではあるが、もう%CALLNAME:対象者%に触れることはできない……
+				ELSE
+					PRINTFORML %CALLNAME:調教者%は%CALLNAME:対象者%の%部位名%に触れようとしたが、見えない壁のようなものに阻まれた
+					PRINTFORML %CALLNAME:対象者%の%紋位置%には、紫色の紋が押されている……
+					PRINTFORML しばらくの間いろいろと試してみたが、紋が押されている限り指一本触れることはできないらしい。
+				ENDIF
+		ENDSELECT
+		
+		TIME += 10
+
+		IF CFLAG:対象者:好感度 > 0
+			PRINTFORML %CALLNAME:対象者%は触れて貰えない事に不満を感じているようだ……
+			;欲情していると反感が伸びる
+			PALAM:対象者:反感 += MIN( PALAM:対象者:欲情/MAX(CFLAG:対象者:好感度,1),300)
+			;欲情していると好感度も下がる
+			CFLAG:対象者:好感度 = MAX( CFLAG:対象者:好感度 - MIN(PALAM:対象者:欲情 ,30),0)
+			;上書きしていると効果が２倍に
+			IF CFLAG:対象者:娼婦紋上書回数
+				PALAM:対象者:反感 += MIN( PALAM:対象者:欲情/MAX(CFLAG:対象者:好感度,1),300)
+			CFLAG:対象者:好感度 = MAX( CFLAG:対象者:好感度 - MIN(PALAM:対象者:欲情 ,30),0)
+			ENDIF
+		ELSE
+			PRINTFORML %CALLNAME:対象者%はつまらなさそうに%CALLNAME:調教者%を見た……
+		ENDIF
+
+		RETURN 1
+	ENDIF
+RETURN 0
+
+;---------------------------------------------
+;紋による接触可否チェック(チェックのみ)
+;@return 0:触れる 1:触れない
+@COM417_is_Protected_CheckOnly(調教者,対象者,部位)
+#FUNCTION
+	#DIM 調教者
+	#DIM 対象者
+	#DIM 部位	; (0:Ｃ,1:Ｖ,2:Ａ,3:Ｂ,4:口)
+	#DIM LOOP_CHR
+	#DIM 精子量
+
+	VARSET LOCAL
+	IF !GETBIT(CFLAG:対象者:娼婦紋,部位)
+		RETURNF 0
+	ENDIF
+	精子量 = 0
+	FOR LOOP_CHR, 0, 1063
+;		SIF LOOP_CHR == CHARA_ACTIVE
+;			LOOP_CHR = 精子主_スキップ
+		DA:対象者:LOOP_CHR = 0
+		REPEAT 5
+			DA:対象者:LOOP_CHR += TA:対象者:LOOP_CHR:COUNT
+		REND
+		IF DA:対象者:LOOP_CHR > 0
+			IF LOOP_CHR == MASTER
+				RETURNF 1
+			ENDIF
+			精子量 += DA:対象者:LOOP_CHR
+		ENDIF
+	NEXT
+
+	SELECTCASE LIMIT(100*精子量/(CFLAG:対象者:子宮内体積),0,200)
+		CASE IS >= 100
+			RETURNF 0
+		CASEELSE
+			RETURNF 1
+	ENDSELECT
+
+RETURNF 0
+
+;---------------------------------------------
+;子宮があなた以外の精子で満たされているかチェック
+;@param ARG:0 チェックするキャラクター
+;@return RESULT:0 子宮が精液で満たされている率（％）
+;@return RESULT:1 あなたの精液が混じっている場合は0
+@COM417_GetFillingRateByPublicSperm(対象者)
+	#DIM 対象者
+	#DIM LOOP_CHR
+	#DIM あなた以外フラグ	; 0:MASTERを含む 1:MASTERを含まない
+	#DIM 精子量
+	#DIM 人数
+
+	あなた以外フラグ = 1
+	精子量 = 0
+	人数 = 0
+	FOR LOOP_CHR, 0, 1063
+;		SIF LOOP_CHR == CHARA_ACTIVE
+;			LOOP_CHR = 精子主_スキップ
+
+		;精子量を再計算
+		DA:対象者:LOOP_CHR = 0
+		REPEAT 5
+			DA:対象者:LOOP_CHR += TA:対象者:LOOP_CHR:COUNT
+		REND
+
+		;精子量チェック
+		IF DA:対象者:LOOP_CHR > 0
+			IF LOOP_CHR == MASTER
+				あなた以外フラグ = 0
+			ENDIF
+			精子量 += DA:対象者:LOOP_CHR
+			人数 ++
+		ENDIF
+	NEXT
+	
+	DEBUGPRINTFORM %CALLNAME:対象者%の子宮内は
+	IF あなた以外フラグ
+		DEBUGPRINTFORM %CALLNAME:MASTER%以外の
+	ELSE
+		DEBUGPRINTFORM %CALLNAME:MASTER%を含めた
+	ENDIF
+	DEBUGPRINTFORML {人数}人の精液で{100*精子量/(CFLAG:対象者:子宮内体積)}％満たされています。
+
+	RETURN LIMIT(100*精子量/(CFLAG:対象者:子宮内体積),0,200),あなた以外フラグ
+
+RETURN 0,0
+
+;娼婦紋による発情処理
+;---------------------------------------------
+@COM417_add_sexual_desire(人物)
+	#DIM 人物	; 対象となる人物
+	#DIM 強度	; 追加分の強度。娼婦紋上書き回数に依存。最大10
+	
+	IF CFLAG:人物:娼婦紋
+		強度 = LIMIT(CFLAG:人物:娼婦紋上書回数, 1, 10)
+		;充填率
+		CALL COM417_GetFillingRateByPublicSperm(人物)
+		SELECTCASE (RESULT:1 * RESULT:0)
+			CASE IS >= 100	; 娼婦紋がピンク色
+				強度 *= 0
+			CASE 50 TO 99	; 娼婦紋が赤
+				強度 *= 2
+			CASE 1 TO 49	; 娼婦紋が赤紫
+				強度 *= 5
+			CASEELSE		; 娼婦紋が紫
+				強度 *= 10
+		ENDSELECT
+		PALAM:人物:欲情 += 強度
+		CFLAG:人物:性欲 += 強度
+	ENDIF
+RETURN 0

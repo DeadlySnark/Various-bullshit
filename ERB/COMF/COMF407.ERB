@@ -1,0 +1,98 @@
+;新作AVの確認
+@COM407
+#DIM 興味=0
+#DIM 金銭
+#DIM LOOP_CHR
+PRINTFORML このＡＶメーカーは宣伝のために新作を事務所前に展示しているようだ
+PRINTFORML %CALLNAME:MASTER%はそれらを眺めてみた
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTW
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF CSTR:LOOP_CHR:AVタイトル==""
+		CONTINUE
+	PRINTFORML %CALLNAME:MASTER%は気になった「%CSTR:LOOP_CHR:AVタイトル%」を手にとって見た。
+	PRINTFORM そのパッケージ
+	IF CFLAG:LOOP_CHR:名前フラグ==2
+	;偽名は知っている
+		PRINTFORML には、この前知り合った娘が写っていた
+	;既知フラグを立てる
+		SETBIT CFLAG:LOOP_CHR:NTRPREKNOW, 人物_AV男優-人物_訪問者
+	ELSEIF CFLAG:LOOP_CHR:名前フラグ==1
+	;本名を知っている
+		PRINTFORML の女優は、化粧等で印象を変えようとしているが明らかに%CALLNAME:LOOP_CHR%だった…
+		SETBIT CFLAG:LOOP_CHR:NTRPREKNOW, 人物_AV男優-人物_訪問者
+	ELSE
+		PRINTFORML には、なかなかレベルの高い娘が写っていた。
+	ENDIF
+	興味=1
+	PRINTL
+NEXT
+IF 興味==0
+	PRINTFORML 特に興味深い作品はなかった
+	RETURN 0
+ENDIF
+TIME+=10
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTFORML 　　　・
+PRINTW
+PRINTFORML 気がつくと隣に社員らしき男が立っていた。
+PRINTFORML 「お客さん、何か御用ですかい？」
+PRINTL [0] - 何でもない
+FOR LOOP_CHR,1, CHARA_ACTIVE
+	SIF !PRENTR(LOOP_CHR, 人物_AV男優, NTRPRE_職)
+		CONTINUE
+	;金銭
+	;NTRになると格安で放出するイメージで
+;	金銭=MIN((1000+NTR_COST_UNLOCK(LOOP_CHR)*(1+MAX(1, TALENT:LOOP_CHR:アイドル)+MIN(1, TALENT:LOOP_CHR:NTR))), 100000)
+	金銭=MAX(1, 5000 +NTR_COST_UNLOCK(LOOP_CHR)*(1+MAX(1, TALENT:LOOP_CHR:アイドル)+TALENT:LOOP_CHR:恋慕)*3 - 5*(MIN(1, TALENT:LOOP_CHR:NTR)+TALENT:LOOP_CHR:公衆便所)*(CFLAG:LOOP_CHR:(屈服IX+人物_AV男優-人物_訪問者)))
+	IF CFLAG:LOOP_CHR:名前フラグ == 1
+	;実名を知っている
+		PRINTFORML [{LOOP_CHR}] - %CSTR:LOOP_CHR:源氏名%（%CSTR:LOOP_CHR:フルネーム%）の契約解除依頼 ${金銭}
+	ELSE
+		PRINTFORML [{LOOP_CHR}] - %CSTR:LOOP_CHR:源氏名%の契約解除依頼 ${金銭}
+	ENDIF
+NEXT
+INPUT
+SIF RESULT==0
+	RETURN 1
+LOCAL=RESULT
+
+PRINTFORML %CALLNAME:MASTER%は%CSTR:LOCAL:源氏名%の女優としての専属契約の解除をお願いしたが、男によると
+PRINTFORML 今彼女にやめられたら初期投資すら回収できないので社長が納得しないだろうとのことだ。
+PRINTFORM %CALLNAME:MASTER%が食い下がると、
+	PRINTDATA
+		DATAFORM 苛立ちを隠さずに
+		DATAFORM 一瞬視線を中に浮かせた後に
+		DATAFORM 大声でため息をつきながら
+	ENDDATA
+;金銭の計算
+;old 金銭=MIN((1000+NTR_COST_UNLOCK(LOCAL)*(MAX(1, TALENT:LOCAL:アイドル)+MIN(1, TALENT:LOCAL:NTR))), 100000)
+金銭=MAX(1, 5000 +NTR_COST_UNLOCK(LOCAL)*(1+MAX(1, TALENT:LOCAL:アイドル)+TALENT:LOCAL:恋慕)*3 - 5*(MIN(1, TALENT:LOCAL:NTR)+TALENT:LOCAL:公衆便所)*(CFLAG:LOCAL:(屈服IX+人物_AV男優-人物_訪問者)))
+PRINTFORML 発生する損害${金銭}を払えば納得するかもしれない、と言った。
+IF 金銭 > MONEY
+	PRINTFORML %CALLNAME:MASTER%は今${MONEY}しかない、と伝えると、男は呆れ顔で会社の中に去ってしまった。
+	RETURN 0
+ENDIF
+PRINTL [0] - 払う
+PRINTL [1] - 諦める
+INPUT
+IF !RESULT
+MONEY -= 金銭
+	PRINTFORML 男に現金を渡すと、急に態度が変わり今すぐ契約の解除をすると会社内に走っていった。
+	PRINTFORML これでおそらくは大丈夫だろう・・・
+	CLEARBIT TALENT:LOCAL:NTRPRE, 人物_AV男優-人物_訪問者
+	IF CFLAG:LOCAL:現在位置 >= 場所_訪問者宅
+		他人=CFLAG:LOCAL:軟禁者
+		CFLAG:LOCAL:自主性=0
+		CALL 朝奉仕_まとめ(LOCAL)
+		CALL NTR_RESET_VISITOR_ACTION(LOCAL)
+		CFLAG:LOCAL:(屈服IX+人物_AV男優-人物_訪問者)=MAX(0, CFLAG:LOCAL:(屈服IX+人物_AV男優-人物_訪問者)-CFLAG:LOCAL:好感度/2)
+		他人=人物_訪問者
+	ENDIF
+ELSE
+	PRINTFORML %CALLNAME:MASTER%はそんな法外な額は払えないと伝えると、男は呆れ顔で会社の中に去ってしまった。
+ENDIF
+RETURN 1
